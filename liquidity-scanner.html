@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIQ SCANNER — Binance Futures</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050508;
+    --bg2: #0a0a0f;
+    --bg3: #0f0f18;
+    --border: #1a1a2e;
+    --border2: #252540;
+    --green: #00ff88;
+    --green2: #00cc66;
+    --red: #ff3355;
+    --red2: #cc2244;
+    --yellow: #ffd700;
+    --cyan: #00e5ff;
+    --purple: #7c3aed;
+    --text: #c8c8e0;
+    --text2: #6666aa;
+    --text3: #333355;
+    --setup: #ff6b00;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border2);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 4px;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+
+  .logo span {
+    color: var(--green);
+  }
+
+  .status-bar {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .controls {
+    padding: 16px 24px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .token-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+
+  .tag {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  .tag.active {
+    background: rgba(0, 229, 255, 0.1);
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .tag:hover {
+    border-color: var(--text2);
+    color: var(--text);
+  }
+
+  .btn {
+    background: var(--green);
+    color: #000;
+    border: none;
+    padding: 8px 18px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .btn:hover {
+    background: var(--green2);
+    transform: translateY(-1px);
+  }
+
+  .btn:disabled {
+    background: var(--border2);
+    color: var(--text3);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-add {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    padding: 6px 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .btn-add:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  #custom-input {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 6px 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    width: 110px;
+    text-transform: uppercase;
+  }
+
+  #custom-input:focus {
+    outline: none;
+    border-color: var(--cyan);
+  }
+
+  /* Legend */
+  .legend {
+    padding: 10px 24px;
+    display: flex;
+    gap: 20px;
+    font-size: 10px;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Table */
+  .table-wrap {
+    padding: 0 24px 24px;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 12px;
+  }
+
+  thead tr {
+    border-bottom: 2px solid var(--border2);
+  }
+
+  th {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text2);
+    text-transform: uppercase;
+    padding: 10px 12px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th.right { text-align: right; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+    animation: fadeIn 0.3s ease forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  tbody tr:hover {
+    background: rgba(255,255,255,0.02);
+  }
+
+  td {
+    padding: 12px 12px;
+    white-space: nowrap;
+  }
+
+  td.right { text-align: right; }
+
+  .token-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 1px;
+    color: #fff;
+  }
+
+  .token-sub {
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 1px;
+  }
+
+  .price {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .change-pos { color: var(--green); }
+  .change-neg { color: var(--red); }
+
+  .funding-pos { color: var(--red); }   /* funding positivo = longs pagan = bearish */
+  .funding-neg { color: var(--green); } /* funding negativo = shorts pagan = bullish */
+  .funding-neu { color: var(--text2); }
+
+  .bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 140px;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  .bar-long { background: var(--green); }
+  .bar-short { background: var(--red); }
+
+  .ratio-text {
+    font-size: 10px;
+    min-width: 36px;
+    text-align: right;
+  }
+
+  /* Setup badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .badge-squeeze {
+    background: rgba(255, 107, 0, 0.15);
+    border: 1px solid var(--setup);
+    color: var(--setup);
+  }
+
+  .badge-long {
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid var(--green2);
+    color: var(--green);
+  }
+
+  .badge-short {
+    background: rgba(255, 51, 85, 0.1);
+    border: 1px solid var(--red2);
+    color: var(--red);
+  }
+
+  .badge-neutral {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text3);
+  }
+
+  .score {
+    display: flex;
+    gap: 3px;
+  }
+
+  .score-dot {
+    width: 7px; height: 7px;
+    border-radius: 1px;
+  }
+
+  .score-active-squeeze { background: var(--setup); }
+  .score-active-long { background: var(--green); }
+  .score-active-short { background: var(--red); }
+  .score-empty { background: var(--border2); }
+
+  /* Loading state */
+  .loading-row td {
+    padding: 40px 12px;
+    text-align: center;
+    color: var(--text2);
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Summary bar */
+  .summary {
+    padding: 10px 24px;
+    display: flex;
+    gap: 24px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+  }
+
+  .summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .summary-label {
+    color: var(--text2);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .summary-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .liq-24h {
+    font-size: 10px;
+    color: var(--text2);
+  }
+
+  .liq-pos { color: var(--green); }
+  .liq-neg { color: var(--red); }
+
+  .last-update {
+    font-size: 10px;
+    color: var(--text3);
+    padding: 8px 24px;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+  }
+
+  /* Highlight row */
+  tr.highlight-squeeze { background: rgba(255, 107, 0, 0.04); }
+  tr.highlight-long { background: rgba(0, 255, 136, 0.03); }
+
+  .oi-change-pos { color: var(--green); font-size: 10px; }
+  .oi-change-neg { color: var(--red); font-size: 10px; }
+
+  .detail-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    padding: 3px 8px;
+    font-size: 10px;
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    transition: all 0.15s;
+  }
+
+  .detail-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  /* Refresh control */
+  .refresh-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .refresh-select {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 4px 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .refresh-select:focus { outline: none; border-color: var(--cyan); }
+
+  /* Countdown ring */
+  .countdown-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--text2);
+  }
+
+  .countdown-bar-track {
+    width: 60px;
+    height: 3px;
+    background: var(--border2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .countdown-bar-fill {
+    height: 100%;
+    background: var(--cyan);
+    border-radius: 2px;
+    transition: width 1s linear;
+  }
+
+  /* Distancia swing */
+  .dist-wrap { display: flex; flex-direction: column; gap: 2px; font-size: 10px; }
+  .dist-up { color: var(--green); }
+  .dist-dn { color: var(--red); }
+  .dist-label { font-size: 8px; color: var(--text3); letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">LIQ<span>SCAN</span> // BINANCE FUTURES</div>
+  <div class="status-bar">
+    <span><span class="dot"></span>LIVE DATA</span>
+    <span id="last-update-header">--:--:--</span>
+    <span>UTC-3</span>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="token-tags" id="token-tags"></div>
+  <input type="text" id="custom-input" placeholder="Ej: PLAY" maxlength="10">
+  <button class="btn-add" id="add-btn">+ ADD</button>
+  <div class="refresh-control">
+    <span>AUTO</span>
+    <select class="refresh-select" id="refresh-select">
+      <option value="0">OFF</option>
+      <option value="30">30s</option>
+      <option value="60" selected>1m</option>
+      <option value="120">2m</option>
+      <option value="300">5m</option>
+    </select>
+  </div>
+  <div class="countdown-wrap" id="countdown-wrap" style="display:none">
+    <div class="countdown-bar-track"><div class="countdown-bar-fill" id="countdown-bar" style="width:100%"></div></div>
+    <span id="countdown-text">--s</span>
+  </div>
+  <button class="btn" id="scan-btn">▶ SCAN</button>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--setup)"></div> SHORT SQUEEZE potencial</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Setup LONG</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Dominancia SHORT</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--border2)"></div> Neutral</div>
+</div>
+
+<div class="summary" id="summary" style="display:none">
+  <div class="summary-item">
+    <span class="summary-label">Tokens</span>
+    <span class="summary-val" id="s-total">0</span>
+  </div>
+  <div class="summary-item">
+    <span class="summary-label">Squeezes</span>
+    <span class="summary-val" style="color:var(--setup)" id="s-squeeze">0</span>
+  </div>
+  <div class="summary-item">
+    <span class="summary-label">Setup Long</span>
+    <span class="summary-val" style="color:var(--green)" id="s-long">0</span>
+  </div>
+  <div class="summary-item">
+    <span class="summary-label">Funding avg</span>
+    <span class="summary-val" id="s-funding">-</span>
+  </div>
+  <div class="summary-item">
+    <span class="summary-label">Liq 24h (Longs)</span>
+    <span class="summary-val liq-neg" id="s-liq-long">-</span>
+  </div>
+  <div class="summary-item">
+    <span class="summary-label">Liq 24h (Shorts)</span>
+    <span class="summary-val liq-pos" id="s-liq-short">-</span>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>TOKEN</th>
+        <th class="right">PRECIO</th>
+        <th class="right">24H %</th>
+        <th class="right">FUNDING</th>
+        <th class="right">OI (USDT)</th>
+        <th>L/S RATIO</th>
+        <th class="right">LIQ LONGS 24H</th>
+        <th class="right">LIQ SHORTS 24H</th>
+        <th class="right">RATIO L/S LIQ</th>
+        <th class="right">SWING DIST</th>
+        <th>SETUP</th>
+        <th>SCORE</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+      <tr class="loading-row">
+        <td colspan="12">Seleccioná tokens y presioná SCAN</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="last-update" id="last-update">Última actualización: —</div>
+
+<script>
+const DEFAULT_TOKENS = ['BTC','ETH','BNB','SOL','XRP','DOGE','ADA','AVAX','LINK','MATIC','PLAY','BAND'];
+
+let selectedTokens = new Set(['PLAY','BAND','BTC','ETH','SOL']);
+let scanning = false;
+let refreshInterval = null;
+let countdownTimer = null;
+let countdownSecs = 0;
+let totalSecs = 60;
+
+function setRefresh() {
+  const val = parseInt(document.getElementById('refresh-select').value);
+  clearInterval(refreshInterval);
+  clearInterval(countdownTimer);
+  const wrap = document.getElementById('countdown-wrap');
+
+  if (val === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  totalSecs = val;
+  wrap.style.display = 'flex';
+  startCountdown(val);
+
+  refreshInterval = setInterval(() => {
+    runScan();
+    startCountdown(val);
+  }, val * 1000);
+}
+
+function startCountdown(secs) {
+  clearInterval(countdownTimer);
+  countdownSecs = secs;
+  const bar = document.getElementById('countdown-bar');
+  const txt = document.getElementById('countdown-text');
+
+  function tick() {
+    const pct = (countdownSecs / totalSecs) * 100;
+    bar.style.width = pct + '%';
+    bar.style.background = pct > 50 ? 'var(--cyan)' : pct > 25 ? 'var(--yellow)' : 'var(--red)';
+    txt.textContent = countdownSecs + 's';
+    if (countdownSecs > 0) countdownSecs--;
+  }
+
+  tick();
+  countdownTimer = setInterval(tick, 1000);
+}
+
+// Fetch klines para calcular swings
+async function fetchSwingLevels(symbol) {
+  try {
+    const pair = symbol + 'USDT';
+    // 50 velas de 4h para detectar swings relevantes
+    const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=4h&limit=50`);
+    if (!res.ok) return null;
+    const klines = await res.json();
+
+    // Extraer highs y lows
+    const highs = klines.map(k => parseFloat(k[2]));
+    const lows  = klines.map(k => parseFloat(k[3]));
+    const price = parseFloat(klines[klines.length - 1][4]); // close actual
+
+    // Swing high: máximo local en los últimos 50 períodos
+    let swingHigh = -Infinity;
+    let swingLow  = Infinity;
+
+    for (let i = 2; i < highs.length - 2; i++) {
+      // Swing high: mayor que las 2 velas a cada lado
+      if (highs[i] > highs[i-1] && highs[i] > highs[i-2] &&
+          highs[i] > highs[i+1] && highs[i] > highs[i+2]) {
+        if (highs[i] > price && highs[i] > swingHigh) swingHigh = highs[i];
+      }
+      // Swing low: menor que las 2 velas a cada lado
+      if (lows[i] < lows[i-1] && lows[i] < lows[i-2] &&
+          lows[i] < lows[i+1] && lows[i] < lows[i+2]) {
+        if (lows[i] < price && lows[i] < swingLow) swingLow = lows[i];
+      }
+    }
+
+    // Si no encontró swing arriba, usar el máximo del período
+    if (swingHigh === -Infinity) swingHigh = Math.max(...highs.filter(h => h > price));
+    if (swingLow === Infinity)   swingLow  = Math.min(...lows.filter(l => l < price));
+
+    const distUp = swingHigh && swingHigh > price ? ((swingHigh - price) / price * 100) : null;
+    const distDn = swingLow  && swingLow  < price ? ((price - swingLow)  / price * 100) : null;
+
+    return { swingHigh, swingLow, distUp, distDn };
+  } catch(e) {
+    return null;
+  }
+}
+
+function initTags() {
+  const container = document.getElementById('token-tags');
+  container.innerHTML = '';
+  DEFAULT_TOKENS.forEach(t => {
+    const tag = document.createElement('span');
+    tag.className = 'tag' + (selectedTokens.has(t) ? ' active' : '');
+    tag.textContent = t;
+    tag.onclick = () => toggleToken(t, tag);
+    container.appendChild(tag);
+  });
+}
+
+function toggleToken(token, el) {
+  if (selectedTokens.has(token)) {
+    selectedTokens.delete(token);
+    el.classList.remove('active');
+  } else {
+    selectedTokens.add(token);
+    el.classList.add('active');
+  }
+}
+
+function addCustomToken() {
+  const input = document.getElementById('custom-input');
+  const val = input.value.trim().toUpperCase();
+  if (!val) return;
+  if (!DEFAULT_TOKENS.includes(val)) {
+    DEFAULT_TOKENS.push(val);
+  }
+  selectedTokens.add(val);
+  input.value = '';
+  initTags();
+}
+
+async function fetchWithRetry(url, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch(e) {
+      if (i === retries) throw e;
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
+}
+
+async function getTokenData(symbol) {
+  const pair = symbol + 'USDT';
+  
+  try {
+    const [ticker, fundingRaw, lsRatio, liqData, oiRaw] = await Promise.allSettled([
+      fetchWithRetry(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${pair}`),
+      fetchWithRetry(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${pair}&limit=1`),
+      fetchWithRetry(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${pair}&period=1h&limit=1`),
+      fetchWithRetry(`https://fapi.binance.com/futures/data/tradingDayTrades?symbol=${pair}&limit=1`).catch(() => null),
+      fetchWithRetry(`https://fapi.binance.com/fapi/v1/openInterest?symbol=${pair}`),
+    ]);
+
+    // Liq 24h: intentar directo, luego via proxies CORS, luego estimar
+    let liqLongs = null, liqShorts = null;
+    const liqUrl = `https://fapi.binance.com/fapi/v1/forceOrders?symbol=${pair}&limit=100`;
+    const proxies = [
+      liqUrl, // directo primero
+      `https://corsproxy.io/?${encodeURIComponent(liqUrl)}`,
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(liqUrl)}`,
+    ];
+    for (const url of proxies) {
+      try {
+        const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
+        if (!res.ok) continue;
+        const liqOrders = await res.json();
+        if (!Array.isArray(liqOrders)) continue;
+        liqLongs = 0; liqShorts = 0;
+        liqOrders.forEach(o => {
+          const val = parseFloat(o.origQty) * parseFloat(o.averagePrice || o.price || 0);
+          if (o.side === 'SELL') liqLongs += val;  // long liquidado = SELL forzada
+          else liqShorts += val;                    // short liquidado = BUY forzada
+        });
+        break; // éxito, salir del loop
+      } catch(e) { continue; }
+    }
+    // Si ningún proxy funcionó, estimar desde volumen * ratio L/S como proxy
+    if (liqLongs === null) {
+      const t2 = ticker.status === 'fulfilled' ? ticker.value : null;
+      const ls2 = lsRatio.status === 'fulfilled' ? lsRatio.value : null;
+      if (t2 && ls2 && ls2[0]) {
+        const vol = parseFloat(t2.quoteVolume) * 0.001; // ~0.1% del volumen = liq estimada
+        const lr = parseFloat(ls2[0].longAccount);
+        const sr = parseFloat(ls2[0].shortAccount);
+        liqLongs = vol * sr;   // más shorts → más longs liquidados
+        liqShorts = vol * lr;
+      }
+    }
+
+    const t = ticker.status === 'fulfilled' ? ticker.value : null;
+    const fr = fundingRaw.status === 'fulfilled' ? fundingRaw.value : null;
+    const ls = lsRatio.status === 'fulfilled' ? lsRatio.value : null;
+    const oi = oiRaw.status === 'fulfilled' ? oiRaw.value : null;
+
+    if (!t) return null;
+
+    const price = parseFloat(t.lastPrice);
+    const change24 = parseFloat(t.priceChangePercent);
+    const funding = fr && fr[0] ? parseFloat(fr[0].fundingRate) * 100 : null;
+    const longRatio = ls && ls[0] ? parseFloat(ls[0].longAccount) : null;
+    const shortRatio = ls && ls[0] ? parseFloat(ls[0].shortAccount) : null;
+    const openInterest = oi ? parseFloat(oi.openInterest) * price : null;
+
+    // Swing levels desde klines 4h
+    const swing = await fetchSwingLevels(symbol);
+
+    return {
+      symbol,
+      price,
+      change24,
+      funding,
+      longRatio,
+      shortRatio,
+      openInterest,
+      liqLongs,
+      liqShorts,
+      swingHigh: swing?.swingHigh ?? null,
+      swingLow:  swing?.swingLow  ?? null,
+      distUp:    swing?.distUp    ?? null,
+      distDn:    swing?.distDn    ?? null,
+    };
+  } catch(e) {
+    return { symbol, error: e.message };
+  }
+}
+
+function calcScore(d) {
+  // Score de SHORT SQUEEZE (1-5): muchos shorts atrapados, funding negativo, liq shorts > longs
+  let score = 0;
+  let type = 'neutral';
+
+  if (!d || d.error) return { score: 0, type: 'neutral' };
+
+  // Funding negativo = shorts pagando = presión alcista
+  if (d.funding !== null) {
+    if (d.funding < -0.01) score += 2;
+    else if (d.funding < 0) score += 1;
+    else if (d.funding > 0.05) score -= 1; // funding muy positivo = no squeeze
+  }
+
+  // Más shorts que longs
+  if (d.shortRatio !== null && d.longRatio !== null) {
+    const ratio = d.shortRatio / (d.longRatio || 0.01);
+    if (ratio > 1.5) score += 2;
+    else if (ratio > 1.2) score += 1;
+    else if (ratio < 0.8) score -= 1;
+  }
+
+  // Más longs liquidados que shorts (mercado bajó y limpió longs)
+  if (d.liqLongs !== null && d.liqShorts !== null && (d.liqLongs > 0 || d.liqShorts > 0)) {
+    const liqRatio = d.liqLongs / (d.liqShorts || 1);
+    if (liqRatio > 3) score += 1; // muchos longs liquidados = posible fondo
+  }
+
+  // Precio cayó fuerte
+  if (d.change24 < -8) score += 1;
+  else if (d.change24 > 5) score -= 1;
+
+  score = Math.max(0, Math.min(5, score));
+
+  if (score >= 4) type = 'squeeze';
+  else if (score >= 3 && d.funding < 0) type = 'long';
+  else if (d.funding > 0.03 && d.shortRatio > d.longRatio) type = 'short';
+  else if (score >= 2) type = 'long';
+  else type = 'neutral';
+
+  return { score, type };
+}
+
+function fmt(n, decimals = 2) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return n.toFixed(decimals);
+}
+
+function fmtBig(n) {
+  if (n === null || n === undefined || isNaN(n) || n === 0) return '—';
+  if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return n.toFixed(0);
+}
+
+function fmtPrice(p) {
+  if (p >= 1000) return p.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  if (p >= 1) return p.toFixed(4);
+  return p.toFixed(6);
+}
+
+function renderRow(d, idx) {
+  if (d.error) {
+    return `<tr style="animation-delay:${idx*0.05}s">
+      <td><div class="token-name">${d.symbol}</div><div class="token-sub">ERROR</div></td>
+      <td colspan="11" style="color:var(--text3);font-size:10px">${d.error}</td>
+    </tr>`;
+  }
+
+  const { score, type } = calcScore(d);
+  const rowClass = type === 'squeeze' ? 'highlight-squeeze' : type === 'long' ? 'highlight-long' : '';
+
+  const badgeMap = {
+    squeeze: `<span class="badge badge-squeeze">⚡ SQUEEZE</span>`,
+    long: `<span class="badge badge-long">▲ LONG</span>`,
+    short: `<span class="badge badge-short">▼ SHORT</span>`,
+    neutral: `<span class="badge badge-neutral">— NEUTRAL</span>`,
+  };
+
+  const scoreColor = type === 'squeeze' ? 'active-squeeze' : type === 'long' ? 'active-long' : 'active-short';
+  const scoreDots = Array.from({length:5}, (_,i) =>
+    `<div class="score-dot ${i < score ? 'score-'+scoreColor : 'score-empty'}"></div>`
+  ).join('');
+
+  const longPct = d.longRatio ? (d.longRatio * 100).toFixed(1) : null;
+  const shortPct = d.shortRatio ? (d.shortRatio * 100).toFixed(1) : null;
+  const longFill = d.longRatio ? (d.longRatio * 100) : 50;
+
+  const fundingClass = d.funding === null ? '' : d.funding < -0.005 ? 'funding-neg' : d.funding > 0.005 ? 'funding-pos' : 'funding-neu';
+  const fundingStr = d.funding !== null ? (d.funding >= 0 ? '+' : '') + d.funding.toFixed(4) + '%' : '—';
+
+  const liqRatioStr = (d.liqLongs !== null && d.liqShorts !== null && (d.liqLongs > 0 || d.liqShorts > 0))
+    ? (d.liqLongs / (d.liqShorts || 1)).toFixed(2) + 'x'
+    : '—';
+
+  return `<tr class="${rowClass}" style="animation-delay:${idx*0.06}s">
+    <td>
+      <div class="token-name">${d.symbol}</div>
+      <div class="token-sub">PERP · BINANCE</div>
+    </td>
+    <td class="right">
+      <div class="price">${fmtPrice(d.price)}</div>
+    </td>
+    <td class="right ${d.change24 >= 0 ? 'change-pos' : 'change-neg'}">
+      ${d.change24 >= 0 ? '+' : ''}${fmt(d.change24)}%
+    </td>
+    <td class="right ${fundingClass}">${fundingStr}</td>
+    <td class="right" style="color:var(--cyan);font-size:11px">${fmtBig(d.openInterest)}</td>
+    <td>
+      <div class="bar-wrap">
+        <div class="bar-track">
+          <div class="bar-fill bar-long" style="width:${longFill}%"></div>
+        </div>
+        <span class="ratio-text" style="color:var(--green)">${longPct ? longPct+'%' : '—'}</span>
+        <span style="color:var(--text3);font-size:9px">/</span>
+        <span class="ratio-text" style="color:var(--red)">${shortPct ? shortPct+'%' : '—'}</span>
+      </div>
+    </td>
+    <td class="right liq-neg" style="font-size:11px">${fmtBig(d.liqLongs)}${d.liqLongs > 0 ? '<span style="font-size:8px;color:var(--text3);margin-left:2px">~est</span>' : ''}</td>
+    <td class="right liq-pos" style="font-size:11px">${fmtBig(d.liqShorts)}${d.liqShorts > 0 ? '<span style="font-size:8px;color:var(--text3);margin-left:2px">~est</span>' : ''}</td>
+    <td class="right" style="font-size:11px;color:var(--yellow)">${liqRatioStr}</td>
+    <td class="right">
+      <div class="dist-wrap">
+        ${d.distUp !== null ? `<span class="dist-up">▲ ${d.distUp.toFixed(2)}%</span><span class="dist-label">${fmtPrice(d.swingHigh)}</span>` : '<span style="color:var(--text3)">—</span>'}
+        ${d.distDn !== null ? `<span class="dist-dn">▼ ${d.distDn.toFixed(2)}%</span><span class="dist-label">${fmtPrice(d.swingLow)}</span>` : ''}
+      </div>
+    </td>
+    <td>${badgeMap[type]}</td>
+    <td><div class="score">${scoreDots}</div></td>
+  </tr>`;
+}
+
+async function runScan() {
+  if (scanning) return;
+  if (selectedTokens.size === 0) { alert('Seleccioná al menos un token'); return; }
+
+  scanning = true;
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true;
+  btn.textContent = '⟳ SCANNING...';
+
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = `<tr class="loading-row"><td colspan="12"><span class="spinner"></span>FETCHING DATA FROM BINANCE...</td></tr>`;
+
+  const tokens = Array.from(selectedTokens);
+  const results = [];
+
+  // Fetch all in parallel
+  const promises = tokens.map(t => getTokenData(t));
+  const data = await Promise.all(promises);
+
+  // Sort: squeeze first, then long, then neutral, then short
+  const order = { squeeze: 0, long: 1, neutral: 2, short: 3 };
+  data.sort((a, b) => {
+    const sa = calcScore(a).type;
+    const sb = calcScore(b).type;
+    return (order[sa] ?? 4) - (order[sb] ?? 4);
+  });
+
+  tbody.innerHTML = data.map((d, i) => renderRow(d, i)).join('');
+
+  // Summary
+  const valid = data.filter(d => !d.error);
+  const squeezes = valid.filter(d => calcScore(d).type === 'squeeze').length;
+  const longs = valid.filter(d => calcScore(d).type === 'long').length;
+  const avgFunding = valid.reduce((acc, d) => acc + (d.funding || 0), 0) / (valid.length || 1);
+  const totalLiqL = valid.reduce((acc, d) => acc + (d.liqLongs || 0), 0);
+  const totalLiqS = valid.reduce((acc, d) => acc + (d.liqShorts || 0), 0);
+
+  document.getElementById('s-total').textContent = valid.length;
+  document.getElementById('s-squeeze').textContent = squeezes;
+  document.getElementById('s-long').textContent = longs;
+  document.getElementById('s-funding').textContent = (avgFunding >= 0 ? '+' : '') + avgFunding.toFixed(4) + '%';
+  document.getElementById('s-funding').style.color = avgFunding < 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('s-liq-long').textContent = fmtBig(totalLiqL);
+  document.getElementById('s-liq-short').textContent = fmtBig(totalLiqS);
+  document.getElementById('summary').style.display = 'flex';
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('es-AR');
+  document.getElementById('last-update').textContent = `Última actualización: ${timeStr} — ${valid.length} tokens escaneados`;
+  document.getElementById('last-update-header').textContent = timeStr;
+
+  btn.disabled = false;
+  btn.textContent = '▶ SCAN';
+  scanning = false;
+}
+
+// Conectar eventos y arrancar
+document.getElementById('scan-btn').addEventListener('click', runScan);
+document.getElementById('add-btn').addEventListener('click', addCustomToken);
+document.getElementById('refresh-select').addEventListener('change', setRefresh);
+document.getElementById('custom-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addCustomToken();
+});
+
+initTags();
+setTimeout(() => { runScan(); setRefresh(); }, 400);
+</script>
+</body>
+</html>
