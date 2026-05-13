@@ -587,87 +587,131 @@ async function fetchSwingLevels(symbol) {
   } catch(e) { return null; }
 }
 
-// ===== NUEVA FUNCIÓN: Calcular liquidez consumida =====
-// Lógica: compara cuánto del recorrido hacia las zonas de liquidez ya fue barrido
-// Usa el movimiento 24h, distancia a swing, y liq ratio para calcular un % de consumo
+// ===== LIQUIDEZ CONSUMIDA — DOS DIRECCIONES =====
+// UP: cuánto del recorrido hacia el swing HIGH ya fue barrido
+// DN: cuánto del recorrido hacia el swing LOW ya fue barrido
 function calcLiqConsumed(d) {
-  if (!d || d.error) return { pct: 0, status: 'sin datos', color: 'var(--text3)', reached: false };
-
-  let score = 0;
-  let maxScore = 0;
-
-  // 1. Distancia a swing: si ya está muy cerca del objetivo, más consumida
-  // distUp es cuánto falta para llegar al swing high (zona de liquidez)
-  // Si distUp es pequeño → ya casi llegó → alta liquidez consumida
-  if (d.distUp !== null) {
-    maxScore += 30;
-    if (d.distUp < 2) score += 30;        // casi en la zona: 98% consumida
-    else if (d.distUp < 5) score += 22;   // cerca: ~75%
-    else if (d.distUp < 10) score += 15;  // moderado
-    else if (d.distUp < 20) score += 8;   // lejos aún
-    else score += 2;                       // muy lejos
-  }
-
-  // 2. Movimiento 24h: si subió mucho, ya barrió mucha liquidez en el camino
-  if (d.change24 !== null) {
-    maxScore += 25;
-    const abs = Math.abs(d.change24);
-    if (abs > 15) score += 25;
-    else if (abs > 10) score += 18;
-    else if (abs > 5) score += 12;
-    else if (abs > 2) score += 6;
-    else score += 1;
-  }
-
-  // 3. Ratio de liq consumida: longs/shorts liquidados
-  // Si el ratio es muy alto → ya se comieron a un lado → agotada
-  if (d.liqLongs !== null && d.liqShorts !== null) {
-    maxScore += 25;
-    const total = d.liqLongs + d.liqShorts;
-    if (total > 0) {
-      const dominant = Math.max(d.liqLongs, d.liqShorts);
-      const domPct = dominant / total;
-      if (domPct > 0.85) score += 25;
-      else if (domPct > 0.75) score += 18;
-      else if (domPct > 0.65) score += 12;
-      else score += 5;
-    }
-  }
-
-  // 4. Funding volviendo a neutral: si el funding estaba extremo y ahora es cercano a 0
-  if (d.funding !== null) {
-    maxScore += 20;
-    const absFunding = Math.abs(d.funding);
-    // funding cerca de 0 después de un movimiento = equilibrio = liquidez barrida
-    if (absFunding < 0.002) score += 15;
-    else if (absFunding < 0.005) score += 10;
-    else if (absFunding < 0.01) score += 5;
-    else score += 2; // funding extremo = todavía hay combustible
-  }
-
-  const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-  const clamped = Math.min(100, Math.max(0, pct));
-
-  // Estado
-  let status, color, reached;
-  if (clamped >= 85) {
-    status = 'AGOTADA'; color = 'var(--liq-full)'; reached = true;
-  } else if (clamped >= 65) {
-    status = 'ALTA'; color = 'var(--liq-high)'; reached = false;
-  } else if (clamped >= 40) {
-    status = 'MEDIA'; color = 'var(--liq-mid)'; reached = false;
-  } else {
-    status = 'DISPONIBLE'; color = 'var(--liq-low)'; reached = false;
-  }
-
-  // Detalle para tooltip
-  const detail = {
-    distContrib: d.distUp !== null ? (d.distUp < 2 ? 'Precio en zona liq' : `${d.distUp.toFixed(1)}% al objetivo`) : '—',
-    moveContrib: d.change24 !== null ? `${Math.abs(d.change24).toFixed(1)}% movimiento 24h` : '—',
-    fundingContrib: d.funding !== null ? `Funding ${d.funding.toFixed(4)}%` : '—',
+  if (!d || d.error) return {
+    up: { pct: 0, status: 'sin datos', color: 'var(--text3)', reached: false },
+    dn: { pct: 0, status: 'sin datos', color: 'var(--text3)', reached: false },
   };
 
-  return { pct: clamped, status, color, reached, detail };
+  // ---- ARRIBA: liq consumida hacia el swing HIGH ----
+  function calcUp() {
+    let score = 0, maxScore = 0;
+
+    // Distancia al swing high: menos distancia = más consumida
+    if (d.distUp !== null) {
+      maxScore += 40;
+      if (d.distUp < 1)       score += 40; // casi en zona
+      else if (d.distUp < 3)  score += 32;
+      else if (d.distUp < 7)  score += 22;
+      else if (d.distUp < 15) score += 12;
+      else if (d.distUp < 30) score += 5;
+      else score += 1;
+    }
+
+    // Movimiento positivo 24h → consumió liq arriba
+    if (d.change24 !== null && d.change24 > 0) {
+      maxScore += 30;
+      if (d.change24 > 15) score += 30;
+      else if (d.change24 > 10) score += 22;
+      else if (d.change24 > 5)  score += 14;
+      else if (d.change24 > 2)  score += 7;
+      else score += 2;
+    } else if (d.change24 !== null) {
+      maxScore += 30; score += 2; // cayó → no consumió liq arriba
+    }
+
+    // Longs liquidados > shorts → barrieron longs al subir
+    if (d.liqLongs !== null && d.liqShorts !== null && (d.liqLongs + d.liqShorts) > 0) {
+      maxScore += 20;
+      const liqRatio = d.liqLongs / (d.liqShorts || 1);
+      if (liqRatio > 3)      score += 20;
+      else if (liqRatio > 2) score += 14;
+      else if (liqRatio > 1) score += 7;
+      else score += 2;
+    }
+
+    // Funding positivo = longs pagando = presión bajista = liq arriba más consumida
+    if (d.funding !== null) {
+      maxScore += 10;
+      if (d.funding > 0.02)       score += 10;
+      else if (d.funding > 0.005) score += 6;
+      else score += 1;
+    }
+
+    const pct = maxScore > 0 ? Math.min(100, Math.round((score / maxScore) * 100)) : 0;
+    let status, color, reached;
+    if (pct >= 85)      { status = 'AGOTADA';    color = 'var(--liq-full)';  reached = true; }
+    else if (pct >= 65) { status = 'ALTA';        color = 'var(--liq-high)';  reached = false; }
+    else if (pct >= 40) { status = 'MEDIA';       color = 'var(--liq-mid)';   reached = false; }
+    else                { status = 'DISPONIBLE';  color = 'var(--liq-low)';   reached = false; }
+    return { pct, status, color, reached,
+      swingPrice: d.swingHigh, dist: d.distUp,
+      label: d.distUp !== null ? `Swing ↑ ${fmtPrice(d.swingHigh)} (${d.distUp.toFixed(1)}% arriba)` : '—'
+    };
+  }
+
+  // ---- ABAJO: liq consumida hacia el swing LOW ----
+  function calcDn() {
+    let score = 0, maxScore = 0;
+
+    // Distancia al swing low: menos distancia = más consumida
+    if (d.distDn !== null) {
+      maxScore += 40;
+      if (d.distDn < 1)       score += 40;
+      else if (d.distDn < 3)  score += 32;
+      else if (d.distDn < 7)  score += 22;
+      else if (d.distDn < 15) score += 12;
+      else if (d.distDn < 30) score += 5;
+      else score += 1;
+    }
+
+    // Movimiento negativo 24h → consumió liq abajo
+    if (d.change24 !== null && d.change24 < 0) {
+      maxScore += 30;
+      const abs = Math.abs(d.change24);
+      if (abs > 15)     score += 30;
+      else if (abs > 10) score += 22;
+      else if (abs > 5)  score += 14;
+      else if (abs > 2)  score += 7;
+      else score += 2;
+    } else if (d.change24 !== null) {
+      maxScore += 30; score += 2; // subió → no consumió liq abajo
+    }
+
+    // Shorts liquidados > longs → barrieron shorts al bajar
+    if (d.liqLongs !== null && d.liqShorts !== null && (d.liqLongs + d.liqShorts) > 0) {
+      maxScore += 20;
+      const liqRatio = d.liqShorts / (d.liqLongs || 1);
+      if (liqRatio > 3)       score += 20;
+      else if (liqRatio > 2)  score += 14;
+      else if (liqRatio > 1)  score += 7;
+      else score += 2;
+    }
+
+    // Funding negativo = shorts pagando = presión alcista = liq abajo más consumida
+    if (d.funding !== null) {
+      maxScore += 10;
+      if (d.funding < -0.02)       score += 10;
+      else if (d.funding < -0.005) score += 6;
+      else score += 1;
+    }
+
+    const pct = maxScore > 0 ? Math.min(100, Math.round((score / maxScore) * 100)) : 0;
+    let status, color, reached;
+    if (pct >= 85)      { status = 'AGOTADA';    color = 'var(--liq-full)';  reached = true; }
+    else if (pct >= 65) { status = 'ALTA';        color = 'var(--liq-high)';  reached = false; }
+    else if (pct >= 40) { status = 'MEDIA';       color = 'var(--liq-mid)';   reached = false; }
+    else                { status = 'DISPONIBLE';  color = 'var(--liq-low)';   reached = false; }
+    return { pct, status, color, reached,
+      swingPrice: d.swingLow, dist: d.distDn,
+      label: d.distDn !== null ? `Swing ↓ ${fmtPrice(d.swingLow)} (${d.distDn.toFixed(1)}% abajo)` : '—'
+    };
+  }
+
+  return { up: calcUp(), dn: calcDn() };
 }
 
 function initTags() {
@@ -833,43 +877,61 @@ function fmtPrice(p) {
   return p.toFixed(6);
 }
 
-// Renderiza el nuevo componente de liquidez consumida
+// Renderiza barras duales: arriba y abajo
 function renderLiqConsumed(d) {
   const liq = calcLiqConsumed(d);
+  const up = liq.up;
+  const dn = liq.dn;
 
-  // 5 segmentos coloreados
-  const segments = 5;
-  const filled = Math.round((liq.pct / 100) * segments);
-  const segsHtml = Array.from({length: segments}, (_, i) => {
-    const active = i < filled;
-    return `<div class="liq-seg" style="${active ? `background:${liq.color}` : ''}"></div>`;
-  }).join('');
+  function makeSegs(pct, color) {
+    const filled = Math.round((pct / 100) * 5);
+    return Array.from({length: 5}, (_, i) =>
+      `<div class="liq-seg" style="${i < filled ? `background:${color}` : ''}"></div>`
+    ).join('');
+  }
 
-  // Alerta
-  let alertHtml = '';
-  if (liq.reached) {
-    alertHtml = `<div class="liq-alert liq-alert-reached">⚠ ZONA ALCANZADA</div>`;
-  } else if (liq.pct >= 65) {
-    alertHtml = `<div class="liq-alert liq-alert-near">↑ CERCA DEL OBJETIVO</div>`;
-  } else {
-    alertHtml = `<div class="liq-alert liq-alert-ok">· LIQUIDEZ DISPONIBLE</div>`;
+  function alertBadge(side) {
+    if (side.reached)    return `<span class="liq-alert liq-alert-reached">⚠ ZONA</span>`;
+    if (side.pct >= 65)  return `<span class="liq-alert liq-alert-near">~ CERCA</span>`;
+    return `<span class="liq-alert liq-alert-ok">· LIBRE</span>`;
   }
 
   return `
-    <div class="liq-consumed-cell liq-tooltip-wrap">
-      <div class="liq-segments">${segsHtml}</div>
-      <div class="liq-label">
-        <span class="liq-pct" style="color:${liq.color}">${liq.pct}%</span>
-        <span class="liq-status" style="color:${liq.color}">${liq.status}</span>
+    <div class="liq-consumed-cell liq-tooltip-wrap" style="min-width:160px">
+
+      <!-- ARRIBA -->
+      <div style="margin-bottom:5px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+          <span style="font-size:8px;color:var(--text2);letter-spacing:1px">↑ ARRIBA</span>
+          <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:${up.color}">${up.pct}%</span>
+          ${alertBadge(up)}
+        </div>
+        <div class="liq-segments">${makeSegs(up.pct, up.color)}</div>
+        <div style="font-size:8px;color:var(--text3);margin-top:1px">${up.label}</div>
       </div>
-      ${alertHtml}
-      <div class="liq-tooltip">
-        <div style="color:var(--cyan);font-size:9px;letter-spacing:2px;margin-bottom:6px">DETALLE LIQUIDEZ</div>
-        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Distancia objetivo:</span><span>${liq.detail.distContrib}</span></div>
-        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Movimiento 24h:</span><span>${liq.detail.moveContrib}</span></div>
-        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Funding:</span><span>${liq.detail.fundingContrib}</span></div>
+
+      <!-- ABAJO -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+          <span style="font-size:8px;color:var(--text2);letter-spacing:1px">↓ ABAJO</span>
+          <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:${dn.color}">${dn.pct}%</span>
+          ${alertBadge(dn)}
+        </div>
+        <div class="liq-segments">${makeSegs(dn.pct, dn.color)}</div>
+        <div style="font-size:8px;color:var(--text3);margin-top:1px">${dn.label}</div>
+      </div>
+
+      <!-- TOOLTIP -->
+      <div class="liq-tooltip" style="min-width:210px">
+        <div style="color:var(--cyan);font-size:9px;letter-spacing:2px;margin-bottom:6px">LIQUIDEZ BIDIRECCIONAL</div>
+        <div style="color:var(--green);font-size:9px;margin-bottom:4px">↑ ZONA ARRIBA — ${up.pct}% consumida</div>
+        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Swing high:</span><span>${up.label}</span></div>
+        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Estado:</span><span style="color:${up.color}">${up.status}</span></div>
+        <div style="color:var(--red);font-size:9px;margin:6px 0 4px">↓ ZONA ABAJO — ${dn.pct}% consumida</div>
+        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Swing low:</span><span>${dn.label}</span></div>
+        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Estado:</span><span style="color:${dn.color}">${dn.status}</span></div>
         <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border2);color:var(--text2);font-size:9px">
-          Hover para ver detalle · Actualiza con cada SCAN
+          Si ABAJO = AGOTADA → rebote probable · Si ARRIBA = AGOTADA → tomar ganancias
         </div>
       </div>
     </div>
@@ -886,7 +948,7 @@ function renderRow(d, idx) {
 
   const { score, type } = calcScore(d);
   const liq = calcLiqConsumed(d);
-  const rowClass = liq.reached ? 'highlight-liq-reached' : type === 'squeeze' ? 'highlight-squeeze' : type === 'long' ? 'highlight-long' : '';
+  const rowClass = liq.up.reached ? 'highlight-liq-reached' : type === 'squeeze' ? 'highlight-squeeze' : type === 'long' ? 'highlight-long' : '';
 
   const badgeMap = {
     squeeze: `<span class="badge badge-squeeze">⚡ SQUEEZE</span>`,
@@ -961,8 +1023,8 @@ async function runScan() {
     // Primero: liq agotada al frente si setup es relevante
     const la = calcLiqConsumed(a);
     const lb = calcLiqConsumed(b);
-    if (la.reached && !lb.reached) return -1;
-    if (!la.reached && lb.reached) return 1;
+    if (la.up.reached && !lb.up.reached) return -1;
+    if (!la.up.reached && lb.up.reached) return 1;
     const sa = calcScore(a).type;
     const sb = calcScore(b).type;
     return (order[sa] ?? 4) - (order[sb] ?? 4);
@@ -973,7 +1035,7 @@ async function runScan() {
   const valid = data.filter(d => !d.error);
   const squeezes = valid.filter(d => calcScore(d).type === 'squeeze').length;
   const longs = valid.filter(d => calcScore(d).type === 'long').length;
-  const liqExhausted = valid.filter(d => calcLiqConsumed(d).reached).length;
+  const liqExhausted = valid.filter(d => calcLiqConsumed(d).up.reached).length;
   const avgFunding = valid.reduce((acc, d) => acc + (d.funding || 0), 0) / (valid.length || 1);
   const totalLiqL = valid.reduce((acc, d) => acc + (d.liqLongs || 0), 0);
   const totalLiqS = valid.reduce((acc, d) => acc + (d.liqShorts || 0), 0);
