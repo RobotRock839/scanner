@@ -24,7 +24,6 @@
     --text2: #6666aa;
     --text3: #333355;
     --setup: #ff6b00;
-    /* Liquidez consumida */
     --liq-full: #ff3355;
     --liq-high: #ff6b00;
     --liq-mid: #ffd700;
@@ -114,9 +113,30 @@
     transition: all 0.15s;
     font-family: 'Share Tech Mono', monospace;
     letter-spacing: 1px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    user-select: none;
   }
   .tag.active { background: rgba(0,229,255,0.1); border-color: var(--cyan); color: var(--cyan); }
   .tag:hover { border-color: var(--text2); color: var(--text); }
+
+  /* ✕ botón eliminar tag */
+  .tag-remove {
+    font-size: 9px;
+    color: var(--text3);
+    line-height: 1;
+    padding: 1px 2px;
+    border-radius: 2px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .tag-remove:hover {
+    color: var(--red);
+    background: rgba(255,51,85,0.15);
+  }
+  .tag.active .tag-remove { color: var(--cyan); opacity: 0.6; }
+  .tag.active .tag-remove:hover { color: var(--red); opacity: 1; background: rgba(255,51,85,0.15); }
 
   .btn {
     background: var(--green);
@@ -142,8 +162,23 @@
     font-family: 'Share Tech Mono', monospace;
     font-size: 11px;
     cursor: pointer;
+    transition: all 0.15s;
   }
   .btn-add:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* Botón reset tokens */
+  .btn-reset {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text3);
+    padding: 6px 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.15s;
+  }
+  .btn-reset:hover { border-color: var(--red); color: var(--red); }
 
   #custom-input {
     background: var(--bg3);
@@ -156,6 +191,16 @@
     text-transform: uppercase;
   }
   #custom-input:focus { outline: none; border-color: var(--cyan); }
+
+  /* Contador de tokens */
+  .token-counter {
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 1px;
+    white-space: nowrap;
+    align-self: center;
+  }
+  .token-counter span { color: var(--cyan); }
 
   .legend {
     padding: 10px 24px;
@@ -170,7 +215,6 @@
   .legend-item { display: flex; align-items: center; gap: 6px; }
   .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
 
-  /* Liquidez consumida legend */
   .legend-liq {
     display: flex;
     align-items: center;
@@ -179,10 +223,7 @@
     padding-left: 16px;
     border-left: 1px solid var(--border2);
   }
-  .liq-swatch {
-    width: 10px; height: 10px;
-    border-radius: 2px;
-  }
+  .liq-swatch { width: 10px; height: 10px; border-radius: 2px; }
 
   .table-wrap { padding: 0 24px 24px; overflow-x: auto; }
 
@@ -231,7 +272,6 @@
   .bar-short { background: var(--red); }
   .ratio-text { font-size: 10px; min-width: 36px; text-align: right; }
 
-  /* Setup badges */
   .badge {
     display: inline-flex; align-items: center; gap: 4px;
     padding: 3px 8px;
@@ -251,118 +291,36 @@
   .score-active-short { background: var(--red); }
   .score-empty { background: var(--border2); }
 
-  /* ===== LIQUIDEZ CONSUMIDA — componente principal ===== */
-  .liq-consumed-cell {
-    min-width: 130px;
-  }
-
-  .liq-meter {
-    position: relative;
-    width: 120px;
-  }
-
-  .liq-bar-track {
-    width: 100%;
-    height: 6px;
-    background: var(--border2);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 3px;
-  }
-
-  .liq-bar-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.8s ease, background 0.8s ease;
-  }
-
-  .liq-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .liq-pct {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-  }
-
-  .liq-status {
-    font-size: 8px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  /* Semáforo de liquidez */
-  .liq-icon {
-    display: inline-block;
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    margin-right: 4px;
-    animation: liqPulse 1.5s infinite;
-  }
+  .liq-consumed-cell { min-width: 130px; }
+  .liq-meter { position: relative; width: 120px; }
+  .liq-bar-track { width: 100%; height: 6px; background: var(--border2); border-radius: 3px; overflow: hidden; margin-bottom: 3px; }
+  .liq-bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease, background 0.8s ease; }
+  .liq-label { display: flex; justify-content: space-between; align-items: center; }
+  .liq-pct { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; }
+  .liq-status { font-size: 8px; letter-spacing: 1px; text-transform: uppercase; }
+  .liq-icon { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; animation: liqPulse 1.5s infinite; }
   @keyframes liqPulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
 
-  /* Colores según nivel consumido */
-  .liq-0   { color: var(--liq-none); }
-  .liq-25  { color: var(--liq-low); }
-  .liq-50  { color: var(--liq-mid); }
-  .liq-75  { color: var(--liq-high); }
-  .liq-100 { color: var(--liq-full); }
-
-  /* Alerta cuando llega a zona */
   .liq-alert {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
+    display: inline-flex; align-items: center; gap: 3px;
     padding: 2px 6px;
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    border-radius: 2px;
-    margin-top: 2px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    border-radius: 2px; margin-top: 2px;
     animation: alertBlink 1s infinite;
   }
   @keyframes alertBlink { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
+  .liq-alert-reached { background: rgba(255,51,85,0.2); border: 1px solid var(--red); color: var(--red); }
+  .liq-alert-near { background: rgba(255,107,0,0.15); border: 1px solid var(--orange); color: var(--orange); }
+  .liq-alert-ok { background: rgba(0,255,136,0.08); border: 1px solid var(--border2); color: var(--text3); }
 
-  .liq-alert-reached {
-    background: rgba(255,51,85,0.2);
-    border: 1px solid var(--red);
-    color: var(--red);
-  }
-  .liq-alert-near {
-    background: rgba(255,107,0,0.15);
-    border: 1px solid var(--orange);
-    color: var(--orange);
-  }
-  .liq-alert-ok {
-    background: rgba(0,255,136,0.08);
-    border: 1px solid var(--border2);
-    color: var(--text3);
-  }
+  .liq-segments { display: flex; gap: 2px; margin-bottom: 4px; }
+  .liq-seg { flex: 1; height: 5px; border-radius: 1px; background: var(--border2); transition: background 0.5s ease; }
 
-  /* Segmentos de la barra de liquidez */
-  .liq-segments {
-    display: flex;
-    gap: 2px;
-    margin-bottom: 4px;
-  }
-  .liq-seg {
-    flex: 1;
-    height: 5px;
-    border-radius: 1px;
-    background: var(--border2);
-    transition: background 0.5s ease;
-  }
-
-  /* Loading */
   .loading-row td { padding: 40px 12px; text-align: center; color: var(--text2); font-size: 11px; letter-spacing: 2px; }
   .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border2); border-top-color: var(--cyan); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 10px; vertical-align: middle; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Summary */
   .summary { padding: 10px 24px; display: flex; gap: 24px; border-bottom: 1px solid var(--border); font-size: 11px; flex-wrap: wrap; }
   .summary-item { display: flex; flex-direction: column; gap: 2px; }
   .summary-label { color: var(--text2); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; }
@@ -389,26 +347,34 @@
   .dist-dn { color: var(--red); }
   .dist-label { font-size: 8px; color: var(--text3); letter-spacing: 1px; }
 
-  /* Tooltip liquidez */
   .liq-tooltip-wrap { position: relative; }
   .liq-tooltip {
-    display: none;
-    position: absolute;
-    bottom: calc(100% + 6px);
-    left: 0;
-    background: var(--bg2);
-    border: 1px solid var(--border2);
-    padding: 8px 12px;
-    font-size: 10px;
-    color: var(--text);
-    z-index: 200;
-    min-width: 180px;
-    pointer-events: none;
+    display: none; position: absolute; bottom: calc(100% + 6px); left: 0;
+    background: var(--bg2); border: 1px solid var(--border2);
+    padding: 8px 12px; font-size: 10px; color: var(--text);
+    z-index: 200; min-width: 180px; pointer-events: none;
   }
   .liq-tooltip-wrap:hover .liq-tooltip { display: block; }
   .liq-tooltip-row { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
   .liq-tooltip-label { color: var(--text2); }
 
+  /* Toast de notificación */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 10px 16px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    z-index: 9999;
+    animation: toastIn 0.2s ease, toastOut 0.3s ease 1.7s forwards;
+    pointer-events: none;
+  }
+  @keyframes toastIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+  @keyframes toastOut { to { opacity:0; transform: translateY(10px); } }
 </style>
 </head>
 <body>
@@ -424,8 +390,10 @@
 
 <div class="controls">
   <div class="token-tags" id="token-tags"></div>
+  <div class="token-counter">TOKENS: <span id="token-count">0</span></div>
   <input type="text" id="custom-input" placeholder="Ej: PLAY" maxlength="10">
   <button class="btn-add" id="add-btn">+ ADD</button>
+  <button class="btn-reset" id="reset-btn" title="Restaurar lista original">↺ RESET</button>
   <div class="refresh-control">
     <span>AUTO</span>
     <select class="refresh-select" id="refresh-select">
@@ -518,15 +486,139 @@
 <div class="last-update" id="last-update">Última actualización: —</div>
 
 <script>
-const DEFAULT_TOKENS = ['BTC','ETH','BNB','SOL','XRP','DOGE','ADA','AVAX','LINK','MATIC','PLAY','BAND'];
+const DEFAULT_TOKENS_ORIGINAL = ['BTC','ETH','BNB','SOL','XRP','DOGE','ADA','AVAX','LINK','MATIC','PLAY','BAND'];
+const STORAGE_KEY_TOKENS = 'liqscan_tokens';
+const STORAGE_KEY_SELECTED = 'liqscan_selected';
 
-let selectedTokens = new Set(['PLAY','BAND','BTC','ETH','SOL']);
+// ===== PERSISTENCIA: cargar tokens guardados =====
+function loadTokensFromStorage() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_TOKENS);
+    return saved ? JSON.parse(saved) : [...DEFAULT_TOKENS_ORIGINAL];
+  } catch(e) { return [...DEFAULT_TOKENS_ORIGINAL]; }
+}
+
+function loadSelectedFromStorage(tokens) {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_SELECTED);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return new Set(parsed.filter(t => tokens.includes(t)));
+    }
+  } catch(e) {}
+  return new Set(['PLAY','BAND','BTC','ETH','SOL']);
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY_TOKENS, JSON.stringify(tokenList));
+    localStorage.setItem(STORAGE_KEY_SELECTED, JSON.stringify([...selectedTokens]));
+  } catch(e) {}
+}
+
+let tokenList = loadTokensFromStorage();
+let selectedTokens = loadSelectedFromStorage(tokenList);
 let scanning = false;
 let refreshInterval = null;
 let countdownTimer = null;
 let countdownSecs = 0;
 let totalSecs = 60;
 
+// ===== TOAST =====
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2100);
+}
+
+// ===== TAGS con botón ✕ =====
+function initTags() {
+  const container = document.getElementById('token-tags');
+  container.innerHTML = '';
+
+  tokenList.forEach(t => {
+    const tag = document.createElement('span');
+    tag.className = 'tag' + (selectedTokens.has(t) ? ' active' : '');
+
+    const label = document.createElement('span');
+    label.textContent = t;
+
+    const removeBtn = document.createElement('span');
+    removeBtn.className = 'tag-remove';
+    removeBtn.textContent = '✕';
+    removeBtn.title = `Eliminar ${t}`;
+
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      removeToken(t);
+    });
+
+    tag.appendChild(label);
+    tag.appendChild(removeBtn);
+
+    tag.addEventListener('click', (e) => {
+      if (e.target === removeBtn) return;
+      toggleToken(t, tag);
+    });
+
+    container.appendChild(tag);
+  });
+
+  // Actualizar contador
+  document.getElementById('token-count').textContent = tokenList.length;
+}
+
+function toggleToken(token, el) {
+  if (selectedTokens.has(token)) {
+    selectedTokens.delete(token);
+    el.classList.remove('active');
+  } else {
+    selectedTokens.add(token);
+    el.classList.add('active');
+  }
+  saveToStorage();
+}
+
+function removeToken(token) {
+  const idx = tokenList.indexOf(token);
+  if (idx !== -1) tokenList.splice(idx, 1);
+  selectedTokens.delete(token);
+  saveToStorage();
+  initTags();
+  showToast(`${token} eliminado`);
+}
+
+function addCustomToken() {
+  const input = document.getElementById('custom-input');
+  const val = input.value.trim().toUpperCase().replace(/USDT$/, '');
+  if (!val) return;
+  if (tokenList.includes(val)) {
+    showToast(`${val} ya existe`);
+    input.value = '';
+    return;
+  }
+  tokenList.push(val);
+  selectedTokens.add(val);
+  input.value = '';
+  saveToStorage();
+  initTags();
+  showToast(`${val} agregado ✓`);
+}
+
+function resetTokens() {
+  if (!confirm('¿Restaurar la lista original de tokens? Se perderán los cambios.')) return;
+  tokenList = [...DEFAULT_TOKENS_ORIGINAL];
+  selectedTokens = new Set(['PLAY','BAND','BTC','ETH','SOL']);
+  saveToStorage();
+  initTags();
+  showToast('Lista restaurada ✓');
+}
+
+// ===== REFRESH =====
 function setRefresh() {
   const val = parseInt(document.getElementById('refresh-select').value);
   clearInterval(refreshInterval);
@@ -555,6 +647,7 @@ function startCountdown(secs) {
   countdownTimer = setInterval(tick, 1000);
 }
 
+// ===== DATA =====
 async function fetchSwingLevels(symbol) {
   try {
     const pair = symbol + 'USDT';
@@ -587,158 +680,74 @@ async function fetchSwingLevels(symbol) {
   } catch(e) { return null; }
 }
 
-// ===== LIQUIDEZ CONSUMIDA — DOS DIRECCIONES =====
-// UP: cuánto del recorrido hacia el swing HIGH ya fue barrido
-// DN: cuánto del recorrido hacia el swing LOW ya fue barrido
 function calcLiqConsumed(d) {
-  if (!d || d.error) return {
-    up: { pct: 0, status: 'sin datos', color: 'var(--text3)', reached: false },
-    dn: { pct: 0, status: 'sin datos', color: 'var(--text3)', reached: false },
+  if (!d || d.error) return { pct: 0, status: 'sin datos', color: 'var(--text3)', reached: false };
+
+  let score = 0;
+  let maxScore = 0;
+
+  if (d.distUp !== null) {
+    maxScore += 30;
+    if (d.distUp < 2) score += 30;
+    else if (d.distUp < 5) score += 22;
+    else if (d.distUp < 10) score += 15;
+    else if (d.distUp < 20) score += 8;
+    else score += 2;
+  }
+
+  if (d.change24 !== null) {
+    maxScore += 25;
+    const abs = Math.abs(d.change24);
+    if (abs > 15) score += 25;
+    else if (abs > 10) score += 18;
+    else if (abs > 5) score += 12;
+    else if (abs > 2) score += 6;
+    else score += 1;
+  }
+
+  if (d.liqLongs !== null && d.liqShorts !== null) {
+    maxScore += 25;
+    const total = d.liqLongs + d.liqShorts;
+    if (total > 0) {
+      const dominant = Math.max(d.liqLongs, d.liqShorts);
+      const domPct = dominant / total;
+      if (domPct > 0.85) score += 25;
+      else if (domPct > 0.75) score += 18;
+      else if (domPct > 0.65) score += 12;
+      else score += 5;
+    }
+  }
+
+  if (d.funding !== null) {
+    maxScore += 20;
+    const absFunding = Math.abs(d.funding);
+    if (absFunding < 0.002) score += 15;
+    else if (absFunding < 0.005) score += 10;
+    else if (absFunding < 0.01) score += 5;
+    else score += 2;
+  }
+
+  const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+  const clamped = Math.min(100, Math.max(0, pct));
+
+  let status, color, reached;
+  if (clamped >= 85) {
+    status = 'AGOTADA'; color = 'var(--liq-full)'; reached = true;
+  } else if (clamped >= 65) {
+    status = 'ALTA'; color = 'var(--liq-high)'; reached = false;
+  } else if (clamped >= 40) {
+    status = 'MEDIA'; color = 'var(--liq-mid)'; reached = false;
+  } else {
+    status = 'DISPONIBLE'; color = 'var(--liq-low)'; reached = false;
+  }
+
+  const detail = {
+    distContrib: d.distUp !== null ? (d.distUp < 2 ? 'Precio en zona liq' : `${d.distUp.toFixed(1)}% al objetivo`) : '—',
+    moveContrib: d.change24 !== null ? `${Math.abs(d.change24).toFixed(1)}% movimiento 24h` : '—',
+    fundingContrib: d.funding !== null ? `Funding ${d.funding.toFixed(4)}%` : '—',
   };
 
-  // ---- ARRIBA: liq consumida hacia el swing HIGH ----
-  function calcUp() {
-    let score = 0, maxScore = 0;
-
-    // Distancia al swing high: menos distancia = más consumida
-    if (d.distUp !== null) {
-      maxScore += 40;
-      if (d.distUp < 1)       score += 40; // casi en zona
-      else if (d.distUp < 3)  score += 32;
-      else if (d.distUp < 7)  score += 22;
-      else if (d.distUp < 15) score += 12;
-      else if (d.distUp < 30) score += 5;
-      else score += 1;
-    }
-
-    // Movimiento positivo 24h → consumió liq arriba
-    if (d.change24 !== null && d.change24 > 0) {
-      maxScore += 30;
-      if (d.change24 > 15) score += 30;
-      else if (d.change24 > 10) score += 22;
-      else if (d.change24 > 5)  score += 14;
-      else if (d.change24 > 2)  score += 7;
-      else score += 2;
-    } else if (d.change24 !== null) {
-      maxScore += 30; score += 2; // cayó → no consumió liq arriba
-    }
-
-    // Longs liquidados > shorts → barrieron longs al subir
-    if (d.liqLongs !== null && d.liqShorts !== null && (d.liqLongs + d.liqShorts) > 0) {
-      maxScore += 20;
-      const liqRatio = d.liqLongs / (d.liqShorts || 1);
-      if (liqRatio > 3)      score += 20;
-      else if (liqRatio > 2) score += 14;
-      else if (liqRatio > 1) score += 7;
-      else score += 2;
-    }
-
-    // Funding positivo = longs pagando = presión bajista = liq arriba más consumida
-    if (d.funding !== null) {
-      maxScore += 10;
-      if (d.funding > 0.02)       score += 10;
-      else if (d.funding > 0.005) score += 6;
-      else score += 1;
-    }
-
-    const pct = maxScore > 0 ? Math.min(100, Math.round((score / maxScore) * 100)) : 0;
-    let status, color, reached;
-    if (pct >= 85)      { status = 'AGOTADA';    color = 'var(--liq-full)';  reached = true; }
-    else if (pct >= 65) { status = 'ALTA';        color = 'var(--liq-high)';  reached = false; }
-    else if (pct >= 40) { status = 'MEDIA';       color = 'var(--liq-mid)';   reached = false; }
-    else                { status = 'DISPONIBLE';  color = 'var(--liq-low)';   reached = false; }
-    return { pct, status, color, reached,
-      swingPrice: d.swingHigh, dist: d.distUp,
-      label: d.distUp !== null ? `Swing ↑ ${fmtPrice(d.swingHigh)} (${d.distUp.toFixed(1)}% arriba)` : '—'
-    };
-  }
-
-  // ---- ABAJO: liq consumida hacia el swing LOW ----
-  function calcDn() {
-    let score = 0, maxScore = 0;
-
-    // Distancia al swing low: menos distancia = más consumida
-    if (d.distDn !== null) {
-      maxScore += 40;
-      if (d.distDn < 1)       score += 40;
-      else if (d.distDn < 3)  score += 32;
-      else if (d.distDn < 7)  score += 22;
-      else if (d.distDn < 15) score += 12;
-      else if (d.distDn < 30) score += 5;
-      else score += 1;
-    }
-
-    // Movimiento negativo 24h → consumió liq abajo
-    if (d.change24 !== null && d.change24 < 0) {
-      maxScore += 30;
-      const abs = Math.abs(d.change24);
-      if (abs > 15)     score += 30;
-      else if (abs > 10) score += 22;
-      else if (abs > 5)  score += 14;
-      else if (abs > 2)  score += 7;
-      else score += 2;
-    } else if (d.change24 !== null) {
-      maxScore += 30; score += 2; // subió → no consumió liq abajo
-    }
-
-    // Shorts liquidados > longs → barrieron shorts al bajar
-    if (d.liqLongs !== null && d.liqShorts !== null && (d.liqLongs + d.liqShorts) > 0) {
-      maxScore += 20;
-      const liqRatio = d.liqShorts / (d.liqLongs || 1);
-      if (liqRatio > 3)       score += 20;
-      else if (liqRatio > 2)  score += 14;
-      else if (liqRatio > 1)  score += 7;
-      else score += 2;
-    }
-
-    // Funding negativo = shorts pagando = presión alcista = liq abajo más consumida
-    if (d.funding !== null) {
-      maxScore += 10;
-      if (d.funding < -0.02)       score += 10;
-      else if (d.funding < -0.005) score += 6;
-      else score += 1;
-    }
-
-    const pct = maxScore > 0 ? Math.min(100, Math.round((score / maxScore) * 100)) : 0;
-    let status, color, reached;
-    if (pct >= 85)      { status = 'AGOTADA';    color = 'var(--liq-full)';  reached = true; }
-    else if (pct >= 65) { status = 'ALTA';        color = 'var(--liq-high)';  reached = false; }
-    else if (pct >= 40) { status = 'MEDIA';       color = 'var(--liq-mid)';   reached = false; }
-    else                { status = 'DISPONIBLE';  color = 'var(--liq-low)';   reached = false; }
-    return { pct, status, color, reached,
-      swingPrice: d.swingLow, dist: d.distDn,
-      label: d.distDn !== null ? `Swing ↓ ${fmtPrice(d.swingLow)} (${d.distDn.toFixed(1)}% abajo)` : '—'
-    };
-  }
-
-  return { up: calcUp(), dn: calcDn() };
-}
-
-function initTags() {
-  const container = document.getElementById('token-tags');
-  container.innerHTML = '';
-  DEFAULT_TOKENS.forEach(t => {
-    const tag = document.createElement('span');
-    tag.className = 'tag' + (selectedTokens.has(t) ? ' active' : '');
-    tag.textContent = t;
-    tag.onclick = () => toggleToken(t, tag);
-    container.appendChild(tag);
-  });
-}
-
-function toggleToken(token, el) {
-  if (selectedTokens.has(token)) { selectedTokens.delete(token); el.classList.remove('active'); }
-  else { selectedTokens.add(token); el.classList.add('active'); }
-}
-
-function addCustomToken() {
-  const input = document.getElementById('custom-input');
-  const val = input.value.trim().toUpperCase();
-  if (!val) return;
-  if (!DEFAULT_TOKENS.includes(val)) DEFAULT_TOKENS.push(val);
-  selectedTokens.add(val);
-  input.value = '';
-  initTags();
+  return { pct: clamped, status, color, reached, detail };
 }
 
 async function fetchWithRetry(url, retries = 2) {
@@ -877,61 +886,39 @@ function fmtPrice(p) {
   return p.toFixed(6);
 }
 
-// Renderiza barras duales: arriba y abajo
 function renderLiqConsumed(d) {
   const liq = calcLiqConsumed(d);
-  const up = liq.up;
-  const dn = liq.dn;
+  const segments = 5;
+  const filled = Math.round((liq.pct / 100) * segments);
+  const segsHtml = Array.from({length: segments}, (_, i) => {
+    const active = i < filled;
+    return `<div class="liq-seg" style="${active ? `background:${liq.color}` : ''}"></div>`;
+  }).join('');
 
-  function makeSegs(pct, color) {
-    const filled = Math.round((pct / 100) * 5);
-    return Array.from({length: 5}, (_, i) =>
-      `<div class="liq-seg" style="${i < filled ? `background:${color}` : ''}"></div>`
-    ).join('');
-  }
-
-  function alertBadge(side) {
-    if (side.reached)    return `<span class="liq-alert liq-alert-reached">⚠ ZONA</span>`;
-    if (side.pct >= 65)  return `<span class="liq-alert liq-alert-near">~ CERCA</span>`;
-    return `<span class="liq-alert liq-alert-ok">· LIBRE</span>`;
+  let alertHtml = '';
+  if (liq.reached) {
+    alertHtml = `<div class="liq-alert liq-alert-reached">⚠ ZONA ALCANZADA</div>`;
+  } else if (liq.pct >= 65) {
+    alertHtml = `<div class="liq-alert liq-alert-near">↑ CERCA DEL OBJETIVO</div>`;
+  } else {
+    alertHtml = `<div class="liq-alert liq-alert-ok">· LIQUIDEZ DISPONIBLE</div>`;
   }
 
   return `
-    <div class="liq-consumed-cell liq-tooltip-wrap" style="min-width:160px">
-
-      <!-- ARRIBA -->
-      <div style="margin-bottom:5px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-          <span style="font-size:8px;color:var(--text2);letter-spacing:1px">↑ ARRIBA</span>
-          <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:${up.color}">${up.pct}%</span>
-          ${alertBadge(up)}
-        </div>
-        <div class="liq-segments">${makeSegs(up.pct, up.color)}</div>
-        <div style="font-size:8px;color:var(--text3);margin-top:1px">${up.label}</div>
+    <div class="liq-consumed-cell liq-tooltip-wrap">
+      <div class="liq-segments">${segsHtml}</div>
+      <div class="liq-label">
+        <span class="liq-pct" style="color:${liq.color}">${liq.pct}%</span>
+        <span class="liq-status" style="color:${liq.color}">${liq.status}</span>
       </div>
-
-      <!-- ABAJO -->
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-          <span style="font-size:8px;color:var(--text2);letter-spacing:1px">↓ ABAJO</span>
-          <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:${dn.color}">${dn.pct}%</span>
-          ${alertBadge(dn)}
-        </div>
-        <div class="liq-segments">${makeSegs(dn.pct, dn.color)}</div>
-        <div style="font-size:8px;color:var(--text3);margin-top:1px">${dn.label}</div>
-      </div>
-
-      <!-- TOOLTIP -->
-      <div class="liq-tooltip" style="min-width:210px">
-        <div style="color:var(--cyan);font-size:9px;letter-spacing:2px;margin-bottom:6px">LIQUIDEZ BIDIRECCIONAL</div>
-        <div style="color:var(--green);font-size:9px;margin-bottom:4px">↑ ZONA ARRIBA — ${up.pct}% consumida</div>
-        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Swing high:</span><span>${up.label}</span></div>
-        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Estado:</span><span style="color:${up.color}">${up.status}</span></div>
-        <div style="color:var(--red);font-size:9px;margin:6px 0 4px">↓ ZONA ABAJO — ${dn.pct}% consumida</div>
-        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Swing low:</span><span>${dn.label}</span></div>
-        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Estado:</span><span style="color:${dn.color}">${dn.status}</span></div>
+      ${alertHtml}
+      <div class="liq-tooltip">
+        <div style="color:var(--cyan);font-size:9px;letter-spacing:2px;margin-bottom:6px">DETALLE LIQUIDEZ</div>
+        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Distancia objetivo:</span><span>${liq.detail.distContrib}</span></div>
+        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Movimiento 24h:</span><span>${liq.detail.moveContrib}</span></div>
+        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Funding:</span><span>${liq.detail.fundingContrib}</span></div>
         <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border2);color:var(--text2);font-size:9px">
-          Si ABAJO = AGOTADA → rebote probable · Si ARRIBA = AGOTADA → tomar ganancias
+          Hover para ver detalle · Actualiza con cada SCAN
         </div>
       </div>
     </div>
@@ -948,7 +935,7 @@ function renderRow(d, idx) {
 
   const { score, type } = calcScore(d);
   const liq = calcLiqConsumed(d);
-  const rowClass = liq.up.reached ? 'highlight-liq-reached' : type === 'squeeze' ? 'highlight-squeeze' : type === 'long' ? 'highlight-long' : '';
+  const rowClass = liq.reached ? 'highlight-liq-reached' : type === 'squeeze' ? 'highlight-squeeze' : type === 'long' ? 'highlight-long' : '';
 
   const badgeMap = {
     squeeze: `<span class="badge badge-squeeze">⚡ SQUEEZE</span>`,
@@ -1006,7 +993,7 @@ function renderRow(d, idx) {
 
 async function runScan() {
   if (scanning) return;
-  if (selectedTokens.size === 0) { alert('Seleccioná al menos un token'); return; }
+  if (selectedTokens.size === 0) { showToast('Seleccioná al menos un token'); return; }
   scanning = true;
   const btn = document.getElementById('scan-btn');
   btn.disabled = true;
@@ -1020,11 +1007,10 @@ async function runScan() {
 
   const order = { squeeze: 0, long: 1, neutral: 2, short: 3 };
   data.sort((a, b) => {
-    // Primero: liq agotada al frente si setup es relevante
     const la = calcLiqConsumed(a);
     const lb = calcLiqConsumed(b);
-    if (la.up.reached && !lb.up.reached) return -1;
-    if (!la.up.reached && lb.up.reached) return 1;
+    if (la.reached && !lb.reached) return -1;
+    if (!la.reached && lb.reached) return 1;
     const sa = calcScore(a).type;
     const sb = calcScore(b).type;
     return (order[sa] ?? 4) - (order[sb] ?? 4);
@@ -1035,7 +1021,7 @@ async function runScan() {
   const valid = data.filter(d => !d.error);
   const squeezes = valid.filter(d => calcScore(d).type === 'squeeze').length;
   const longs = valid.filter(d => calcScore(d).type === 'long').length;
-  const liqExhausted = valid.filter(d => calcLiqConsumed(d).up.reached).length;
+  const liqExhausted = valid.filter(d => calcLiqConsumed(d).reached).length;
   const avgFunding = valid.reduce((acc, d) => acc + (d.funding || 0), 0) / (valid.length || 1);
   const totalLiqL = valid.reduce((acc, d) => acc + (d.liqLongs || 0), 0);
   const totalLiqS = valid.reduce((acc, d) => acc + (d.liqShorts || 0), 0);
@@ -1060,8 +1046,10 @@ async function runScan() {
   scanning = false;
 }
 
+// ===== EVENTOS =====
 document.getElementById('scan-btn').addEventListener('click', runScan);
 document.getElementById('add-btn').addEventListener('click', addCustomToken);
+document.getElementById('reset-btn').addEventListener('click', resetTokens);
 document.getElementById('refresh-select').addEventListener('change', setRefresh);
 document.getElementById('custom-input').addEventListener('keydown', e => { if (e.key === 'Enter') addCustomToken(); });
 
