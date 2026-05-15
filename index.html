@@ -121,7 +121,6 @@
   .tag.active { background: rgba(0,229,255,0.1); border-color: var(--cyan); color: var(--cyan); }
   .tag:hover { border-color: var(--text2); color: var(--text); }
 
-  /* ✕ botón eliminar tag */
   .tag-remove {
     font-size: 9px;
     color: var(--text3);
@@ -131,10 +130,7 @@
     transition: all 0.15s;
     flex-shrink: 0;
   }
-  .tag-remove:hover {
-    color: var(--red);
-    background: rgba(255,51,85,0.15);
-  }
+  .tag-remove:hover { color: var(--red); background: rgba(255,51,85,0.15); }
   .tag.active .tag-remove { color: var(--cyan); opacity: 0.6; }
   .tag.active .tag-remove:hover { color: var(--red); opacity: 1; background: rgba(255,51,85,0.15); }
 
@@ -166,7 +162,6 @@
   }
   .btn-add:hover { border-color: var(--cyan); color: var(--cyan); }
 
-  /* Botón reset tokens */
   .btn-reset {
     background: transparent;
     border: 1px solid var(--border2);
@@ -192,7 +187,6 @@
   }
   #custom-input:focus { outline: none; border-color: var(--cyan); }
 
-  /* Contador de tokens */
   .token-counter {
     font-size: 9px;
     color: var(--text3);
@@ -298,8 +292,6 @@
   .liq-label { display: flex; justify-content: space-between; align-items: center; }
   .liq-pct { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; }
   .liq-status { font-size: 8px; letter-spacing: 1px; text-transform: uppercase; }
-  .liq-icon { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; animation: liqPulse 1.5s infinite; }
-  @keyframes liqPulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
 
   .liq-alert {
     display: inline-flex; align-items: center; gap: 3px;
@@ -381,6 +373,7 @@
   .tab:hover { color: var(--text); }
   .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
   .tab-acum.active { color: var(--purple); border-bottom-color: #7c3aed; }
+  .tab-race.active { color: var(--yellow); border-bottom-color: var(--yellow); }
 
   /* ===== ACUMULACIÓN ===== */
   .acum-wrap { padding: 16px 24px 24px; }
@@ -521,7 +514,278 @@
     letter-spacing: 2px;
   }
 
-  /* Toast de notificación */
+  /* ===== RACE / CARRERA ===== */
+  .race-wrap { padding: 0 24px 24px; }
+
+  .race-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0 12px;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+
+  .race-title-block { display: flex; align-items: center; gap: 12px; }
+  .race-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--yellow);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .race-desc { font-size: 10px; color: var(--text2); letter-spacing: 1px; margin-top: 2px; }
+
+  .race-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .race-mode-btns { display: flex; gap: 0; }
+  .race-mode-btn {
+    padding: 5px 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    transition: all 0.15s;
+  }
+  .race-mode-btn:first-child { border-right: none; }
+  .race-mode-btn.active { background: rgba(255,215,0,0.1); border-color: var(--yellow); color: var(--yellow); }
+  .race-mode-btn:hover:not(.active) { color: var(--text); border-color: var(--text3); }
+
+  .race-auto-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--text2);
+  }
+  .race-auto-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--yellow);
+    animation: pulse 1.5s infinite;
+  }
+
+  .race-stats-bar {
+    display: flex;
+    gap: 20px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+    color: var(--text2);
+    flex-wrap: wrap;
+  }
+  .race-stat { display: flex; align-items: center; gap: 6px; }
+  .race-stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; }
+
+  /* Race list */
+  .race-list { margin-top: 0; }
+
+  .race-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s, transform 0.4s ease;
+    position: relative;
+    animation: raceSlideIn 0.35s ease forwards;
+    opacity: 0;
+  }
+  @keyframes raceSlideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .race-row:hover { background: rgba(255,255,255,0.015); }
+  .race-row.my-token { background: rgba(255,215,0,0.03); }
+  .race-row.my-token::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--yellow);
+  }
+  .race-row.top3 { background: rgba(255,215,0,0.05); }
+
+  /* Position number */
+  .race-pos {
+    width: 44px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .race-pos-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--text3);
+    line-height: 1;
+  }
+  .race-row.top3 .race-pos-num { color: var(--yellow); }
+  .pos-1 .race-pos-num { font-size: 22px; color: var(--yellow); }
+  .pos-2 .race-pos-num { color: #c0c0c0; }
+  .pos-3 .race-pos-num { color: #cd7f32; }
+
+  /* Movement arrow */
+  .race-move {
+    width: 36px;
+    text-align: center;
+    flex-shrink: 0;
+    font-size: 10px;
+  }
+  .move-up { color: var(--green); }
+  .move-down { color: var(--red); }
+  .move-same { color: var(--text3); }
+  .move-new { color: var(--cyan); font-size: 8px; letter-spacing: 1px; }
+  .move-num { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; }
+
+  /* Symbol */
+  .race-symbol-wrap { flex: 1; min-width: 80px; }
+  .race-symbol {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #fff;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .my-token-star {
+    font-size: 10px;
+    color: var(--yellow);
+    animation: starPulse 2s infinite;
+  }
+  @keyframes starPulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .race-sub { font-size: 9px; color: var(--text3); letter-spacing: 1px; }
+
+  /* Bar */
+  .race-bar-wrap { flex: 2; min-width: 120px; padding: 0 16px; }
+  .race-bar-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+  .race-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease, background 0.5s ease;
+    position: relative;
+  }
+  .race-bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 0 3px 3px 0;
+  }
+
+  /* Change */
+  .race-change {
+    width: 90px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .race-change-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 1;
+  }
+  .race-change-pos { color: var(--green); }
+  .race-change-neg { color: var(--red); }
+
+  /* Price */
+  .race-price {
+    width: 110px;
+    text-align: right;
+    flex-shrink: 0;
+    font-size: 11px;
+    color: var(--text2);
+    padding-right: 8px;
+  }
+
+  /* Category badge */
+  .race-cat {
+    width: 90px;
+    text-align: right;
+    flex-shrink: 0;
+    padding-right: 4px;
+  }
+  .race-cat-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 2px;
+  }
+  .cat-winner { background: rgba(0,255,136,0.1); border: 1px solid var(--green2); color: var(--green); }
+  .cat-loser { background: rgba(255,51,85,0.1); border: 1px solid var(--red2); color: var(--red); }
+  .cat-neutral { background: transparent; border: 1px solid var(--border2); color: var(--text3); }
+
+  /* Divider entre winners y losers */
+  .race-divider {
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    text-transform: uppercase;
+  }
+  .race-divider-line { flex: 1; height: 1px; background: var(--border); }
+
+  /* Race empty */
+  .race-empty {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text2);
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+
+  /* Last update race */
+  .race-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0 0;
+    font-size: 10px;
+    color: var(--text3);
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .race-update-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--yellow); display: inline-block; margin-right: 5px; animation: pulse 2s infinite; }
+
+  /* Countdown race */
+  .race-countdown {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    color: var(--text2);
+  }
+  .race-cd-bar-track { width: 80px; height: 2px; background: var(--border2); border-radius: 1px; overflow: hidden; }
+  .race-cd-bar-fill { height: 100%; background: var(--yellow); border-radius: 1px; transition: width 1s linear; }
+
+  /* Toast */
   .toast {
     position: fixed;
     bottom: 24px;
@@ -538,6 +802,25 @@
   }
   @keyframes toastIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
   @keyframes toastOut { to { opacity:0; transform: translateY(10px); } }
+
+  /* Alert de token propio entrando top20 */
+  .race-alert-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    background: rgba(255,215,0,0.12);
+    border: 1px solid var(--yellow);
+    color: var(--yellow);
+    padding: 12px 20px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    z-index: 9999;
+    animation: toastIn 0.3s ease, toastOut 0.4s ease 3.5s forwards;
+    pointer-events: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    max-width: 300px;
+  }
 </style>
 </head>
 <body>
@@ -554,8 +837,10 @@
 <div class="tabs">
   <div class="tab active" id="tab-scanner" onclick="switchTab('scanner')">▶ SCANNER</div>
   <div class="tab tab-acum" id="tab-acum" onclick="switchTab('acum')">🐋 ACUMULACIÓN</div>
+  <div class="tab tab-race" id="tab-race" onclick="switchTab('race')">🏁 CARRERA</div>
 </div>
 
+<!-- ===== PANEL SCANNER ===== -->
 <div id="panel-scanner">
 <div class="controls">
   <div class="token-tags" id="token-tags"></div>
@@ -595,34 +880,13 @@
 </div>
 
 <div class="summary" id="summary" style="display:none">
-  <div class="summary-item">
-    <span class="summary-label">Tokens</span>
-    <span class="summary-val" id="s-total">0</span>
-  </div>
-  <div class="summary-item">
-    <span class="summary-label">Squeezes</span>
-    <span class="summary-val" style="color:var(--setup)" id="s-squeeze">0</span>
-  </div>
-  <div class="summary-item">
-    <span class="summary-label">Setup Long</span>
-    <span class="summary-val" style="color:var(--green)" id="s-long">0</span>
-  </div>
-  <div class="summary-item">
-    <span class="summary-label">Liq Agotada</span>
-    <span class="summary-val" style="color:var(--red)" id="s-liq-exhausted">0</span>
-  </div>
-  <div class="summary-item">
-    <span class="summary-label">Funding avg</span>
-    <span class="summary-val" id="s-funding">-</span>
-  </div>
-  <div class="summary-item">
-    <span class="summary-label">Liq 24h (Longs)</span>
-    <span class="summary-val liq-neg" id="s-liq-long">-</span>
-  </div>
-  <div class="summary-item">
-    <span class="summary-label">Liq 24h (Shorts)</span>
-    <span class="summary-val liq-pos" id="s-liq-short">-</span>
-  </div>
+  <div class="summary-item"><span class="summary-label">Tokens</span><span class="summary-val" id="s-total">0</span></div>
+  <div class="summary-item"><span class="summary-label">Squeezes</span><span class="summary-val" style="color:var(--setup)" id="s-squeeze">0</span></div>
+  <div class="summary-item"><span class="summary-label">Setup Long</span><span class="summary-val" style="color:var(--green)" id="s-long">0</span></div>
+  <div class="summary-item"><span class="summary-label">Liq Agotada</span><span class="summary-val" style="color:var(--red)" id="s-liq-exhausted">0</span></div>
+  <div class="summary-item"><span class="summary-label">Funding avg</span><span class="summary-val" id="s-funding">-</span></div>
+  <div class="summary-item"><span class="summary-label">Liq 24h (Longs)</span><span class="summary-val liq-neg" id="s-liq-long">-</span></div>
+  <div class="summary-item"><span class="summary-label">Liq 24h (Shorts)</span><span class="summary-val liq-pos" id="s-liq-short">-</span></div>
 </div>
 
 <div class="table-wrap">
@@ -645,15 +909,14 @@
       </tr>
     </thead>
     <tbody id="table-body">
-      <tr class="loading-row">
-        <td colspan="13">Seleccioná tokens y presioná SCAN</td>
-      </tr>
+      <tr class="loading-row"><td colspan="13">Seleccioná tokens y presioná SCAN</td></tr>
     </tbody>
   </table>
 </div>
-
 <div class="last-update" id="last-update">Última actualización: —</div>
 </div>
+
+<!-- ===== PANEL ACUMULACIÓN ===== -->
 <div id="panel-acum" style="display:none">
   <div class="acum-wrap">
     <div class="acum-header">
@@ -663,7 +926,6 @@
       </div>
       <button class="btn" id="acum-scan-btn" style="background:#7c3aed">▶ ESCANEAR</button>
     </div>
-
     <div class="acum-filters">
       <div class="acum-filter-item">
         <span>Días flat:</span>
@@ -691,37 +953,94 @@
         </select>
       </div>
     </div>
-
     <div class="acum-grid" id="acum-grid">
       <div class="acum-empty">Presioná ESCANEAR para detectar tokens en acumulación</div>
     </div>
   </div>
 </div>
 
+<!-- ===== PANEL CARRERA ===== -->
+<div id="panel-race" style="display:none">
+  <div class="race-wrap">
+    <div class="race-header">
+      <div class="race-title-block">
+        <div>
+          <div class="race-title">🏁 CARRERA DE TOKENS</div>
+          <div class="race-desc">Ranking en tiempo real · Binance Futures · Ordenado por % 24h</div>
+        </div>
+      </div>
+      <div class="race-controls">
+        <div class="race-mode-btns">
+          <button class="race-mode-btn active" id="race-mode-all" onclick="setRaceMode('all')">TODOS</button>
+          <button class="race-mode-btn" id="race-mode-mine" onclick="setRaceMode('mine')">MI LISTA</button>
+        </div>
+        <div class="race-auto-badge">
+          <div class="race-auto-dot"></div>
+          <span>AUTO 30s</span>
+        </div>
+        <button class="btn" id="race-refresh-btn" style="padding:6px 14px;font-size:12px;" onclick="runRace()">↺ NOW</button>
+      </div>
+    </div>
+
+    <div class="race-stats-bar" id="race-stats-bar">
+      <div class="race-stat">
+        <span>GANADORES:</span>
+        <span class="race-stat-val" style="color:var(--green)" id="rs-winners">—</span>
+      </div>
+      <div class="race-stat">
+        <span>PERDEDORES:</span>
+        <span class="race-stat-val" style="color:var(--red)" id="rs-losers">—</span>
+      </div>
+      <div class="race-stat">
+        <span>NEUTRAL:</span>
+        <span class="race-stat-val" style="color:var(--text2)" id="rs-neutral">—</span>
+      </div>
+      <div class="race-stat">
+        <span>MEJOR:</span>
+        <span class="race-stat-val" style="color:var(--green)" id="rs-best">—</span>
+      </div>
+      <div class="race-stat">
+        <span>PEOR:</span>
+        <span class="race-stat-val" style="color:var(--red)" id="rs-worst">—</span>
+      </div>
+      <div class="race-stat" style="margin-left:auto">
+        <div class="race-countdown">
+          <div class="race-cd-bar-track"><div class="race-cd-bar-fill" id="race-cd-bar" style="width:100%"></div></div>
+          <span id="race-cd-text">30s</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="race-list" id="race-list">
+      <div class="race-empty"><span class="spinner"></span> Cargando ranking...</div>
+    </div>
+
+    <div class="race-footer">
+      <span><span class="race-update-dot"></span>FUENTE: BINANCE FUTURES · TODOS LOS PARES USDT PERP</span>
+      <span id="race-last-update">—</span>
+    </div>
+  </div>
+</div>
+
 <script>
+// ============================================================
+// SHARED STATE
+// ============================================================
 const DEFAULT_TOKENS_ORIGINAL = ['BTC','ETH','BNB','SOL','XRP','DOGE','ADA','AVAX','LINK','MATIC','PLAY','BAND'];
 const STORAGE_KEY_TOKENS = 'liqscan_tokens';
 const STORAGE_KEY_SELECTED = 'liqscan_selected';
 
-// ===== PERSISTENCIA: cargar tokens guardados =====
 function loadTokensFromStorage() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY_TOKENS);
-    return saved ? JSON.parse(saved) : [...DEFAULT_TOKENS_ORIGINAL];
-  } catch(e) { return [...DEFAULT_TOKENS_ORIGINAL]; }
+  try { const s = localStorage.getItem(STORAGE_KEY_TOKENS); return s ? JSON.parse(s) : [...DEFAULT_TOKENS_ORIGINAL]; }
+  catch(e) { return [...DEFAULT_TOKENS_ORIGINAL]; }
 }
-
 function loadSelectedFromStorage(tokens) {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY_SELECTED);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return new Set(parsed.filter(t => tokens.includes(t)));
-    }
+    const s = localStorage.getItem(STORAGE_KEY_SELECTED);
+    if (s) { const p = JSON.parse(s); return new Set(p.filter(t => tokens.includes(t))); }
   } catch(e) {}
   return new Set(['PLAY','BAND','BTC','ETH','SOL']);
 }
-
 function saveToStorage() {
   try {
     localStorage.setItem(STORAGE_KEY_TOKENS, JSON.stringify(tokenList));
@@ -737,7 +1056,9 @@ let countdownTimer = null;
 let countdownSecs = 0;
 let totalSecs = 60;
 
-// ===== TOAST =====
+// ============================================================
+// TOAST
+// ============================================================
 function showToast(msg) {
   const existing = document.querySelector('.toast');
   if (existing) existing.remove();
@@ -748,90 +1069,74 @@ function showToast(msg) {
   setTimeout(() => t.remove(), 2100);
 }
 
-// ===== TAGS con botón ✕ =====
+function showRaceAlert(msg) {
+  const existing = document.querySelector('.race-alert-toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'race-alert-toast';
+  t.innerHTML = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// ============================================================
+// TAGS
+// ============================================================
 function initTags() {
   const container = document.getElementById('token-tags');
   container.innerHTML = '';
-
   tokenList.forEach(t => {
     const tag = document.createElement('span');
     tag.className = 'tag' + (selectedTokens.has(t) ? ' active' : '');
-
     const label = document.createElement('span');
     label.textContent = t;
-
     const removeBtn = document.createElement('span');
     removeBtn.className = 'tag-remove';
     removeBtn.textContent = '✕';
     removeBtn.title = `Eliminar ${t}`;
-
-    removeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      removeToken(t);
-    });
-
+    removeBtn.addEventListener('click', (e) => { e.stopPropagation(); removeToken(t); });
     tag.appendChild(label);
     tag.appendChild(removeBtn);
-
-    tag.addEventListener('click', (e) => {
-      if (e.target === removeBtn) return;
-      toggleToken(t, tag);
-    });
-
+    tag.addEventListener('click', (e) => { if (e.target === removeBtn) return; toggleToken(t, tag); });
     container.appendChild(tag);
   });
-
-  // Actualizar contador
   document.getElementById('token-count').textContent = tokenList.length;
 }
 
 function toggleToken(token, el) {
-  if (selectedTokens.has(token)) {
-    selectedTokens.delete(token);
-    el.classList.remove('active');
-  } else {
-    selectedTokens.add(token);
-    el.classList.add('active');
-  }
+  if (selectedTokens.has(token)) { selectedTokens.delete(token); el.classList.remove('active'); }
+  else { selectedTokens.add(token); el.classList.add('active'); }
   saveToStorage();
 }
-
 function removeToken(token) {
   const idx = tokenList.indexOf(token);
   if (idx !== -1) tokenList.splice(idx, 1);
   selectedTokens.delete(token);
-  saveToStorage();
-  initTags();
+  saveToStorage(); initTags();
   showToast(`${token} eliminado`);
 }
-
 function addCustomToken() {
   const input = document.getElementById('custom-input');
   const val = input.value.trim().toUpperCase().replace(/USDT$/, '');
   if (!val) return;
-  if (tokenList.includes(val)) {
-    showToast(`${val} ya existe`);
-    input.value = '';
-    return;
-  }
+  if (tokenList.includes(val)) { showToast(`${val} ya existe`); input.value = ''; return; }
   tokenList.push(val);
   selectedTokens.add(val);
   input.value = '';
-  saveToStorage();
-  initTags();
+  saveToStorage(); initTags();
   showToast(`${val} agregado ✓`);
 }
-
 function resetTokens() {
   if (!confirm('¿Restaurar la lista original de tokens? Se perderán los cambios.')) return;
   tokenList = [...DEFAULT_TOKENS_ORIGINAL];
   selectedTokens = new Set(['PLAY','BAND','BTC','ETH','SOL']);
-  saveToStorage();
-  initTags();
+  saveToStorage(); initTags();
   showToast('Lista restaurada ✓');
 }
 
-// ===== REFRESH =====
+// ============================================================
+// REFRESH / COUNTDOWN
+// ============================================================
 function setRefresh() {
   const val = parseInt(document.getElementById('refresh-select').value);
   clearInterval(refreshInterval);
@@ -860,7 +1165,9 @@ function startCountdown(secs) {
   countdownTimer = setInterval(tick, 1000);
 }
 
-// ===== DATA =====
+// ============================================================
+// SCANNER DATA
+// ============================================================
 async function fetchSwingLevels(symbol) {
   try {
     const pair = symbol + 'USDT';
@@ -870,35 +1177,24 @@ async function fetchSwingLevels(symbol) {
     const highs = klines.map(k => parseFloat(k[2]));
     const lows  = klines.map(k => parseFloat(k[3]));
     const price = parseFloat(klines[klines.length - 1][4]);
-
-    let swingHigh = -Infinity;
-    let swingLow  = Infinity;
-
+    let swingHigh = -Infinity, swingLow = Infinity;
     for (let i = 2; i < highs.length - 2; i++) {
-      if (highs[i] > highs[i-1] && highs[i] > highs[i-2] && highs[i] > highs[i+1] && highs[i] > highs[i+2]) {
+      if (highs[i] > highs[i-1] && highs[i] > highs[i-2] && highs[i] > highs[i+1] && highs[i] > highs[i+2])
         if (highs[i] > price && highs[i] > swingHigh) swingHigh = highs[i];
-      }
-      if (lows[i] < lows[i-1] && lows[i] < lows[i-2] && lows[i] < lows[i+1] && lows[i] < lows[i+2]) {
+      if (lows[i] < lows[i-1] && lows[i] < lows[i-2] && lows[i] < lows[i+1] && lows[i] < lows[i+2])
         if (lows[i] < price && lows[i] < swingLow) swingLow = lows[i];
-      }
     }
-
     if (swingHigh === -Infinity) swingHigh = Math.max(...highs.filter(h => h > price));
     if (swingLow === Infinity)   swingLow  = Math.min(...lows.filter(l => l < price));
-
     const distUp = swingHigh && swingHigh > price ? ((swingHigh - price) / price * 100) : null;
     const distDn = swingLow  && swingLow  < price ? ((price - swingLow)  / price * 100) : null;
-
     return { swingHigh, swingLow, distUp, distDn };
   } catch(e) { return null; }
 }
 
 function calcLiqConsumed(d) {
   if (!d || d.error) return { pct: 0, status: 'sin datos', color: 'var(--text3)', reached: false };
-
-  let score = 0;
-  let maxScore = 0;
-
+  let score = 0, maxScore = 0;
   if (d.distUp !== null) {
     maxScore += 30;
     if (d.distUp < 2) score += 30;
@@ -907,7 +1203,6 @@ function calcLiqConsumed(d) {
     else if (d.distUp < 20) score += 8;
     else score += 2;
   }
-
   if (d.change24 !== null) {
     maxScore += 25;
     const abs = Math.abs(d.change24);
@@ -917,20 +1212,17 @@ function calcLiqConsumed(d) {
     else if (abs > 2) score += 6;
     else score += 1;
   }
-
   if (d.liqLongs !== null && d.liqShorts !== null) {
     maxScore += 25;
     const total = d.liqLongs + d.liqShorts;
     if (total > 0) {
-      const dominant = Math.max(d.liqLongs, d.liqShorts);
-      const domPct = dominant / total;
+      const domPct = Math.max(d.liqLongs, d.liqShorts) / total;
       if (domPct > 0.85) score += 25;
       else if (domPct > 0.75) score += 18;
       else if (domPct > 0.65) score += 12;
       else score += 5;
     }
   }
-
   if (d.funding !== null) {
     maxScore += 20;
     const absFunding = Math.abs(d.funding);
@@ -939,27 +1231,18 @@ function calcLiqConsumed(d) {
     else if (absFunding < 0.01) score += 5;
     else score += 2;
   }
-
   const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
   const clamped = Math.min(100, Math.max(0, pct));
-
   let status, color, reached;
-  if (clamped >= 85) {
-    status = 'AGOTADA'; color = 'var(--liq-full)'; reached = true;
-  } else if (clamped >= 65) {
-    status = 'ALTA'; color = 'var(--liq-high)'; reached = false;
-  } else if (clamped >= 40) {
-    status = 'MEDIA'; color = 'var(--liq-mid)'; reached = false;
-  } else {
-    status = 'DISPONIBLE'; color = 'var(--liq-low)'; reached = false;
-  }
-
+  if (clamped >= 85)      { status = 'AGOTADA';    color = 'var(--liq-full)'; reached = true; }
+  else if (clamped >= 65) { status = 'ALTA';        color = 'var(--liq-high)'; reached = false; }
+  else if (clamped >= 40) { status = 'MEDIA';       color = 'var(--liq-mid)';  reached = false; }
+  else                    { status = 'DISPONIBLE';  color = 'var(--liq-low)';  reached = false; }
   const detail = {
-    distContrib: d.distUp !== null ? (d.distUp < 2 ? 'Precio en zona liq' : `${d.distUp.toFixed(1)}% al objetivo`) : '—',
-    moveContrib: d.change24 !== null ? `${Math.abs(d.change24).toFixed(1)}% movimiento 24h` : '—',
+    distContrib:    d.distUp !== null ? (d.distUp < 2 ? 'Precio en zona liq' : `${d.distUp.toFixed(1)}% al objetivo`) : '—',
+    moveContrib:    d.change24 !== null ? `${Math.abs(d.change24).toFixed(1)}% movimiento 24h` : '—',
     fundingContrib: d.funding !== null ? `Funding ${d.funding.toFixed(4)}%` : '—',
   };
-
   return { pct: clamped, status, color, reached, detail };
 }
 
@@ -985,7 +1268,6 @@ async function getTokenData(symbol) {
       fetchWithRetry(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${pair}&period=1h&limit=1`),
       fetchWithRetry(`https://fapi.binance.com/fapi/v1/openInterest?symbol=${pair}`),
     ]);
-
     let liqLongs = null, liqShorts = null;
     const liqUrl = `https://fapi.binance.com/fapi/v1/forceOrders?symbol=${pair}&limit=100`;
     const proxies = [liqUrl, `https://corsproxy.io/?${encodeURIComponent(liqUrl)}`, `https://api.allorigins.win/raw?url=${encodeURIComponent(liqUrl)}`];
@@ -998,8 +1280,7 @@ async function getTokenData(symbol) {
         liqLongs = 0; liqShorts = 0;
         liqOrders.forEach(o => {
           const val = parseFloat(o.origQty) * parseFloat(o.averagePrice || o.price || 0);
-          if (o.side === 'SELL') liqLongs += val;
-          else liqShorts += val;
+          if (o.side === 'SELL') liqLongs += val; else liqShorts += val;
         });
         break;
       } catch(e) { continue; }
@@ -1011,45 +1292,30 @@ async function getTokenData(symbol) {
         const vol = parseFloat(t2.quoteVolume) * 0.001;
         const lr = parseFloat(ls2[0].longAccount);
         const sr = parseFloat(ls2[0].shortAccount);
-        liqLongs = vol * sr;
-        liqShorts = vol * lr;
+        liqLongs = vol * sr; liqShorts = vol * lr;
       }
     }
-
     const t = ticker.status === 'fulfilled' ? ticker.value : null;
     const fr = fundingRaw.status === 'fulfilled' ? fundingRaw.value : null;
     const ls = lsRatio.status === 'fulfilled' ? lsRatio.value : null;
     const oi = oiRaw.status === 'fulfilled' ? oiRaw.value : null;
-
     if (!t) return null;
-
     const price = parseFloat(t.lastPrice);
     const change24 = parseFloat(t.priceChangePercent);
     const funding = fr && fr[0] ? parseFloat(fr[0].fundingRate) * 100 : null;
     const longRatio = ls && ls[0] ? parseFloat(ls[0].longAccount) : null;
     const shortRatio = ls && ls[0] ? parseFloat(ls[0].shortAccount) : null;
     const openInterest = oi ? parseFloat(oi.openInterest) * price : null;
-
     const swing = await fetchSwingLevels(symbol);
-
-    return {
-      symbol, price, change24, funding, longRatio, shortRatio, openInterest,
-      liqLongs, liqShorts,
-      swingHigh: swing?.swingHigh ?? null,
-      swingLow:  swing?.swingLow  ?? null,
-      distUp:    swing?.distUp    ?? null,
-      distDn:    swing?.distDn    ?? null,
-    };
-  } catch(e) {
-    return { symbol, error: e.message };
-  }
+    return { symbol, price, change24, funding, longRatio, shortRatio, openInterest, liqLongs, liqShorts,
+      swingHigh: swing?.swingHigh ?? null, swingLow: swing?.swingLow ?? null,
+      distUp: swing?.distUp ?? null, distDn: swing?.distDn ?? null };
+  } catch(e) { return { symbol, error: e.message }; }
 }
 
 function calcScore(d) {
-  let score = 0;
-  let type = 'neutral';
+  let score = 0, type = 'neutral';
   if (!d || d.error) return { score: 0, type: 'neutral' };
-
   if (d.funding !== null) {
     if (d.funding < -0.01) score += 2;
     else if (d.funding < 0) score += 1;
@@ -1062,28 +1328,20 @@ function calcScore(d) {
     else if (ratio < 0.8) score -= 1;
   }
   if (d.liqLongs !== null && d.liqShorts !== null && (d.liqLongs > 0 || d.liqShorts > 0)) {
-    const liqRatio = d.liqLongs / (d.liqShorts || 1);
-    if (liqRatio > 3) score += 1;
+    if (d.liqLongs / (d.liqShorts || 1) > 3) score += 1;
   }
   if (d.change24 < -8) score += 1;
   else if (d.change24 > 5) score -= 1;
-
   score = Math.max(0, Math.min(5, score));
-
   if (score >= 4) type = 'squeeze';
   else if (score >= 3 && d.funding < 0) type = 'long';
   else if (d.funding > 0.03 && d.shortRatio > d.longRatio) type = 'short';
   else if (score >= 2) type = 'long';
   else type = 'neutral';
-
   return { score, type };
 }
 
-function fmt(n, decimals = 2) {
-  if (n === null || n === undefined || isNaN(n)) return '—';
-  return n.toFixed(decimals);
-}
-
+function fmt(n, decimals = 2) { if (n === null || n === undefined || isNaN(n)) return '—'; return n.toFixed(decimals); }
 function fmtBig(n) {
   if (n === null || n === undefined || isNaN(n) || n === 0) return '—';
   if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
@@ -1091,10 +1349,9 @@ function fmtBig(n) {
   if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
   return n.toFixed(0);
 }
-
 function fmtPrice(p) {
   if (!p) return '—';
-  if (p >= 1000) return p.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  if (p >= 1000) return p.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
   if (p >= 1) return p.toFixed(4);
   return p.toFixed(6);
 }
@@ -1103,101 +1360,70 @@ function renderLiqConsumed(d) {
   const liq = calcLiqConsumed(d);
   const segments = 5;
   const filled = Math.round((liq.pct / 100) * segments);
-  const segsHtml = Array.from({length: segments}, (_, i) => {
-    const active = i < filled;
-    return `<div class="liq-seg" style="${active ? `background:${liq.color}` : ''}"></div>`;
-  }).join('');
-
+  const segsHtml = Array.from({length: segments}, (_, i) =>
+    `<div class="liq-seg" style="${i < filled ? `background:${liq.color}` : ''}"></div>`
+  ).join('');
   let alertHtml = '';
-  if (liq.reached) {
-    alertHtml = `<div class="liq-alert liq-alert-reached">⚠ ZONA ALCANZADA</div>`;
-  } else if (liq.pct >= 65) {
-    alertHtml = `<div class="liq-alert liq-alert-near">↑ CERCA DEL OBJETIVO</div>`;
-  } else {
-    alertHtml = `<div class="liq-alert liq-alert-ok">· LIQUIDEZ DISPONIBLE</div>`;
-  }
-
-  return `
-    <div class="liq-consumed-cell liq-tooltip-wrap">
-      <div class="liq-segments">${segsHtml}</div>
-      <div class="liq-label">
-        <span class="liq-pct" style="color:${liq.color}">${liq.pct}%</span>
-        <span class="liq-status" style="color:${liq.color}">${liq.status}</span>
-      </div>
-      ${alertHtml}
-      <div class="liq-tooltip">
-        <div style="color:var(--cyan);font-size:9px;letter-spacing:2px;margin-bottom:6px">DETALLE LIQUIDEZ</div>
-        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Distancia objetivo:</span><span>${liq.detail.distContrib}</span></div>
-        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Movimiento 24h:</span><span>${liq.detail.moveContrib}</span></div>
-        <div class="liq-tooltip-row"><span class="liq-tooltip-label">Funding:</span><span>${liq.detail.fundingContrib}</span></div>
-        <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border2);color:var(--text2);font-size:9px">
-          Hover para ver detalle · Actualiza con cada SCAN
-        </div>
-      </div>
+  if (liq.reached) alertHtml = `<div class="liq-alert liq-alert-reached">⚠ ZONA ALCANZADA</div>`;
+  else if (liq.pct >= 65) alertHtml = `<div class="liq-alert liq-alert-near">↑ CERCA DEL OBJETIVO</div>`;
+  else alertHtml = `<div class="liq-alert liq-alert-ok">· LIQUIDEZ DISPONIBLE</div>`;
+  return `<div class="liq-consumed-cell liq-tooltip-wrap">
+    <div class="liq-segments">${segsHtml}</div>
+    <div class="liq-label">
+      <span class="liq-pct" style="color:${liq.color}">${liq.pct}%</span>
+      <span class="liq-status" style="color:${liq.color}">${liq.status}</span>
     </div>
-  `;
+    ${alertHtml}
+    <div class="liq-tooltip">
+      <div style="color:var(--cyan);font-size:9px;letter-spacing:2px;margin-bottom:6px">DETALLE LIQUIDEZ</div>
+      <div class="liq-tooltip-row"><span class="liq-tooltip-label">Distancia objetivo:</span><span>${liq.detail.distContrib}</span></div>
+      <div class="liq-tooltip-row"><span class="liq-tooltip-label">Movimiento 24h:</span><span>${liq.detail.moveContrib}</span></div>
+      <div class="liq-tooltip-row"><span class="liq-tooltip-label">Funding:</span><span>${liq.detail.fundingContrib}</span></div>
+      <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border2);color:var(--text2);font-size:9px">Actualiza con cada SCAN</div>
+    </div>
+  </div>`;
 }
 
 function renderRow(d, idx) {
-  if (d.error) {
-    return `<tr style="animation-delay:${idx*0.05}s">
-      <td><div class="token-name">${d.symbol}</div><div class="token-sub">ERROR</div></td>
-      <td colspan="12" style="color:var(--text3);font-size:10px">${d.error}</td>
-    </tr>`;
-  }
-
+  if (d.error) return `<tr style="animation-delay:${idx*0.05}s">
+    <td><div class="token-name">${d.symbol}</div><div class="token-sub">ERROR</div></td>
+    <td colspan="12" style="color:var(--text3);font-size:10px">${d.error}</td></tr>`;
   const { score, type } = calcScore(d);
   const liq = calcLiqConsumed(d);
   const rowClass = liq.reached ? 'highlight-liq-reached' : type === 'squeeze' ? 'highlight-squeeze' : type === 'long' ? 'highlight-long' : '';
-
   const badgeMap = {
     squeeze: `<span class="badge badge-squeeze">⚡ SQUEEZE</span>`,
     long:    `<span class="badge badge-long">▲ LONG</span>`,
     short:   `<span class="badge badge-short">▼ SHORT</span>`,
     neutral: `<span class="badge badge-neutral">— NEUTRAL</span>`,
   };
-
   const scoreColor = type === 'squeeze' ? 'active-squeeze' : type === 'long' ? 'active-long' : 'active-short';
   const scoreDots = Array.from({length:5}, (_,i) =>
-    `<div class="score-dot ${i < score ? 'score-'+scoreColor : 'score-empty'}"></div>`
-  ).join('');
-
-  const longPct = d.longRatio ? (d.longRatio * 100).toFixed(1) : null;
-  const shortPct = d.shortRatio ? (d.shortRatio * 100).toFixed(1) : null;
-  const longFill = d.longRatio ? (d.longRatio * 100) : 50;
-
+    `<div class="score-dot ${i < score ? 'score-'+scoreColor : 'score-empty'}"></div>`).join('');
+  const longPct = d.longRatio ? (d.longRatio*100).toFixed(1) : null;
+  const shortPct = d.shortRatio ? (d.shortRatio*100).toFixed(1) : null;
+  const longFill = d.longRatio ? (d.longRatio*100) : 50;
   const fundingClass = d.funding === null ? '' : d.funding < -0.005 ? 'funding-neg' : d.funding > 0.005 ? 'funding-pos' : 'funding-neu';
   const fundingStr = d.funding !== null ? (d.funding >= 0 ? '+' : '') + d.funding.toFixed(4) + '%' : '—';
-
   const liqRatioStr = (d.liqLongs !== null && d.liqShorts !== null && (d.liqLongs > 0 || d.liqShorts > 0))
     ? (d.liqLongs / (d.liqShorts || 1)).toFixed(2) + 'x' : '—';
-
   return `<tr class="${rowClass}" style="animation-delay:${idx*0.06}s">
-    <td>
-      <div class="token-name">${d.symbol}</div>
-      <div class="token-sub">PERP · BINANCE</div>
-    </td>
+    <td><div class="token-name">${d.symbol}</div><div class="token-sub">PERP · BINANCE</div></td>
     <td class="right"><div class="price">${fmtPrice(d.price)}</div></td>
     <td class="right ${d.change24 >= 0 ? 'change-pos' : 'change-neg'}">${d.change24 >= 0 ? '+' : ''}${fmt(d.change24)}%</td>
     <td class="right ${fundingClass}">${fundingStr}</td>
     <td class="right" style="color:var(--cyan);font-size:11px">${fmtBig(d.openInterest)}</td>
-    <td>
-      <div class="bar-wrap">
-        <div class="bar-track"><div class="bar-fill bar-long" style="width:${longFill}%"></div></div>
-        <span class="ratio-text" style="color:var(--green)">${longPct ? longPct+'%' : '—'}</span>
-        <span style="color:var(--text3);font-size:9px">/</span>
-        <span class="ratio-text" style="color:var(--red)">${shortPct ? shortPct+'%' : '—'}</span>
-      </div>
-    </td>
+    <td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill bar-long" style="width:${longFill}%"></div></div>
+      <span class="ratio-text" style="color:var(--green)">${longPct ? longPct+'%' : '—'}</span>
+      <span style="color:var(--text3);font-size:9px">/</span>
+      <span class="ratio-text" style="color:var(--red)">${shortPct ? shortPct+'%' : '—'}</span></div></td>
     <td class="right liq-neg" style="font-size:11px">${fmtBig(d.liqLongs)}${d.liqLongs > 0 ? '<span style="font-size:8px;color:var(--text3);margin-left:2px">~est</span>' : ''}</td>
     <td class="right liq-pos" style="font-size:11px">${fmtBig(d.liqShorts)}${d.liqShorts > 0 ? '<span style="font-size:8px;color:var(--text3);margin-left:2px">~est</span>' : ''}</td>
     <td class="right" style="font-size:11px;color:var(--yellow)">${liqRatioStr}</td>
-    <td class="right">
-      <div class="dist-wrap">
-        ${d.distUp !== null ? `<span class="dist-up">▲ ${d.distUp.toFixed(2)}%</span><span class="dist-label">${fmtPrice(d.swingHigh)}</span>` : '<span style="color:var(--text3)">—</span>'}
-        ${d.distDn !== null ? `<span class="dist-dn">▼ ${d.distDn.toFixed(2)}%</span><span class="dist-label">${fmtPrice(d.swingLow)}</span>` : ''}
-      </div>
-    </td>
+    <td class="right"><div class="dist-wrap">
+      ${d.distUp !== null ? `<span class="dist-up">▲ ${d.distUp.toFixed(2)}%</span><span class="dist-label">${fmtPrice(d.swingHigh)}</span>` : '<span style="color:var(--text3)">—</span>'}
+      ${d.distDn !== null ? `<span class="dist-dn">▼ ${d.distDn.toFixed(2)}%</span><span class="dist-label">${fmtPrice(d.swingLow)}</span>` : ''}
+    </div></td>
     <td class="center">${renderLiqConsumed(d)}</td>
     <td>${badgeMap[type]}</td>
     <td><div class="score">${scoreDots}</div></td>
@@ -1209,28 +1435,19 @@ async function runScan() {
   if (selectedTokens.size === 0) { showToast('Seleccioná al menos un token'); return; }
   scanning = true;
   const btn = document.getElementById('scan-btn');
-  btn.disabled = true;
-  btn.textContent = '⟳ SCANNING...';
-
+  btn.disabled = true; btn.textContent = '⟳ SCANNING...';
   const tbody = document.getElementById('table-body');
   tbody.innerHTML = `<tr class="loading-row"><td colspan="13"><span class="spinner"></span>FETCHING DATA FROM BINANCE...</td></tr>`;
-
   const tokens = Array.from(selectedTokens);
   const data = await Promise.all(tokens.map(t => getTokenData(t)));
-
   const order = { squeeze: 0, long: 1, neutral: 2, short: 3 };
   data.sort((a, b) => {
-    const la = calcLiqConsumed(a);
-    const lb = calcLiqConsumed(b);
+    const la = calcLiqConsumed(a), lb = calcLiqConsumed(b);
     if (la.reached && !lb.reached) return -1;
     if (!la.reached && lb.reached) return 1;
-    const sa = calcScore(a).type;
-    const sb = calcScore(b).type;
-    return (order[sa] ?? 4) - (order[sb] ?? 4);
+    return (order[calcScore(a).type] ?? 4) - (order[calcScore(b).type] ?? 4);
   });
-
   tbody.innerHTML = data.map((d, i) => renderRow(d, i)).join('');
-
   const valid = data.filter(d => !d.error);
   const squeezes = valid.filter(d => calcScore(d).type === 'squeeze').length;
   const longs = valid.filter(d => calcScore(d).type === 'long').length;
@@ -1238,7 +1455,6 @@ async function runScan() {
   const avgFunding = valid.reduce((acc, d) => acc + (d.funding || 0), 0) / (valid.length || 1);
   const totalLiqL = valid.reduce((acc, d) => acc + (d.liqLongs || 0), 0);
   const totalLiqS = valid.reduce((acc, d) => acc + (d.liqShorts || 0), 0);
-
   document.getElementById('s-total').textContent = valid.length;
   document.getElementById('s-squeeze').textContent = squeezes;
   document.getElementById('s-long').textContent = longs;
@@ -1248,132 +1464,70 @@ async function runScan() {
   document.getElementById('s-liq-long').textContent = fmtBig(totalLiqL);
   document.getElementById('s-liq-short').textContent = fmtBig(totalLiqS);
   document.getElementById('summary').style.display = 'flex';
-
   const now = new Date();
   const timeStr = now.toLocaleTimeString('es-AR');
   document.getElementById('last-update').textContent = `Última actualización: ${timeStr} — ${valid.length} tokens escaneados`;
   document.getElementById('last-update-header').textContent = timeStr;
-
-  btn.disabled = false;
-  btn.textContent = '▶ SCAN';
+  btn.disabled = false; btn.textContent = '▶ SCAN';
   scanning = false;
 }
 
-// ===== TABS =====
-function switchTab(tab) {
-  document.getElementById('panel-scanner').style.display = tab === 'scanner' ? 'block' : 'none';
-  document.getElementById('panel-acum').style.display = tab === 'acum' ? 'block' : 'none';
-  document.getElementById('tab-scanner').classList.toggle('active', tab === 'scanner');
-  document.getElementById('tab-acum').classList.toggle('active', tab === 'acum');
-}
-
-// ===== DETECTOR DE ACUMULACIÓN =====
+// ============================================================
+// ACUMULACIÓN
+// ============================================================
 async function fetchAccumData(symbol) {
   const pair = symbol + 'USDT';
   try {
-    // Klines diarios últimos 45 días
     const [klines, ticker, oi, funding] = await Promise.allSettled([
       fetchWithRetry(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1d&limit=45`),
       fetchWithRetry(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${pair}`),
       fetchWithRetry(`https://fapi.binance.com/fapi/v1/openInterest?symbol=${pair}`),
       fetchWithRetry(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${pair}&limit=1`),
     ]);
-
     if (klines.status !== 'fulfilled' || ticker.status !== 'fulfilled') return null;
-
-    const k = klines.value;
-    const t = ticker.value;
+    const k = klines.value, t = ticker.value;
     const price = parseFloat(t.lastPrice);
-
-    // Calcular movimiento diario de cada vela
-    const dailyMoves = k.map(c => {
-      const h = parseFloat(c[2]);
-      const l = parseFloat(c[3]);
-      const o = parseFloat(c[1]);
-      return o > 0 ? ((h - l) / o * 100) : 0;
-    });
-
-    // Volumen promedio
+    const dailyMoves = k.map(c => { const h=parseFloat(c[2]),l=parseFloat(c[3]),o=parseFloat(c[1]); return o>0?((h-l)/o*100):0; });
     const volumes = k.map(c => parseFloat(c[5]));
-    const avgVol = volumes.reduce((a, b) => a + b, 0) / volumes.length;
-    const recentVol = volumes.slice(-5).reduce((a, b) => a + b, 0) / 5;
-    const volRatio = avgVol > 0 ? recentVol / avgVol : 1;
-
-    // Precio mín y máx en el período
+    const avgVol = volumes.reduce((a,b)=>a+b,0)/volumes.length;
+    const recentVol = volumes.slice(-5).reduce((a,b)=>a+b,0)/5;
+    const volRatio = avgVol > 0 ? recentVol/avgVol : 1;
     const closes = k.map(c => parseFloat(c[4]));
-    const minPrice = Math.min(...closes);
-    const maxPrice = Math.max(...closes);
-    const priceRange = maxPrice > 0 ? ((maxPrice - minPrice) / minPrice * 100) : 0;
-
-    // Tendencia del precio (últimas 10 velas vs anteriores)
-    const recent10 = closes.slice(-10);
-    const prev20 = closes.slice(-30, -10);
-    const avgRecent = recent10.reduce((a,b) => a+b, 0) / recent10.length;
-    const avgPrev = prev20.length > 0 ? prev20.reduce((a,b) => a+b, 0) / prev20.length : avgRecent;
-    const priceTrend = avgPrev > 0 ? ((avgRecent - avgPrev) / avgPrev * 100) : 0;
-
-    // Detección de días flat consecutivos desde el final
+    const minPrice = Math.min(...closes), maxPrice = Math.max(...closes);
+    const priceRange = maxPrice > 0 ? ((maxPrice-minPrice)/minPrice*100) : 0;
+    const recent10 = closes.slice(-10), prev20 = closes.slice(-30,-10);
+    const avgRecent = recent10.reduce((a,b)=>a+b,0)/recent10.length;
+    const avgPrev = prev20.length > 0 ? prev20.reduce((a,b)=>a+b,0)/prev20.length : avgRecent;
+    const priceTrend = avgPrev > 0 ? ((avgRecent-avgPrev)/avgPrev*100) : 0;
     const maxPctPerDay = parseFloat(document.getElementById('acum-pct').value);
     let diasFlat = 0;
-    for (let i = dailyMoves.length - 1; i >= 0; i--) {
-      if (dailyMoves[i] <= maxPctPerDay) diasFlat++;
-      else break;
-    }
-
-    // OI creciendo
-    const oiVal = oi.status === 'fulfilled' ? parseFloat(oi.value.openInterest) * price : null;
-
-    // Funding
-    const fundingVal = funding.status === 'fulfilled' && funding.value[0]
-      ? parseFloat(funding.value[0].fundingRate) * 100 : null;
-
-    // Cambio 24h
+    for (let i = dailyMoves.length-1; i >= 0; i--) { if (dailyMoves[i] <= maxPctPerDay) diasFlat++; else break; }
+    const oiVal = oi.status === 'fulfilled' ? parseFloat(oi.value.openInterest)*price : null;
+    const fundingVal = funding.status === 'fulfilled' && funding.value[0] ? parseFloat(funding.value[0].fundingRate)*100 : null;
     const change24 = parseFloat(t.priceChangePercent);
-
-    return {
-      symbol, price, diasFlat, volRatio, priceRange,
-      priceTrend, change24, avgVol, recentVol,
-      oi: oiVal, funding: fundingVal,
-      dailyMoves
-    };
+    return { symbol, price, diasFlat, volRatio, priceRange, priceTrend, change24, avgVol, recentVol, oi: oiVal, funding: fundingVal, dailyMoves };
   } catch(e) { return null; }
 }
 
 function calcAccumScore(d, minDias, maxVol) {
   if (!d) return { score: 0, level: 'none' };
   let score = 0;
-
-  // 1. Días flat — más días = más score
-  if (d.diasFlat >= minDias * 2) score += 3;
-  else if (d.diasFlat >= minDias * 1.5) score += 2;
+  if (d.diasFlat >= minDias*2) score += 3;
+  else if (d.diasFlat >= minDias*1.5) score += 2;
   else if (d.diasFlat >= minDias) score += 1;
-
-  // 2. Volumen bajo — ballenas acumulando en silencio
-  if (d.volRatio <= maxVol * 0.5) score += 2;
+  if (d.volRatio <= maxVol*0.5) score += 2;
   else if (d.volRatio <= maxVol) score += 1;
-
-  // 3. Precio en zona baja del rango
-  if (d.priceTrend < -10) score += 2;  // vino cayendo y ahora flat
+  if (d.priceTrend < -10) score += 2;
   else if (d.priceTrend < -5) score += 1;
-
-  // 4. Funding neutro o negativo — acumulación sin euforia
-  if (d.funding !== null) {
-    if (d.funding < 0) score += 2;
-    else if (d.funding < 0.005) score += 1;
-  }
-
-  // 5. Movimiento 24h muy bajo — consolidación activa
+  if (d.funding !== null) { if (d.funding < 0) score += 2; else if (d.funding < 0.005) score += 1; }
   if (Math.abs(d.change24) < 2) score += 1;
-
   const maxScore = 10;
-  const pct = Math.round((score / maxScore) * 100);
-
+  const pct = Math.round((score/maxScore)*100);
   let level;
   if (score >= 7) level = 'hot';
   else if (score >= 5) level = 'warm';
   else if (score >= 3) level = 'watch';
   else level = 'none';
-
   return { score, pct, level };
 }
 
@@ -1381,93 +1535,286 @@ function renderAccumCard(d, idx) {
   const minDias = parseInt(document.getElementById('acum-dias').value);
   const maxVol = parseFloat(document.getElementById('acum-vol').value);
   const { score, level } = calcAccumScore(d, minDias, maxVol);
-
   if (level === 'none') return '';
-
   const badgeMap = {
-    hot:   { cls: 'acum-badge-hot',   txt: '🐋 ACUMULACIÓN FUERTE', alertCls: 'acum-alert-hot',  alertTxt: '⚡ Alta probabilidad de pump' },
-    warm:  { cls: 'acum-badge-warm',  txt: '👀 EN OBSERVACIÓN',     alertCls: 'acum-alert-warn', alertTxt: '→ Monitorear de cerca' },
-    watch: { cls: 'acum-badge-watch', txt: '◆ POSIBLE ACUM',        alertCls: 'acum-alert-watch',alertTxt: '· Acumulación incipiente' },
+    hot:   { cls:'acum-badge-hot',   txt:'🐋 ACUMULACIÓN FUERTE', alertCls:'acum-alert-hot',  alertTxt:'⚡ Alta probabilidad de pump' },
+    warm:  { cls:'acum-badge-warm',  txt:'👀 EN OBSERVACIÓN',     alertCls:'acum-alert-warn', alertTxt:'→ Monitorear de cerca' },
+    watch: { cls:'acum-badge-watch', txt:'◆ POSIBLE ACUM',        alertCls:'acum-alert-watch',alertTxt:'· Acumulación incipiente' },
   };
   const b = badgeMap[level];
-
   const volColor = d.volRatio <= 0.4 ? 'var(--green)' : d.volRatio <= 0.7 ? 'var(--yellow)' : 'var(--red)';
   const fundColor = d.funding < 0 ? 'var(--green)' : d.funding < 0.005 ? 'var(--yellow)' : 'var(--red)';
   const changeColor = Math.abs(d.change24) < 3 ? 'var(--green)' : 'var(--yellow)';
-
-  const dots = Array.from({length: 5}, (_, i) =>
-    `<div class="acum-score-dot ${i < Math.round(score/2) ? 'filled' : ''}"></div>`
-  ).join('');
-
-  return `
-    <div class="acum-card level-${level}" style="animation-delay:${idx*0.05}s">
-      <div class="acum-card-header">
-        <div>
-          <div class="acum-symbol">${d.symbol}</div>
-          <div class="acum-price">$${d.price >= 1 ? d.price.toFixed(4) : d.price.toFixed(6)}</div>
-        </div>
-        <span class="acum-badge ${b.cls}">${b.txt}</span>
-      </div>
-      <div class="acum-metrics">
-        <div class="acum-metric">
-          <span class="acum-metric-label">Días flat</span>
-          <span class="acum-metric-val" style="color:${level==='hot'?'#a78bfa':'var(--cyan)'}">${d.diasFlat} días</span>
-        </div>
-        <div class="acum-metric">
-          <span class="acum-metric-label">Vol relativo</span>
-          <span class="acum-metric-val" style="color:${volColor}">${d.volRatio.toFixed(2)}x</span>
-        </div>
-        <div class="acum-metric">
-          <span class="acum-metric-label">Cambio 24h</span>
-          <span class="acum-metric-val" style="color:${changeColor}">${d.change24>=0?'+':''}${d.change24.toFixed(2)}%</span>
-        </div>
-        <div class="acum-metric">
-          <span class="acum-metric-label">Funding</span>
-          <span class="acum-metric-val" style="color:${fundColor}">${d.funding!==null?(d.funding>=0?'+':'')+d.funding.toFixed(4)+'%':'—'}</span>
-        </div>
-      </div>
-      <div class="acum-score-bar">
-        <span class="acum-score-label">SCORE ACUM:</span>
-        ${dots}
-        <span style="font-size:9px;color:var(--text2);margin-left:4px">${score}/10</span>
-      </div>
-      <div class="acum-alert ${b.alertCls}">${b.alertTxt}</div>
+  const dots = Array.from({length:5},(_,i) => `<div class="acum-score-dot ${i < Math.round(score/2) ? 'filled' : ''}"></div>`).join('');
+  return `<div class="acum-card level-${level}" style="animation-delay:${idx*0.05}s">
+    <div class="acum-card-header">
+      <div><div class="acum-symbol">${d.symbol}</div><div class="acum-price">$${d.price >= 1 ? d.price.toFixed(4) : d.price.toFixed(6)}</div></div>
+      <span class="acum-badge ${b.cls}">${b.txt}</span>
     </div>
-  `;
+    <div class="acum-metrics">
+      <div class="acum-metric"><span class="acum-metric-label">Días flat</span><span class="acum-metric-val" style="color:${level==='hot'?'#a78bfa':'var(--cyan)'}">${d.diasFlat} días</span></div>
+      <div class="acum-metric"><span class="acum-metric-label">Vol relativo</span><span class="acum-metric-val" style="color:${volColor}">${d.volRatio.toFixed(2)}x</span></div>
+      <div class="acum-metric"><span class="acum-metric-label">Cambio 24h</span><span class="acum-metric-val" style="color:${changeColor}">${d.change24>=0?'+':''}${d.change24.toFixed(2)}%</span></div>
+      <div class="acum-metric"><span class="acum-metric-label">Funding</span><span class="acum-metric-val" style="color:${fundColor}">${d.funding!==null?(d.funding>=0?'+':'')+d.funding.toFixed(4)+'%':'—'}</span></div>
+    </div>
+    <div class="acum-score-bar"><span class="acum-score-label">SCORE ACUM:</span>${dots}<span style="font-size:9px;color:var(--text2);margin-left:4px">${score}/10</span></div>
+    <div class="acum-alert ${b.alertCls}">${b.alertTxt}</div>
+  </div>`;
 }
 
 async function runAccumScan() {
   const btn = document.getElementById('acum-scan-btn');
-  btn.disabled = true;
-  btn.textContent = '⟳ ESCANEANDO...';
-
+  btn.disabled = true; btn.textContent = '⟳ ESCANEANDO...';
   const grid = document.getElementById('acum-grid');
   grid.innerHTML = `<div class="acum-empty"><span class="spinner"></span> ANALIZANDO ${tokenList.length} TOKENS...</div>`;
-
   const minDias = parseInt(document.getElementById('acum-dias').value);
   const maxVol = parseFloat(document.getElementById('acum-vol').value);
-
   const results = await Promise.all(tokenList.map(t => fetchAccumData(t)));
-
-  // Filtrar y ordenar por score
-  const scored = results
-    .filter(d => d !== null)
+  const scored = results.filter(d => d !== null)
     .map(d => ({ ...d, ...calcAccumScore(d, minDias, maxVol) }))
     .filter(d => d.level !== 'none')
     .sort((a, b) => b.score - a.score);
-
   if (scored.length === 0) {
     grid.innerHTML = `<div class="acum-empty">No se encontraron tokens en acumulación con los filtros actuales.<br><br>Probá aumentar el % de movimiento o reducir los días mínimos.</div>`;
   } else {
     grid.innerHTML = scored.map((d, i) => renderAccumCard(d, i)).join('');
     showToast(`${scored.length} tokens en acumulación detectados`);
   }
-
-  btn.disabled = false;
-  btn.textContent = '▶ ESCANEAR';
+  btn.disabled = false; btn.textContent = '▶ ESCANEAR';
 }
 
-// ===== EVENTOS =====
+// ============================================================
+// CARRERA — RACE
+// ============================================================
+let raceMode = 'all'; // 'all' | 'mine'
+let raceData = [];          // datos actuales
+let prevRacePositions = {}; // { symbol: position } de la vuelta anterior
+let raceRefreshInterval = null;
+let raceCdTimer = null;
+let raceCdSecs = 30;
+const RACE_INTERVAL = 30;
+
+function setRaceMode(mode) {
+  raceMode = mode;
+  document.getElementById('race-mode-all').classList.toggle('active', mode === 'all');
+  document.getElementById('race-mode-mine').classList.toggle('active', mode === 'mine');
+  if (raceData.length > 0) renderRace(raceData);
+}
+
+async function fetchAllTickers() {
+  const res = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr');
+  if (!res.ok) throw new Error('No se pudo obtener tickers');
+  const data = await res.json();
+  // Filtrar solo pares USDT perpetuos relevantes (excluir BUSD, pares inversos, etc)
+  return data
+    .filter(t => t.symbol.endsWith('USDT') && !t.symbol.includes('_'))
+    .map(t => ({
+      symbol: t.symbol.replace('USDT', ''),
+      price: parseFloat(t.lastPrice),
+      change24: parseFloat(t.priceChangePercent),
+      volume: parseFloat(t.quoteVolume),
+    }))
+    .sort((a, b) => b.change24 - a.change24);
+}
+
+function getBarColor(change) {
+  if (change >= 15) return '#00ff88';
+  if (change >= 8)  return '#00cc66';
+  if (change >= 3)  return '#ffd700';
+  if (change >= 0)  return '#44aa66';
+  if (change >= -5) return '#ff6b00';
+  return '#ff3355';
+}
+
+function renderRace(data) {
+  const list = document.getElementById('race-list');
+  const mySet = new Set(tokenList);
+
+  // Filtrar según modo
+  let display = raceMode === 'mine'
+    ? data.filter(d => mySet.has(d.symbol))
+    : data;
+
+  // Calcular max absoluto para la barra
+  const maxAbs = Math.max(...display.map(d => Math.abs(d.change24)), 1);
+
+  // Stats
+  const winners = display.filter(d => d.change24 > 0).length;
+  const losers  = display.filter(d => d.change24 < 0).length;
+  const neutral = display.length - winners - losers;
+  document.getElementById('rs-winners').textContent = winners;
+  document.getElementById('rs-losers').textContent  = losers;
+  document.getElementById('rs-neutral').textContent = neutral;
+
+  if (display.length > 0) {
+    const best  = display[0];
+    const worst = display[display.length - 1];
+    document.getElementById('rs-best').textContent  = `${best.symbol} ${best.change24 >= 0 ? '+' : ''}${best.change24.toFixed(2)}%`;
+    document.getElementById('rs-worst').textContent = `${worst.symbol} ${worst.change24 >= 0 ? '+' : ''}${worst.change24.toFixed(2)}%`;
+  }
+
+  if (display.length === 0) {
+    list.innerHTML = `<div class="race-empty">No hay tokens para mostrar.<br>Agregá tokens a tu lista o cambiá a modo TODOS.</div>`;
+    return;
+  }
+
+  // Renderizar filas
+  let html = '';
+  let lastWasWinner = display[0]?.change24 >= 0;
+
+  display.forEach((token, idx) => {
+    const pos = idx + 1;
+    const isWinner = token.change24 >= 0;
+    const isMyToken = mySet.has(token.symbol);
+
+    // Divider entre ganadores y perdedores
+    if (!isWinner && lastWasWinner) {
+      html += `<div class="race-divider">
+        <div class="race-divider-line"></div>
+        <span>▼ PERDEDORES</span>
+        <div class="race-divider-line"></div>
+      </div>`;
+      lastWasWinner = false;
+    }
+
+    // Movimiento vs posición anterior
+    const prevPos = prevRacePositions[token.symbol];
+    let moveHtml = '';
+    if (prevPos === undefined) {
+      moveHtml = `<span class="move-new">NEW</span>`;
+    } else {
+      const diff = prevPos - pos; // positivo = subió
+      if (diff > 0)      moveHtml = `<span class="move-up">▲</span><span class="move-num move-up">${diff}</span>`;
+      else if (diff < 0) moveHtml = `<span class="move-down">▼</span><span class="move-num move-down">${Math.abs(diff)}</span>`;
+      else               moveHtml = `<span class="move-same">—</span>`;
+    }
+
+    // Barra
+    const barPct = Math.min(100, (Math.abs(token.change24) / maxAbs) * 100);
+    const barColor = getBarColor(token.change24);
+
+    // Posición class
+    const posClass = pos === 1 ? 'pos-1' : pos === 2 ? 'pos-2' : pos === 3 ? 'pos-3' : '';
+    const top3Class = pos <= 3 ? 'top3' : '';
+
+    // Badge categoria
+    let catBadge = '';
+    if (isWinner) catBadge = `<span class="race-cat-badge cat-winner">▲ WINNER</span>`;
+    else          catBadge = `<span class="race-cat-badge cat-loser">▼ LOSER</span>`;
+
+    // Star si es de mi lista (solo en modo TODOS)
+    const starHtml = (raceMode === 'all' && isMyToken) ? `<span class="my-token-star">★</span>` : '';
+
+    html += `<div class="race-row ${top3Class} ${isMyToken ? 'my-token' : ''} ${posClass}" style="animation-delay:${Math.min(idx,30)*0.025}s">
+      <div class="race-pos"><div class="race-pos-num">${pos}</div></div>
+      <div class="race-move">${moveHtml}</div>
+      <div class="race-symbol-wrap">
+        <div class="race-symbol">${token.symbol}${starHtml}</div>
+        <div class="race-sub">USDT PERP</div>
+      </div>
+      <div class="race-bar-wrap">
+        <div class="race-bar-track">
+          <div class="race-bar-fill" style="width:${barPct}%;background:${barColor}"></div>
+        </div>
+      </div>
+      <div class="race-change">
+        <div class="race-change-val ${isWinner ? 'race-change-pos' : 'race-change-neg'}">
+          ${token.change24 >= 0 ? '+' : ''}${token.change24.toFixed(2)}%
+        </div>
+      </div>
+      <div class="race-price">${fmtPrice(token.price)}</div>
+      <div class="race-cat">${catBadge}</div>
+    </div>`;
+  });
+
+  list.innerHTML = html;
+
+  // Guardar posiciones actuales para próxima vuelta
+  const newPositions = {};
+  display.forEach((t, i) => { newPositions[t.symbol] = i + 1; });
+  prevRacePositions = newPositions;
+
+  // Alerta si algún token de la lista entró al top 20 global
+  if (raceMode === 'all') {
+    const top20 = data.slice(0, 20).map(d => d.symbol);
+    const myInTop20 = top20.filter(s => mySet.has(s));
+    if (myInTop20.length > 0) {
+      const names = myInTop20.join(', ');
+      showRaceAlert(`🏆 ${names} está en el TOP 20 de Binance Futures!`);
+    }
+  }
+
+  // Footer
+  const now = new Date();
+  document.getElementById('race-last-update').textContent = `Actualizado: ${now.toLocaleTimeString('es-AR')}`;
+  document.getElementById('last-update-header').textContent = now.toLocaleTimeString('es-AR');
+}
+
+function startRaceCountdown() {
+  clearInterval(raceCdTimer);
+  raceCdSecs = RACE_INTERVAL;
+  const bar = document.getElementById('race-cd-bar');
+  const txt = document.getElementById('race-cd-text');
+  function tick() {
+    const pct = (raceCdSecs / RACE_INTERVAL) * 100;
+    bar.style.width = pct + '%';
+    bar.style.background = pct > 50 ? 'var(--yellow)' : pct > 25 ? 'var(--orange)' : 'var(--red)';
+    txt.textContent = raceCdSecs + 's';
+    if (raceCdSecs > 0) raceCdSecs--;
+  }
+  tick();
+  raceCdTimer = setInterval(tick, 1000);
+}
+
+let raceRunning = false;
+async function runRace() {
+  if (raceRunning) return;
+  raceRunning = true;
+  const btn = document.getElementById('race-refresh-btn');
+  btn.textContent = '⟳';
+  btn.disabled = true;
+  try {
+    const data = await fetchAllTickers();
+    raceData = data;
+    renderRace(data);
+    startRaceCountdown();
+  } catch(e) {
+    document.getElementById('race-list').innerHTML = `<div class="race-empty">Error al cargar datos: ${e.message}<br><br>Reintentá en unos segundos.</div>`;
+  }
+  btn.textContent = '↺ NOW';
+  btn.disabled = false;
+  raceRunning = false;
+}
+
+function startRaceAutoRefresh() {
+  clearInterval(raceRefreshInterval);
+  raceRefreshInterval = setInterval(() => { runRace(); }, RACE_INTERVAL * 1000);
+}
+
+// ============================================================
+// TABS
+// ============================================================
+let raceInitialized = false;
+
+function switchTab(tab) {
+  document.getElementById('panel-scanner').style.display = tab === 'scanner' ? 'block' : 'none';
+  document.getElementById('panel-acum').style.display   = tab === 'acum'    ? 'block' : 'none';
+  document.getElementById('panel-race').style.display   = tab === 'race'    ? 'block' : 'none';
+  document.getElementById('tab-scanner').classList.toggle('active', tab === 'scanner');
+  document.getElementById('tab-acum').classList.toggle('active',    tab === 'acum');
+  document.getElementById('tab-race').classList.toggle('active',    tab === 'race');
+
+  // Auto-iniciar la carrera la primera vez que se abre
+  if (tab === 'race' && !raceInitialized) {
+    raceInitialized = true;
+    runRace();
+    startRaceAutoRefresh();
+  }
+}
+
+// ============================================================
+// EVENTOS
+// ============================================================
 document.getElementById('scan-btn').addEventListener('click', runScan);
 document.getElementById('add-btn').addEventListener('click', addCustomToken);
 document.getElementById('reset-btn').addEventListener('click', resetTokens);
@@ -1475,6 +1822,7 @@ document.getElementById('refresh-select').addEventListener('change', setRefresh)
 document.getElementById('custom-input').addEventListener('keydown', e => { if (e.key === 'Enter') addCustomToken(); });
 document.getElementById('acum-scan-btn').addEventListener('click', runAccumScan);
 
+// Init
 initTags();
 setTimeout(() => { runScan(); setRefresh(); }, 400);
 </script>
