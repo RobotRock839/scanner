@@ -803,6 +803,80 @@
   @keyframes toastIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
   @keyframes toastOut { to { opacity:0; transform: translateY(10px); } }
 
+  /* ===== CRUCE ACUMULACIÓN en CARRERA ===== */
+  .acum-cross {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .acum-cross-pump {
+    background: rgba(124,58,237,0.25);
+    border: 1px solid #7c3aed;
+    color: #c4b5fd;
+    animation: pumpPulse 2s infinite;
+  }
+  @keyframes pumpPulse { 0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,0.4);} 50%{box-shadow:0 0 8px 2px rgba(124,58,237,0.25);} }
+  .acum-cross-saliendo {
+    background: rgba(0,229,255,0.1);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+  }
+  .acum-cross-roto {
+    background: rgba(255,51,85,0.1);
+    border: 1px solid var(--red2);
+    color: var(--red);
+  }
+  .acum-cross-watch {
+    background: rgba(255,215,0,0.08);
+    border: 1px solid rgba(255,215,0,0.4);
+    color: var(--yellow);
+  }
+
+  /* columna acum en race row */
+  .race-acum-col {
+    width: 130px;
+    text-align: right;
+    flex-shrink: 0;
+    padding-right: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+  .race-acum-score {
+    font-size: 8px;
+    color: var(--text3);
+    letter-spacing: 1px;
+  }
+
+  /* fila destacada pump confirmado */
+  .race-row.pump-confirmed {
+    background: rgba(124,58,237,0.06) !important;
+  }
+  .race-row.pump-confirmed::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: #7c3aed;
+  }
+
+  /* badge acum en stats bar */
+  .race-acum-stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 16px;
+    border-left: 1px solid var(--border2);
+  }
+
   /* Alert de token propio entrando top20 */
   .race-alert-toast {
     position: fixed;
@@ -1002,6 +1076,10 @@
       <div class="race-stat">
         <span>PEOR:</span>
         <span class="race-stat-val" style="color:var(--red)" id="rs-worst">—</span>
+      </div>
+      <div class="race-stat race-acum-stat">
+        <span>🐋 PUMP ACUM:</span>
+        <span class="race-stat-val" style="color:#a78bfa" id="rs-pump">—</span>
       </div>
       <div class="race-stat" style="margin-left:auto">
         <div class="race-countdown">
@@ -1586,13 +1664,92 @@ async function runAccumScan() {
 // ============================================================
 // CARRERA — RACE
 // ============================================================
-let raceMode = 'all'; // 'all' | 'mine'
-let raceData = [];          // datos actuales
-let prevRacePositions = {}; // { symbol: position } de la vuelta anterior
+let raceMode = 'all';
+let raceData = [];
+let prevRacePositions = {};
 let raceRefreshInterval = null;
 let raceCdTimer = null;
 let raceCdSecs = 30;
 const RACE_INTERVAL = 30;
+
+// Cache acumulación para cruce en carrera { symbol: { score, level, diasFlat, volRatio } }
+let raceAccumCache = {};
+let raceAccumLoading = false;
+
+async function fetchAccumDataBg(symbol) {
+  const pair = symbol + 'USDT';
+  try {
+    const [klines, ticker, funding] = await Promise.allSettled([
+      fetchWithRetry(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1d&limit=45`),
+      fetchWithRetry(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${pair}`),
+      fetchWithRetry(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${pair}&limit=1`),
+    ]);
+    if (klines.status !== 'fulfilled' || ticker.status !== 'fulfilled') return null;
+    const k = klines.value, t = ticker.value;
+    const dailyMoves = k.map(c => { const h=parseFloat(c[2]),l=parseFloat(c[3]),o=parseFloat(c[1]); return o>0?((h-l)/o*100):0; });
+    const volumes = k.map(c => parseFloat(c[5]));
+    const avgVol = volumes.reduce((a,b)=>a+b,0)/volumes.length;
+    const recentVol = volumes.slice(-5).reduce((a,b)=>a+b,0)/5;
+    const volRatio = avgVol > 0 ? recentVol/avgVol : 1;
+    const closes = k.map(c => parseFloat(c[4]));
+    const recent10 = closes.slice(-10), prev20 = closes.slice(-30,-10);
+    const avgRecent = recent10.reduce((a,b)=>a+b,0)/recent10.length;
+    const avgPrev = prev20.length > 0 ? prev20.reduce((a,b)=>a+b,0)/prev20.length : avgRecent;
+    const priceTrend = avgPrev > 0 ? ((avgRecent-avgPrev)/avgPrev*100) : 0;
+    let diasFlat = 0;
+    for (let i = dailyMoves.length-1; i >= 0; i--) { if (dailyMoves[i] <= 8) diasFlat++; else break; }
+    const fundingVal = funding.status === 'fulfilled' && funding.value[0] ? parseFloat(funding.value[0].fundingRate)*100 : null;
+    const change24 = parseFloat(t.priceChangePercent);
+    return { symbol, diasFlat, volRatio, priceTrend, change24, funding: fundingVal };
+  } catch(e) { return null; }
+}
+
+function calcAccumScoreBg(d) {
+  const minDias = 10, maxVol = 0.7;
+  if (!d) return { score: 0, level: 'none' };
+  let score = 0;
+  if (d.diasFlat >= minDias*2) score += 3;
+  else if (d.diasFlat >= minDias*1.5) score += 2;
+  else if (d.diasFlat >= minDias) score += 1;
+  if (d.volRatio <= maxVol*0.5) score += 2;
+  else if (d.volRatio <= maxVol) score += 1;
+  if (d.priceTrend < -10) score += 2;
+  else if (d.priceTrend < -5) score += 1;
+  if (d.funding !== null) { if (d.funding < 0) score += 2; else if (d.funding < 0.005) score += 1; }
+  if (Math.abs(d.change24) < 2) score += 1;
+  let level;
+  if (score >= 7) level = 'hot';
+  else if (score >= 5) level = 'warm';
+  else if (score >= 3) level = 'watch';
+  else level = 'none';
+  return { score, level };
+}
+
+function getCrossSignal(accumLevel, change24) {
+  if (!accumLevel || accumLevel === 'none') return null;
+  if (accumLevel === 'hot' || accumLevel === 'warm') {
+    if (change24 >= 5)  return { type: 'pump',     label: '🐋 PUMP CONFIRMADO', cls: 'acum-cross-pump' };
+    if (change24 >= 1)  return { type: 'saliendo', label: '🐋 SALIENDO',         cls: 'acum-cross-saliendo' };
+    if (change24 < -5)  return { type: 'roto',     label: '⚠ SETUP ROTO',       cls: 'acum-cross-roto' };
+    return { type: 'acum', label: '🐋 EN ACUM', cls: 'acum-cross-watch' };
+  }
+  if (change24 >= 5)  return { type: 'saliendo', label: '◆ POSIBLE SALIDA', cls: 'acum-cross-saliendo' };
+  if (change24 >= 1)  return { type: 'watch',    label: '◆ VIGILAR',         cls: 'acum-cross-watch' };
+  return null;
+}
+
+async function loadAccumForRace() {
+  if (raceAccumLoading) return;
+  raceAccumLoading = true;
+  const results = await Promise.all(tokenList.map(t => fetchAccumDataBg(t)));
+  results.forEach(d => {
+    if (!d) return;
+    const { score, level } = calcAccumScoreBg(d);
+    raceAccumCache[d.symbol] = { score, level, diasFlat: d.diasFlat, volRatio: d.volRatio };
+  });
+  raceAccumLoading = false;
+  if (raceData.length > 0) renderRace(raceData);
+}
 
 function setRaceMode(mode) {
   raceMode = mode;
@@ -1705,7 +1862,18 @@ function renderRace(data) {
     // Star si es de mi lista (solo en modo TODOS)
     const starHtml = (raceMode === 'all' && isMyToken) ? `<span class="my-token-star">★</span>` : '';
 
-    html += `<div class="race-row ${top3Class} ${isMyToken ? 'my-token' : ''} ${posClass}" style="animation-delay:${Math.min(idx,30)*0.025}s">
+    // Cruce con acumulación
+    const accumData = raceAccumCache[token.symbol];
+    const crossSignal = accumData ? getCrossSignal(accumData.level, token.change24) : null;
+    const isPumpConfirmed = crossSignal?.type === 'pump';
+    const crossHtml = crossSignal
+      ? `<span class="acum-cross ${crossSignal.cls}">${crossSignal.label}</span>
+         <span class="race-acum-score">${accumData.diasFlat}d flat · ${accumData.volRatio.toFixed(1)}x vol</span>`
+      : (accumData && accumData.level !== 'none'
+          ? `<span class="race-acum-score" style="color:var(--text3)">acum score ${accumData.score}/10</span>`
+          : '');
+
+    html += `<div class="race-row ${top3Class} ${isMyToken ? 'my-token' : ''} ${posClass} ${isPumpConfirmed ? 'pump-confirmed' : ''}" style="animation-delay:${Math.min(idx,30)*0.025}s">
       <div class="race-pos"><div class="race-pos-num">${pos}</div></div>
       <div class="race-move">${moveHtml}</div>
       <div class="race-symbol-wrap">
@@ -1723,6 +1891,7 @@ function renderRace(data) {
         </div>
       </div>
       <div class="race-price">${fmtPrice(token.price)}</div>
+      <div class="race-acum-col">${crossHtml}</div>
       <div class="race-cat">${catBadge}</div>
     </div>`;
   });
@@ -1743,6 +1912,25 @@ function renderRace(data) {
       showRaceAlert(`🏆 ${names} está en el TOP 20 de Binance Futures!`);
     }
   }
+
+  // Alerta especial pump confirmado
+  const pumpConfirmed = display.filter(t => {
+    const acc = raceAccumCache[t.symbol];
+    const sig = acc ? getCrossSignal(acc.level, t.change24) : null;
+    return sig?.type === 'pump';
+  });
+  if (pumpConfirmed.length > 0) {
+    const names = pumpConfirmed.map(t => t.symbol).join(', ');
+    showRaceAlert(`🐋 PUMP CONFIRMADO: ${names} estaba acumulando y ahora sube!`);
+  }
+
+  // Actualizar stat de pump en barra
+  const pumpCount = display.filter(t => {
+    const acc = raceAccumCache[t.symbol];
+    return acc && getCrossSignal(acc.level, t.change24)?.type === 'pump';
+  }).length;
+  const pumpStatEl = document.getElementById('rs-pump');
+  if (pumpStatEl) pumpStatEl.textContent = pumpCount || '—';
 
   // Footer
   const now = new Date();
@@ -1774,7 +1962,11 @@ async function runRace() {
   btn.textContent = '⟳';
   btn.disabled = true;
   try {
-    const data = await fetchAllTickers();
+    // Correr tickers y análisis de acumulación en paralelo
+    const [data] = await Promise.all([
+      fetchAllTickers(),
+      loadAccumForRace(),
+    ]);
     raceData = data;
     renderRace(data);
     startRaceCountdown();
