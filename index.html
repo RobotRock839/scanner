@@ -494,115 +494,102 @@
   /* ===== HEATMAP DE LIQUIDACIONES ===== */
   .heatmap-row { background: #07070d; border-bottom: 1px solid var(--border); }
   .heatmap-row td { padding: 0 !important; }
-  .heatmap-container {
-    padding: 12px 16px 14px;
-    border-left: 2px solid var(--cyan);
-    margin: 0;
-    display: none;
-  }
+  .heatmap-container { padding: 12px 16px 14px; border-left: 2px solid var(--cyan); margin: 0; display: none; }
   .heatmap-container.open { display: block; }
-  .heatmap-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .heatmap-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    color: var(--cyan);
-  }
+  .heatmap-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .heatmap-title { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--cyan); }
   .heatmap-source { font-size: 9px; color: var(--text3); letter-spacing: 1px; }
   .heatmap-chart {
     position: relative;
-    height: 70px;
+    height: 90px;
     background: #050508;
     border: 1px solid var(--border);
     border-radius: 2px;
-    overflow: hidden;
+    overflow: visible;
     margin-bottom: 8px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    padding: 0 4px 0 4px;
   }
   .heatmap-price-line {
     position: absolute;
     top: 0; bottom: 0;
-    width: 1px;
-    background: rgba(255,255,255,0.3);
+    width: 2px;
+    background: rgba(255,255,255,0.6);
     z-index: 10;
+    pointer-events: none;
   }
   .heatmap-price-label {
     position: absolute;
-    top: 4px;
-    font-size: 8px;
+    top: -18px;
+    font-size: 9px;
     color: #fff;
-    background: rgba(0,0,0,0.7);
-    padding: 1px 4px;
+    background: rgba(0,0,0,0.85);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 2px 5px;
     border-radius: 2px;
-    z-index: 11;
+    z-index: 20;
     white-space: nowrap;
-  }
-  .heatmap-bar {
-    position: absolute;
-    bottom: 0;
-    border-radius: 1px 1px 0 0;
-    transition: height 0.5s ease;
-    cursor: pointer;
-  }
-  .heatmap-bar:hover { opacity: 0.8; }
-  .heatmap-bar-tooltip {
-    display: none;
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
     transform: translateX(-50%);
-    background: var(--bg2);
-    border: 1px solid var(--border2);
-    padding: 4px 6px;
-    font-size: 8px;
-    color: var(--text);
-    white-space: nowrap;
-    z-index: 50;
-    pointer-events: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
   }
-  .heatmap-bar:hover .heatmap-bar-tooltip { display: block; }
-  .heatmap-walls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 6px;
-  }
-  .heatmap-wall {
-    background: var(--bg3);
-    border-radius: 2px;
-    padding: 7px 10px;
+  .hm-bar-wrap {
+    position: relative;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    cursor: pointer;
   }
-  .heatmap-wall-label { font-size: 8px; letter-spacing: 1px; text-transform: uppercase; }
-  .heatmap-wall-price { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; }
+  .hm-bar-wrap:hover .hm-tooltip { display: flex; }
+  .hm-bar {
+    width: 100%;
+    border-radius: 2px 2px 0 0;
+    transition: height 0.6s ease, opacity 0.2s;
+    min-height: 3px;
+  }
+  .hm-bar-wrap:hover .hm-bar { opacity: 0.75; }
+  .hm-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0a0a0f;
+    border: 1px solid var(--cyan);
+    padding: 5px 8px;
+    font-size: 9px;
+    color: var(--text);
+    white-space: nowrap;
+    z-index: 9999;
+    pointer-events: none;
+    flex-direction: column;
+    gap: 2px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    min-width: 100px;
+  }
+  .hm-tooltip-price { color: #fff; font-size: 11px; }
+  .hm-tooltip-vol { font-size: 9px; }
+  .hm-tooltip-dist { font-size: 9px; color: var(--text2); }
+  .heatmap-walls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .heatmap-wall { background: var(--bg3); border-radius: 2px; padding: 8px 12px; display: flex; flex-direction: column; gap: 3px; }
+  .heatmap-wall-label { font-size: 8px; letter-spacing: 1px; text-transform: uppercase; font-family: 'Barlow Condensed', sans-serif; }
+  .heatmap-wall-price { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; }
   .heatmap-wall-detail { font-size: 9px; color: var(--text2); }
+  .heatmap-wall-vol { font-size: 10px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 1px; }
   .heatmap-wall.wall-short { border-left: 2px solid var(--red); }
   .heatmap-wall.wall-long  { border-left: 2px solid var(--green); }
   .heatmap-loading { font-size: 10px; color: var(--text2); letter-spacing: 2px; padding: 10px 0; }
-  .heatmap-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: transparent;
-    border: 1px solid var(--border2);
-    color: var(--text2);
-    padding: 2px 8px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 9px;
-    cursor: pointer;
-    letter-spacing: 1px;
-    transition: all 0.15s;
-    margin-top: 2px;
-  }
+  .heatmap-btn { display: inline-flex; align-items: center; gap: 4px; background: transparent; border: 1px solid var(--border2); color: var(--text2); padding: 2px 8px; font-family: 'Share Tech Mono', monospace; font-size: 9px; cursor: pointer; letter-spacing: 1px; transition: all 0.15s; margin-top: 2px; }
   .heatmap-btn:hover { border-color: var(--cyan); color: var(--cyan); }
   .heatmap-btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.06); }
+  .heatmap-axis { display: flex; justify-content: space-between; font-size: 8px; color: var(--text3); margin-top: 3px; letter-spacing: 0.5px; }
 </style>
 </head>
 <body>
@@ -924,9 +911,17 @@ function startCountdown(secs) {
 }
 
 // ============================================================
-// HEATMAP DE LIQUIDACIONES — API Binance
+// HEATMAP DE LIQUIDACIONES — API Binance mejorado
 // ============================================================
 const heatmapCache = {};
+
+function fmtVol(n) {
+  if (!n || n === 0) return '—';
+  if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return n.toFixed(0);
+}
 
 async function fetchHeatmapData(symbol) {
   if (heatmapCache[symbol] && Date.now() - heatmapCache[symbol].ts < 60000) {
@@ -934,88 +929,102 @@ async function fetchHeatmapData(symbol) {
   }
   const pair = symbol + 'USDT';
   try {
-    // Klines 1h para distribuir niveles de precio
-    const [klines1h, klines15m, oi, ticker] = await Promise.allSettled([
-      fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1h&limit=48`).then(r=>r.json()),
-      fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=15m&limit=96`).then(r=>r.json()),
+    const [klines1h, klines15m, klines4h, oi, ticker] = await Promise.allSettled([
+      fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1h&limit=72`).then(r=>r.json()),
+      fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=15m&limit=120`).then(r=>r.json()),
+      fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=4h&limit=30`).then(r=>r.json()),
       fetch(`https://fapi.binance.com/fapi/v1/openInterest?symbol=${pair}`).then(r=>r.json()),
       fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${pair}`).then(r=>r.json()),
     ]);
 
     if (klines1h.status !== 'fulfilled') return null;
 
-    const k1h = klines1h.value;
+    const k1h  = klines1h.value;
     const k15m = klines15m.status === 'fulfilled' ? klines15m.value : [];
-    const price = parseFloat(k1h[k1h.length-1][4]);
-    const oiVal = oi.status === 'fulfilled' ? parseFloat(oi.value.openInterest) * price : 0;
+    const k4h  = klines4h.status  === 'fulfilled' ? klines4h.value  : [];
+    const price  = parseFloat(k1h[k1h.length-1][4]);
+    const oiVal  = oi.status === 'fulfilled' ? parseFloat(oi.value.openInterest) * price : 0;
     const vol24h = ticker.status === 'fulfilled' ? parseFloat(ticker.value.quoteVolume) : 0;
 
-    // Rango de precios ±15% del precio actual
-    const rangePct = 0.15;
-    const priceMin = price * (1 - rangePct);
-    const priceMax = price * (1 + rangePct);
-
-    // Crear niveles de precio (20 niveles)
-    const numLevels = 20;
+    // Rango ±25% del precio actual
+    const rangePct  = 0.25;
+    const priceMin  = price * (1 - rangePct);
+    const priceMax  = price * (1 + rangePct);
+    const numLevels = 24;
     const levelSize = (priceMax - priceMin) / numLevels;
-    const levels = [];
 
-    for (let i = 0; i < numLevels; i++) {
-      const levelPrice = priceMin + levelSize * i + levelSize / 2;
-      const distFromPrice = Math.abs(levelPrice - price) / price;
+    // Acumular volumen REAL por nivel usando todas las klines
+    const levelVols = new Array(numLevels).fill(0);
+    const levelTouches = new Array(numLevels).fill(0);
 
-      // Estimar liquidaciones por nivel basado en:
-      // - OI total * factor de concentración cerca del precio
-      // - Volumen de velas que pasaron por ese nivel
-      let volAtLevel = 0;
-      const allKlines = [...k1h, ...k15m];
-      allKlines.forEach(k => {
-        const kHigh = parseFloat(k[2]);
-        const kLow  = parseFloat(k[3]);
-        const kVol  = parseFloat(k[5]) * parseFloat(k[4]); // vol en USDT
-        const kRange = kHigh - kLow;
-        // Si la vela pasó por este nivel, agrega vol proporcional
-        if (kLow <= levelPrice && kHigh >= levelPrice && kRange > 0) {
-          volAtLevel += kVol / (allKlines.length * 0.5);
+    const allKlines = [...k4h, ...k1h, ...k15m];
+    allKlines.forEach(k => {
+      const kHigh = parseFloat(k[2]);
+      const kLow  = parseFloat(k[3]);
+      const kOpen = parseFloat(k[1]);
+      const kClose= parseFloat(k[4]);
+      const kVolUsdt = parseFloat(k[5]) * parseFloat(k[4]);
+      const kRange = kHigh - kLow;
+      if (kRange === 0) return;
+
+      for (let i = 0; i < numLevels; i++) {
+        const lvlLow  = priceMin + levelSize * i;
+        const lvlHigh = priceMin + levelSize * (i + 1);
+        if (kHigh >= lvlLow && kLow <= lvlHigh) {
+          // Qué fracción de la vela pasó por este nivel
+          const overlap = (Math.min(kHigh, lvlHigh) - Math.max(kLow, lvlLow)) / kRange;
+          levelVols[i] += kVolUsdt * overlap;
+          levelTouches[i] += 1;
+
+          // Bonus si el precio revirtió en este nivel (soporte/resistencia)
+          const bodyLow  = Math.min(kOpen, kClose);
+          const bodyHigh = Math.max(kOpen, kClose);
+          if (kLow >= lvlLow && kLow <= lvlHigh) levelVols[i] += kVolUsdt * 0.3; // toco el low
+          if (kHigh >= lvlLow && kHigh <= lvlHigh) levelVols[i] += kVolUsdt * 0.3; // toco el high
         }
-      });
+      }
+    });
 
-      // Factor de concentración: más liquidaciones cerca del precio actual
-      const concentFactor = Math.exp(-distFromPrice * 8);
-
-      // Estimación total para este nivel
-      const liqEstimate = (oiVal * concentFactor * 0.002) + (volAtLevel * 0.001);
-
-      // Determinar si es zona SHORT (arriba del precio) o LONG (abajo)
-      const side = levelPrice > price ? 'short' : 'long';
-
-      levels.push({
-        price: levelPrice,
-        liq: liqEstimate,
-        side,
-        distPct: ((levelPrice - price) / price * 100)
-      });
+    // Agregar peso del OI distribuido inversamente a la distancia del precio
+    for (let i = 0; i < numLevels; i++) {
+      const lvlPrice  = priceMin + levelSize * i + levelSize / 2;
+      const distPct   = Math.abs(lvlPrice - price) / price;
+      const oiFactor  = Math.exp(-distPct * 6) * 0.15;
+      levelVols[i]   += oiVal * oiFactor;
     }
 
-    // Normalizar por el máximo
-    const maxLiq = Math.max(...levels.map(l => l.liq), 1);
-    levels.forEach(l => { l.normalized = l.liq / maxLiq; });
+    const maxVol = Math.max(...levelVols, 1);
+    const levels = levelVols.map((vol, i) => {
+      const lvlPrice = priceMin + levelSize * i + levelSize / 2;
+      return {
+        price:      lvlPrice,
+        vol:        vol,
+        normalized: vol / maxVol,
+        side:       lvlPrice > price ? 'short' : 'long',
+        distPct:    ((lvlPrice - price) / price * 100),
+        touches:    levelTouches[i],
+      };
+    });
 
-    // Encontrar pared más grande arriba y abajo
-    const shortLevels = levels.filter(l => l.side === 'short').sort((a,b) => b.liq - a.liq);
-    const longLevels  = levels.filter(l => l.side === 'long').sort((a,b) => b.liq - a.liq);
+    // Pared más fuerte arriba y abajo
+    const shortLevels = levels.filter(l => l.side === 'short').sort((a,b) => b.vol - a.vol);
+    const longLevels  = levels.filter(l => l.side === 'long').sort((a,b) => b.vol - a.vol);
 
-    const data = {
-      price, levels, oiVal, vol24h, priceMin, priceMax,
+    const data = { price, levels, priceMin, priceMax, oiVal, vol24h,
       topWallShort: shortLevels[0] || null,
-      topWallLong:  longLevels[0]  || null,
-    };
+      topWallLong:  longLevels[0]  || null };
 
     heatmapCache[symbol] = { ts: Date.now(), data };
     return data;
-  } catch(e) {
-    return null;
-  }
+  } catch(e) { return null; }
+}
+
+function fmtHmPrice(p) {
+  if (!p) return '—';
+  if (p >= 1000) return p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if (p >= 1) return p.toFixed(4);
+  if (p >= 0.01) return p.toFixed(5);
+  return p.toFixed(6);
 }
 
 function renderHeatmap(symbol, data, containerId) {
@@ -1029,93 +1038,93 @@ function renderHeatmap(symbol, data, containerId) {
 
   const { price, levels, priceMin, priceMax, topWallShort, topWallLong } = data;
   const priceRange = priceMax - priceMin;
+  const pricePct   = ((price - priceMin) / priceRange * 100).toFixed(1);
 
-  // Calcular posición del precio en el chart (%)
-  const pricePct = ((price - priceMin) / priceRange * 100).toFixed(1);
-
-  // Generar barras del heatmap
-  const barWidth = (100 / levels.length).toFixed(2);
+  // Barras separadas con tooltip completo
   let barsHtml = '';
-
   levels.forEach((lvl, i) => {
-    const leftPct = (i / levels.length * 100).toFixed(2);
-    const heightPct = Math.max(4, lvl.normalized * 100);
-    const color = lvl.side === 'short'
-      ? `rgba(255,51,85,${0.3 + lvl.normalized * 0.7})`
-      : `rgba(0,255,136,${0.3 + lvl.normalized * 0.7})`;
-    const fmtPrice = lvl.price >= 1000
-      ? lvl.price.toLocaleString('en-US',{maximumFractionDigits:0})
-      : lvl.price >= 1 ? lvl.price.toFixed(4)
-      : lvl.price.toFixed(6);
-    const distSign = lvl.distPct >= 0 ? '+' : '';
+    const heightPct = Math.max(3, lvl.normalized * 100);
+    const alpha     = 0.25 + lvl.normalized * 0.75;
+    const color     = lvl.side === 'short'
+      ? `rgba(255,51,85,${alpha})`
+      : `rgba(0,255,136,${alpha})`;
+    const distSign  = lvl.distPct >= 0 ? '+' : '';
+    const volColor  = lvl.side === 'short' ? '#ff6688' : '#00ff88';
 
-    barsHtml += `<div class="heatmap-bar" style="left:${leftPct}%;width:${barWidth}%;height:${heightPct}%;background:${color}">
-      <div class="heatmap-bar-tooltip">${fmtPrice} (${distSign}${lvl.distPct.toFixed(2)}%)</div>
+    barsHtml += `<div class="hm-bar-wrap">
+      <div class="hm-tooltip">
+        <span class="hm-tooltip-price">${fmtHmPrice(lvl.price)}</span>
+        <span class="hm-tooltip-vol" style="color:${volColor}">Vol: ${fmtVol(lvl.vol)}</span>
+        <span class="hm-tooltip-dist">${distSign}${lvl.distPct.toFixed(2)}% del precio</span>
+      </div>
+      <div class="hm-bar" style="height:${heightPct}%;background:${color};"></div>
     </div>`;
   });
 
-  // Precio actual label — ajustar posición para no salirse
+  // Línea de precio — posición relativa dentro del flex
+  const priceLineStyle = `position:absolute;left:${pricePct}%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.7);z-index:10;pointer-events:none;`;
   const labelLeft = Math.min(Math.max(parseFloat(pricePct), 5), 80);
-  const fmtCurrentPrice = price >= 1000
-    ? price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})
-    : price >= 1 ? price.toFixed(4) : price.toFixed(6);
 
-  // Paredes principales
-  const wallShortPrice = topWallShort
-    ? (topWallShort.price >= 1000 ? topWallShort.price.toLocaleString('en-US',{maximumFractionDigits:0}) : topWallShort.price >= 1 ? topWallShort.price.toFixed(4) : topWallShort.price.toFixed(6))
-    : '—';
-  const wallLongPrice  = topWallLong
-    ? (topWallLong.price >= 1000 ? topWallLong.price.toLocaleString('en-US',{maximumFractionDigits:0}) : topWallLong.price >= 1 ? topWallLong.price.toFixed(4) : topWallLong.price.toFixed(6))
-    : '—';
-  const wallShortDist  = topWallShort ? (topWallShort.distPct >= 0 ? '+' : '') + topWallShort.distPct.toFixed(2) + '%' : '—';
-  const wallLongDist   = topWallLong  ? topWallLong.distPct.toFixed(2) + '%' : '—';
+  // Paredes
+  const wsPrice = topWallShort ? fmtHmPrice(topWallShort.price) : '—';
+  const wlPrice = topWallLong  ? fmtHmPrice(topWallLong.price)  : '—';
+  const wsDist  = topWallShort ? (topWallShort.distPct >= 0 ? '+' : '') + topWallShort.distPct.toFixed(2) + '%' : '—';
+  const wlDist  = topWallLong  ? topWallLong.distPct.toFixed(2) + '%' : '—';
+  const wsVol   = topWallShort ? fmtVol(topWallShort.vol) : '—';
+  const wlVol   = topWallLong  ? fmtVol(topWallLong.vol)  : '—';
+
+  // Eje de precios
+  const axisLeft   = fmtHmPrice(priceMin);
+  const axisMid    = fmtHmPrice((priceMin + priceMax) / 2);
+  const axisRight  = fmtHmPrice(priceMax);
 
   container.innerHTML = `
     <div class="heatmap-header">
       <span class="heatmap-title">🔥 HEATMAP LIQUIDACIONES — ${symbol}</span>
-      <span class="heatmap-source">Estimado · Binance API · ±15% rango</span>
+      <span class="heatmap-source">Estimado · Binance API · ±25% rango</span>
     </div>
-    <div class="heatmap-chart">
+    <div class="heatmap-chart" style="position:relative;">
       ${barsHtml}
-      <div class="heatmap-price-line" style="left:${pricePct}%"></div>
-      <div class="heatmap-price-label" style="left:${labelLeft}%">${fmtCurrentPrice}</div>
+      <div style="${priceLineStyle}">
+        <div class="heatmap-price-label" style="left:${labelLeft}%;position:absolute;top:-20px;">${fmtHmPrice(price)}</div>
+      </div>
+    </div>
+    <div class="heatmap-axis">
+      <span>${axisLeft}</span>
+      <span style="color:var(--text2)">← ${Math.round((parseFloat(pricePct)))}% →</span>
+      <span>${axisRight}</span>
     </div>
     <div class="heatmap-walls">
       <div class="heatmap-wall wall-short">
         <span class="heatmap-wall-label" style="color:var(--red)">Pared SHORT arriba</span>
-        <span class="heatmap-wall-price" style="color:var(--red)">${wallShortPrice}</span>
-        <span class="heatmap-wall-detail">${wallShortDist} del precio actual</span>
+        <span class="heatmap-wall-price" style="color:var(--red)">${wsPrice}</span>
+        <span class="heatmap-wall-vol" style="color:#ff6688">Vol est: ${wsVol}</span>
+        <span class="heatmap-wall-detail">${wsDist} del precio actual</span>
       </div>
       <div class="heatmap-wall wall-long">
         <span class="heatmap-wall-label" style="color:var(--green)">Soporte LONG abajo</span>
-        <span class="heatmap-wall-price" style="color:var(--green)">${wallLongPrice}</span>
-        <span class="heatmap-wall-detail">${wallLongDist} del precio actual</span>
+        <span class="heatmap-wall-price" style="color:var(--green)">${wlPrice}</span>
+        <span class="heatmap-wall-vol" style="color:#00ff88">Vol est: ${wlVol}</span>
+        <span class="heatmap-wall-detail">${wlDist} del precio actual</span>
       </div>
     </div>`;
 }
 
 async function toggleHeatmap(symbol, rowId) {
-  const heatmapRowId = 'heatmap-row-' + symbol;
-  const containerId  = 'heatmap-container-' + symbol;
-  const btnId        = 'heatmap-btn-' + symbol;
-  const heatmapRow   = document.getElementById(heatmapRowId);
-  const container    = document.getElementById(containerId);
-  const btn          = document.getElementById(btnId);
-
-  if (!heatmapRow || !container) return;
-
+  const containerId = 'heatmap-container-' + symbol;
+  const btnId       = 'heatmap-btn-' + symbol;
+  const container   = document.getElementById(containerId);
+  const btn         = document.getElementById(btnId);
+  if (!container) return;
   const isOpen = container.classList.contains('open');
-
   if (isOpen) {
     container.classList.remove('open');
     if (btn) { btn.textContent = '🔥 HEATMAP'; btn.classList.remove('active'); }
     return;
   }
-
   container.classList.add('open');
   if (btn) { btn.textContent = '▲ CERRAR'; btn.classList.add('active'); }
   container.innerHTML = `<div class="heatmap-loading"><span class="spinner"></span> Cargando heatmap desde Binance...</div>`;
-
   const data = await fetchHeatmapData(symbol);
   renderHeatmap(symbol, data, containerId);
 }
