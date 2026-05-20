@@ -958,7 +958,33 @@ async function fetchPreraceData(symbol) {
       const wd=await fetchWhaleData(symbol);
       if(wd){whale=wd.whale;cvdDir=wd.cvdDir;cvdPct=wd.cvdPct||0;}
     } catch(e){}
-    return {symbol,price,diasFlat,volRatio,oiVal,priceTrend,avgFunding,longRatio:null,change24,avgVol,recentVol,whale,cvdDir,cvdPct,volRatioNow:volRatio};
+    // SQZMOM 1D — viraje de momentum (lógica CELU v5 simplificada)
+    let sqzmom={val:0,prev:0,virando:false,semanasneg:0,positivo:false,subiendo:false};
+    try {
+      const highs=k.map(c=>parseFloat(c[2]));
+      const lows2=k.map(c=>parseFloat(c[3]));
+      const len=20;
+      function sma2(arr,n,end){const sl=arr.slice(Math.max(0,end-n+1),end+1);return sl.reduce((a,b)=>a+b,0)/sl.length;}
+      function calcMom(idx){
+        if(idx<len) return 0;
+        const hh=Math.max(...highs.slice(idx-len,idx));
+        const ll=Math.min(...lows2.slice(idx-len,idx));
+        const midHL=(hh+ll)/2;
+        const sc=sma2(closes,len,idx);
+        return closes[idx]-((midHL+sc)/2);
+      }
+      const momArr=closes.map((_,i)=>calcMom(i));
+      const li=momArr.length-1;
+      sqzmom.val=momArr[li];
+      sqzmom.prev=momArr[li-1]||0;
+      sqzmom.positivo=sqzmom.val>0;
+      sqzmom.virando=sqzmom.val>0&&sqzmom.prev<=0;
+      let semNeg=0;
+      for(let i=li-1;i>=0;i--){if(momArr[i]<=0) semNeg++;else break;}
+      sqzmom.semanasneg=semNeg;
+      sqzmom.subiendo=sqzmom.val>sqzmom.prev&&sqzmom.val<0&&semNeg>=5;
+    } catch(e){}
+    return {symbol,price,diasFlat,volRatio,oiVal,priceTrend,avgFunding,longRatio:null,change24,avgVol,recentVol,whale,cvdDir,cvdPct,volRatioNow:volRatio,sqzmom};
   } catch(e){return null;}
 }
 
@@ -994,6 +1020,16 @@ function calcPreraceScore(d) {
   else if(d.priceTrend<-3) score+=6;
   else if(d.priceTrend<5) score+=3;
 
+  // SQZMOM 1D — la señal más importante (0-20 pts)
+  if(d.sqzmom){
+    if(d.sqzmom.virando&&d.sqzmom.semanasneg>=10) score+=20; // viraje después de +10 dias negativo = máxima señal
+    else if(d.sqzmom.virando&&d.sqzmom.semanasneg>=5) score+=15; // viraje después de 5+ dias
+    else if(d.sqzmom.virando) score+=10; // viraje reciente
+    else if(d.sqzmom.subiendo&&d.sqzmom.semanasneg>=10) score+=12; // subiendo desde fondo profundo
+    else if(d.sqzmom.subiendo) score+=7; // subiendo pero negativo
+    else if(d.sqzmom.positivo) score+=3; // positivo pero sin viraje claro
+  }
+
   // Whale CVD — BONUS, nunca bloquea (0-8 pts)
   if(d.whale==='buy') score+=8;
   else if(d.cvdDir==='up') score+=4;
@@ -1006,9 +1042,10 @@ function calcPreraceScore(d) {
 
   const pct=Math.round(score);
 
-  // SALIENDO: empieza a moverse con señales positivas
+  // SALIENDO: empieza a moverse — SQZMOM virando es señal clave
+  const sqzmomVirando=d.sqzmom&&(d.sqzmom.virando||d.sqzmom.subiendo);
   const isSaliendo=d.change24>=1.5&&d.change24<=12&&
-    (d.whale==='buy'||d.cvdDir==='up'||d.volRatio>=(maxVol*0.8))&&
+    (sqzmomVirando||d.whale==='buy'||d.cvdDir==='up'||d.volRatio>=(maxVol*0.8))&&
     d.diasFlat>=minDias;
 
   // Umbrales: HOT=65, WARM=45, WATCH=28
@@ -1063,6 +1100,13 @@ function renderPreraceCard(d,scoreData,ticker,idx) {
     <div class="prerace-score-bar"><span class="prerace-score-label">SCORE:</span>${dots}<span style="font-size:9px;color:var(--text2);margin-left:6px">${score}/100</span></div>
     <div class="prerace-oi-bar"><div class="prerace-oi-fill" style="width:${oiBarPct}%"></div></div>
     <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:2px"><span>OI</span><span>ref $50M</span></div>
+    ${d.sqzmom?(()=>{
+      const sq=d.sqzmom;
+      const sqColor=sq.virando?'var(--green)':sq.subiendo?'var(--yellow)':sq.positivo?'var(--cyan)':'var(--text3)';
+      const sqTxt=sq.virando?'SQZMOM VIRANDO ▲':sq.subiendo?'SQZMOM SUBIENDO ↗':sq.positivo?'SQZMOM POSITIVO':'SQZMOM NEGATIVO';
+      const sqDetail=sq.virando?`desde ${sq.semanasneg}d negativo`:sq.subiendo?`${sq.semanasneg}d negativo subiendo`:'';
+      return `<div style="margin-top:6px;padding:4px 8px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;border-radius:2px;background:rgba(0,0,0,0.3);border:1px solid ${sqColor};color:${sqColor};display:flex;align-items:center;justify-content:space-between"><span>${sqTxt}</span><span style="font-size:9px;opacity:0.7">${sqDetail}</span></div>`;
+    })():''}
     <div class="whale-signal">
       <span style="color:${whaleColor};font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700">${whaleTxt}</span>
       <span style="color:var(--text3)">CVD:</span>
