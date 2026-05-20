@@ -917,36 +917,48 @@ async function fetchAllTickersForPrerace() {
 async function fetchPreraceData(symbol) {
   const pair=symbol+'USDT';
   try {
-    const [klines,oi,funding,ls,whaleD]=await Promise.allSettled([
-      fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1d&limit=30`).then(r=>r.json()),
-      fetch(`https://fapi.binance.com/fapi/v1/openInterest?symbol=${pair}`).then(r=>r.json()),
-      fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${pair}&limit=3`).then(r=>r.json()),
-      fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${pair}&period=1h&limit=1`).then(r=>r.json()),
-      fetchWhaleData(symbol),
-    ]);
-    if(klines.status!=='fulfilled') return null;
-    const k=klines.value;
+    let klines;
+    try {
+      const r=await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1d&limit=30`);
+      if(!r.ok) return null;
+      klines=await r.json();
+      if(!Array.isArray(klines)||klines.length<5) return null;
+    } catch(e){return null;}
+    const k=klines;
     const price=parseFloat(k[k.length-1][4]);
+    if(!price||price<=0) return null;
     const maxPct=parseFloat(document.getElementById('pr-pct').value);
     const dailyMoves=k.map(c=>{const h=parseFloat(c[2]),l=parseFloat(c[3]),o=parseFloat(c[1]);return o>0?((h-l)/o*100):0;});
     let diasFlat=0;
     for(let i=dailyMoves.length-1;i>=0;i--){if(dailyMoves[i]<=maxPct) diasFlat++;else break;}
     const volumes=k.map(c=>parseFloat(c[5]));
-    const avgVol=volumes.reduce((a,b)=>a+b,0)/volumes.length;
+    const avgVol=volumes.slice(0,-1).reduce((a,b)=>a+b,0)/Math.max(volumes.slice(0,-1).length,1);
     const recentVol=volumes.slice(-5).reduce((a,b)=>a+b,0)/5;
     const volRatio=avgVol>0?recentVol/avgVol:1;
-    const oiVal=oi.status==='fulfilled'?parseFloat(oi.value.openInterest)*price:0;
     const closes=k.map(c=>parseFloat(c[4]));
     const r5=closes.slice(-5).reduce((a,b)=>a+b,0)/5;
-    const p10=closes.slice(-15,-5).reduce((a,b)=>a+b,0)/10;
+    const p10=closes.length>=15?closes.slice(-15,-5).reduce((a,b)=>a+b,0)/10:r5;
     const priceTrend=p10>0?((r5-p10)/p10*100):0;
-    const fundingArr=funding.status==='fulfilled'?funding.value:[];
-    const avgFunding=fundingArr.length>0?fundingArr.reduce((a,f)=>a+parseFloat(f.fundingRate)*100,0)/fundingArr.length:null;
-    const lsD=ls.status==='fulfilled'&&ls.value[0]?ls.value[0]:null;
-    const longRatio=lsD?parseFloat(lsD.longAccount):null;
-    const change24=parseFloat(k[k.length-1][4])/parseFloat(k[k.length-2][4])*100-100;
-    const wd=whaleD.status==='fulfilled'?whaleD.value:{whale:'neutral',cvd:0,cvdDir:'flat',cvdPct:0,volRatio:1};
-    return {symbol,price,diasFlat,volRatio,oiVal,priceTrend,avgFunding,longRatio,change24,avgVol,recentVol,whale:wd.whale,cvdDir:wd.cvdDir,cvdPct:wd.cvdPct,volRatioNow:wd.volRatio};
+    const change24=parseFloat(k[k.length-2][4])>0?(price/parseFloat(k[k.length-2][4])*100-100):0;
+    let avgFunding=null,oiVal=0;
+    let whale='neutral',cvdDir='flat',cvdPct=0;
+    try {
+      const [fundR,oiR]=await Promise.allSettled([
+        fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${pair}&limit=3`).then(r=>r.json()),
+        fetch(`https://fapi.binance.com/fapi/v1/openInterest?symbol=${pair}`).then(r=>r.json()),
+      ]);
+      if(fundR.status==='fulfilled'&&Array.isArray(fundR.value)&&fundR.value.length>0){
+        avgFunding=fundR.value.reduce((a,f)=>a+parseFloat(f.fundingRate)*100,0)/fundR.value.length;
+      }
+      if(oiR.status==='fulfilled'&&oiR.value.openInterest){
+        oiVal=parseFloat(oiR.value.openInterest)*price;
+      }
+    } catch(e){}
+    try {
+      const wd=await fetchWhaleData(symbol);
+      if(wd){whale=wd.whale;cvdDir=wd.cvdDir;cvdPct=wd.cvdPct||0;}
+    } catch(e){}
+    return {symbol,price,diasFlat,volRatio,oiVal,priceTrend,avgFunding,longRatio:null,change24,avgVol,recentVol,whale,cvdDir,cvdPct,volRatioNow:volRatio};
   } catch(e){return null;}
 }
 
