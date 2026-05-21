@@ -3,26 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LIQSCAN v2 — Binance Futures</title>
+<title>LIQSCAN v3 — Binance Futures</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #050508;
-    --bg2: #0a0a0f;
-    --bg3: #0f0f18;
-    --border: #1a1a2e;
-    --border2: #252540;
-    --green: #00ff88;
-    --green2: #00cc66;
-    --red: #ff3355;
-    --red2: #cc2244;
-    --yellow: #ffd700;
-    --cyan: #00e5ff;
-    --purple: #7c3aed;
-    --orange: #ff6b00;
-    --text: #c8c8e0;
-    --text2: #6666aa;
-    --text3: #333355;
+    --bg: #050508; --bg2: #0a0a0f; --bg3: #0f0f18;
+    --border: #1a1a2e; --border2: #252540;
+    --green: #00ff88; --green2: #00cc66;
+    --red: #ff3355; --red2: #cc2244;
+    --yellow: #ffd700; --cyan: #00e5ff;
+    --purple: #7c3aed; --orange: #ff6b00;
+    --text: #c8c8e0; --text2: #6666aa; --text3: #333355;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'Share Tech Mono',monospace; min-height:100vh; overflow-x:hidden; }
@@ -40,7 +31,6 @@
   .tab { padding:10px 20px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--text2); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.15s; }
   .tab:hover { color:var(--text); }
   .tab.active-scanner { color:var(--cyan); border-bottom-color:var(--cyan); }
-  .tab.active-acum { color:#7c3aed; border-bottom-color:#7c3aed; }
   .tab.active-race { color:var(--yellow); border-bottom-color:var(--yellow); }
   .tab.active-prerace { color:var(--orange); border-bottom-color:var(--orange); }
 
@@ -91,6 +81,9 @@
   .badge-long { background:rgba(0,255,136,0.1); border:1px solid var(--green2); color:var(--green); }
   .badge-short { background:rgba(255,51,85,0.1); border:1px solid var(--red2); color:var(--red); }
   .badge-neutral { background:transparent; border:1px solid var(--border2); color:var(--text3); }
+  /* CELU signal badges */
+  .badge-wlong { background:rgba(0,255,136,0.2); border:1px solid var(--green); color:var(--green); animation:pulse 1.5s infinite; }
+  .badge-wshort { background:rgba(255,51,85,0.2); border:1px solid var(--red); color:var(--red); animation:pulse 1.5s infinite; }
   .score { display:flex; gap:3px; }
   .score-dot { width:7px; height:7px; border-radius:1px; }
   .heatmap-container { padding:12px 16px 14px; border-left:2px solid var(--cyan); margin:0; display:none; background:#07070d; }
@@ -122,11 +115,16 @@
   .legend { padding:10px 24px; display:flex; gap:20px; font-size:10px; color:var(--text2); border-bottom:1px solid var(--border); background:var(--bg); flex-wrap:wrap; align-items:center; }
   .legend-item { display:flex; align-items:center; gap:6px; }
   .legend-dot { width:8px; height:8px; border-radius:50%; }
-
-  /* ===== WHALE BADGE ===== */
   .whale-buy  { display:inline-flex; align-items:center; gap:3px; padding:2px 6px; font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:700; letter-spacing:1px; border-radius:2px; background:rgba(0,255,136,0.15); border:1px solid var(--green2); color:var(--green); }
   .whale-sell { display:inline-flex; align-items:center; gap:3px; padding:2px 6px; font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:700; letter-spacing:1px; border-radius:2px; background:rgba(255,51,85,0.15); border:1px solid var(--red2); color:var(--red); }
   .whale-neu  { display:inline-flex; align-items:center; gap:3px; padding:2px 6px; font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:700; letter-spacing:1px; border-radius:2px; background:transparent; border:1px solid var(--border2); color:var(--text3); }
+
+  /* CELU score panel */
+  .celu-panel { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .celu-item { font-size:9px; padding:1px 5px; border-radius:2px; font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:1px; }
+  .celu-on  { background:rgba(0,255,136,0.15); color:var(--green); border:1px solid var(--green2); }
+  .celu-off { background:transparent; color:var(--text3); border:1px solid var(--border); }
+  .celu-red { background:rgba(255,51,85,0.15); color:var(--red); border:1px solid var(--red2); }
 
   /* ===== PRE-CARRERA ===== */
   .prerace-wrap { padding:0 24px 24px; }
@@ -226,7 +224,7 @@
   .race-change-pos { color:var(--green); }
   .race-change-neg { color:var(--red); }
   .race-price { width:110px; text-align:right; flex-shrink:0; font-size:11px; color:var(--text2); padding-right:4px; }
-  .race-status-col { width:140px; text-align:right; flex-shrink:0; padding-right:6px; display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+  .race-status-col { width:160px; text-align:right; flex-shrink:0; padding-right:6px; display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
   .race-cat-badge { display:inline-block; padding:2px 6px; font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; letter-spacing:1px; border-radius:2px; }
   .cat-winner { background:rgba(0,255,136,0.1); border:1px solid var(--green2); color:var(--green); }
   .cat-loser { background:rgba(255,51,85,0.1); border:1px solid var(--red2); color:var(--red); }
@@ -247,7 +245,7 @@
 <body>
 
 <header>
-  <div class="logo">LIQ<span>SCAN</span> // BINANCE FUTURES <sup>v2</sup></div>
+  <div class="logo">LIQ<span>SCAN</span> // BINANCE FUTURES <sup>v3 CELU</sup></div>
   <div class="status-bar">
     <span><span class="dot"></span>LIVE DATA</span>
     <span id="last-update-header">--:--:--</span>
@@ -265,7 +263,7 @@
 <div id="panel-scanner">
 <div class="controls">
   <div class="token-tags" id="token-tags"></div>
-  <input type="text" id="custom-input" placeholder="Ej: PLAY" maxlength="10">
+  <input type="text" id="custom-input" placeholder="Ej: EDEN" maxlength="10">
   <button class="btn-sm" id="add-btn">+ ADD</button>
   <button class="btn-sm" id="reset-btn">↺ RESET</button>
   <select class="refresh-select" id="refresh-select">
@@ -277,16 +275,17 @@
   <button class="btn" id="scan-btn">▶ SCAN</button>
 </div>
 <div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> W▲ LONG (CELU)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> W▼ SHORT (CELU)</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> SQUEEZE</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> LONG</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> SHORT</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--border2)"></div> NEUTRAL</div>
-  <div style="margin-left:auto;font-size:9px;color:var(--text3)">· WHALE detecta vol ≥2x con CVD · Click token para HEATMAP</div>
+  <div style="margin-left:auto;font-size:9px;color:var(--text3)">· CELU v5: Whale+StochRSI+VWAP+ADX · Click token → HEATMAP</div>
 </div>
 <div class="summary" id="summary" style="display:none">
   <div class="summary-item"><span class="summary-label">Tokens</span><span class="summary-val" id="s-total">0</span></div>
+  <div class="summary-item"><span class="summary-label">W▲ LONG</span><span class="summary-val" style="color:var(--green)" id="s-wlong">0</span></div>
+  <div class="summary-item"><span class="summary-label">W▼ SHORT</span><span class="summary-val" style="color:var(--red)" id="s-wshort">0</span></div>
   <div class="summary-item"><span class="summary-label">Squeezes</span><span class="summary-val" style="color:var(--orange)" id="s-squeeze">0</span></div>
-  <div class="summary-item"><span class="summary-label">Setup Long</span><span class="summary-val" style="color:var(--green)" id="s-long">0</span></div>
   <div class="summary-item"><span class="summary-label">Whale BUY</span><span class="summary-val" style="color:var(--green)" id="s-whale-buy">0</span></div>
   <div class="summary-item"><span class="summary-label">Whale SELL</span><span class="summary-val" style="color:var(--red)" id="s-whale-sell">0</span></div>
   <div class="summary-item"><span class="summary-label">Funding avg</span><span class="summary-val" id="s-funding">-</span></div>
@@ -300,16 +299,18 @@
         <th class="right">24H %</th>
         <th class="right">FUNDING</th>
         <th class="right">OI (USDT)</th>
-        <th>L/S RATIO</th>
         <th>WHALE</th>
-        <th>CVD 20v</th>
-        <th>VOL REL</th>
-        <th>SETUP</th>
-        <th>SCORE</th>
+        <th>CVD</th>
+        <th>VOL</th>
+        <th>STOCH K</th>
+        <th>VWAP</th>
+        <th>ADX</th>
+        <th>SCORE L/S</th>
+        <th>SEÑAL CELU</th>
       </tr>
     </thead>
     <tbody id="table-body">
-      <tr><td colspan="11" style="padding:40px;text-align:center;color:var(--text2);font-size:11px;letter-spacing:2px;">Seleccioná tokens y presioná SCAN</td></tr>
+      <tr><td colspan="13" style="padding:40px;text-align:center;color:var(--text2);font-size:11px;letter-spacing:2px;">Seleccioná tokens y presioná SCAN</td></tr>
     </tbody>
   </table>
 </div>
@@ -322,7 +323,7 @@
     <div class="race-header">
       <div>
         <div class="race-title">🏁 CARRERA DE TOKENS</div>
-        <div class="race-desc">Ranking en tiempo real · Binance Futures · Ordenado por % 24h · Barra absoluta (100% = +50%)</div>
+        <div class="race-desc">Ranking en tiempo real · Binance Futures · Ordenado por % 24h · Agotamiento con CELU v5</div>
       </div>
       <div class="race-controls">
         <div class="race-mode-btns">
@@ -359,7 +360,7 @@
     <div class="prerace-header">
       <div>
         <div class="prerace-title">🚀 PRE-CARRERA — Próximos corredores</div>
-        <div class="prerace-desc">Tokens acumulando en silencio · Filtro automático Binance · Vol mín $5M · OI mín $1M · Whale CVD integrado</div>
+        <div class="prerace-desc">Tokens acumulando en silencio · CELU v5 integrado · SQZMOM + Whale CVD + StochRSI</div>
       </div>
       <button class="btn" id="prerace-scan-btn" style="background:var(--orange);color:#000">▶ ESCANEAR</button>
     </div>
@@ -388,8 +389,8 @@
     <div class="prerace-grid" id="prerace-grid">
       <div class="prerace-empty">Presioná ESCANEAR para detectar los próximos corredores</div>
     </div>
-    <div class="prerace-footer">
-      <span><span class="prerace-update-dot"></span>FUENTE: BINANCE FUTURES · FILTRO AUTOMÁTICO</span>
+    <div class="prerace-footer" style="margin-top:16px">
+      <span><span class="prerace-update-dot"></span>FUENTE: BINANCE FUTURES · CELU v5 integrado</span>
       <span id="prerace-last-update">—</span>
     </div>
   </div>
@@ -399,12 +400,12 @@
 // ============================================================
 // SHARED STATE
 // ============================================================
-const DEFAULT_TOKENS = ['BTC','ETH','BNB','SOL','XRP','DOGE','ADA','AVAX','LINK','MATIC','PLAY','BAND','FET','ASTER'];
-const STORAGE_TOKENS = 'liqscan_v2_tokens';
-const STORAGE_SEL    = 'liqscan_v2_selected';
+const DEFAULT_TOKENS = ['BTC','ETH','BNB','SOL','XRP','DOGE','ADA','AVAX','LINK','MATIC','PLAY','BAND','FET','ASTER','EDEN'];
+const STORAGE_TOKENS = 'liqscan_v3_tokens';
+const STORAGE_SEL    = 'liqscan_v3_selected';
 
 function loadTokens() { try { const s=localStorage.getItem(STORAGE_TOKENS); return s?JSON.parse(s):[...DEFAULT_TOKENS]; } catch(e) { return [...DEFAULT_TOKENS]; } }
-function loadSelected(tl) { try { const s=localStorage.getItem(STORAGE_SEL); if(s){ const p=JSON.parse(s); return new Set(p.filter(t=>tl.includes(t))); } } catch(e){} return new Set(['BTC','ETH','SOL','PLAY','FET','ASTER']); }
+function loadSelected(tl) { try { const s=localStorage.getItem(STORAGE_SEL); if(s){ const p=JSON.parse(s); return new Set(p.filter(t=>tl.includes(t))); } } catch(e){} return new Set(['BTC','ETH','SOL','PLAY','FET','ASTER','EDEN']); }
 function saveStorage() { try { localStorage.setItem(STORAGE_TOKENS,JSON.stringify(tokenList)); localStorage.setItem(STORAGE_SEL,JSON.stringify([...selectedTokens])); } catch(e){} }
 
 let tokenList = loadTokens();
@@ -420,8 +421,9 @@ let raceCdSecs = 30;
 let raceRunning = false;
 let preraceRunning = false;
 let raceInitialized = false;
-let raceAccumCache = {};
+let raceExtraMap = {}; // FIX: guardamos extraMap globalmente para setRaceMode
 const heatmapCache = {};
+const raceAccumCache = {};
 
 function showToast(msg) {
   const e=document.querySelector('.toast'); if(e) e.remove();
@@ -434,7 +436,8 @@ function showAgotadoAlert(msg) {
   setTimeout(()=>t.remove(),4500);
 }
 function fmtBig(n) {
-  if(!n||isNaN(n)||n===0) return '—';
+  // FIX: fmtBig(0) ya no devuelve '—', solo valores null/undefined/NaN
+  if(n===null||n===undefined||isNaN(n)) return '—';
   if(n>=1e9) return (n/1e9).toFixed(2)+'B';
   if(n>=1e6) return (n/1e6).toFixed(2)+'M';
   if(n>=1e3) return (n/1e3).toFixed(1)+'K';
@@ -480,23 +483,133 @@ function addCustomToken() {
 }
 function resetTokens() {
   if(!confirm('¿Restaurar lista original?')) return;
-  tokenList=[...DEFAULT_TOKENS]; selectedTokens=new Set(['BTC','ETH','SOL','PLAY','FET','ASTER']);
+  tokenList=[...DEFAULT_TOKENS]; selectedTokens=new Set(['BTC','ETH','SOL','PLAY','FET','ASTER','EDEN']);
   saveStorage(); initTags(); showToast('Lista restaurada ✓');
 }
 
 // ============================================================
-// WHALE DETECTOR + CVD (CELU v5 logic)
+// CELU v5 — StochRSI
+// ============================================================
+function calcSMA(arr, len) {
+  if(arr.length < len) return arr.reduce((a,b)=>a+b,0)/arr.length;
+  return arr.slice(-len).reduce((a,b)=>a+b,0)/len;
+}
+function calcRSI(closes, len=14) {
+  if(closes.length < len+1) return 50;
+  let gains=0, losses=0;
+  for(let i=closes.length-len; i<closes.length; i++) {
+    const d=closes[i]-closes[i-1];
+    if(d>0) gains+=d; else losses+=Math.abs(d);
+  }
+  const avgG=gains/len, avgL=losses/len;
+  if(avgL===0) return 100;
+  const rs=avgG/avgL;
+  return 100-(100/(1+rs));
+}
+function calcStochRSI(closes, rsiLen=14, stochLen=14, kSmooth=3, dSmooth=3) {
+  // Necesitamos suficientes velas
+  if(closes.length < rsiLen+stochLen+kSmooth+dSmooth+5) return {k:50,d:50};
+  // Calcular RSI para cada vela
+  const rsiArr=[];
+  for(let i=rsiLen; i<closes.length; i++) {
+    rsiArr.push(calcRSI(closes.slice(0,i+1), rsiLen));
+  }
+  // Calcular Stoch del RSI
+  const stochRaw=[];
+  for(let i=stochLen-1; i<rsiArr.length; i++) {
+    const window=rsiArr.slice(i-stochLen+1, i+1);
+    const hi=Math.max(...window), lo=Math.min(...window);
+    const range=hi-lo;
+    stochRaw.push(range===0?50:(rsiArr[i]-lo)/range*100);
+  }
+  // K suavizado
+  const kArr=[];
+  for(let i=kSmooth-1; i<stochRaw.length; i++) {
+    kArr.push(calcSMA(stochRaw.slice(i-kSmooth+1,i+1),kSmooth));
+  }
+  // D suavizado
+  if(kArr.length<dSmooth) return {k:kArr[kArr.length-1]||50, d:50};
+  const dArr=[];
+  for(let i=dSmooth-1; i<kArr.length; i++) {
+    dArr.push(calcSMA(kArr.slice(i-dSmooth+1,i+1),dSmooth));
+  }
+  const k=kArr[kArr.length-1];
+  const kPrev=kArr[kArr.length-2]||k;
+  const d=dArr[dArr.length-1];
+  return {k,kPrev,d};
+}
+
+// ============================================================
+// CELU v5 — ADX
+// ============================================================
+function calcADX(klines, len=14) {
+  if(klines.length < len*2) return 20;
+  const highs=klines.map(k=>parseFloat(k[2]));
+  const lows=klines.map(k=>parseFloat(k[3]));
+  const closes=klines.map(k=>parseFloat(k[4]));
+  const trueRanges=[], plusDMs=[], minusDMs=[];
+  for(let i=1; i<klines.length; i++) {
+    const tr=Math.max(highs[i]-lows[i], Math.abs(highs[i]-closes[i-1]), Math.abs(lows[i]-closes[i-1]));
+    trueRanges.push(tr);
+    const upMove=highs[i]-highs[i-1];
+    const downMove=lows[i-1]-lows[i];
+    plusDMs.push(upMove>downMove&&upMove>0?upMove:0);
+    minusDMs.push(downMove>upMove&&downMove>0?downMove:0);
+  }
+  // Wilder smoothing
+  let atr=trueRanges.slice(0,len).reduce((a,b)=>a+b,0);
+  let plusDI14=plusDMs.slice(0,len).reduce((a,b)=>a+b,0);
+  let minusDI14=minusDMs.slice(0,len).reduce((a,b)=>a+b,0);
+  const dxArr=[];
+  for(let i=len; i<trueRanges.length; i++) {
+    atr=atr-atr/len+trueRanges[i];
+    plusDI14=plusDI14-plusDI14/len+plusDMs[i];
+    minusDI14=minusDI14-minusDI14/len+minusDMs[i];
+    const pdi=atr>0?plusDI14/atr*100:0;
+    const mdi=atr>0?minusDI14/atr*100:0;
+    const dxDen=pdi+mdi;
+    dxArr.push(dxDen>0?Math.abs(pdi-mdi)/dxDen*100:0);
+  }
+  if(dxArr.length<len) return 20;
+  return dxArr.slice(-len).reduce((a,b)=>a+b,0)/len;
+}
+
+// ============================================================
+// CELU v5 — VWAP (aproximado con klines)
+// ============================================================
+function calcVWAP(klines) {
+  // VWAP diario: usar las últimas 24 velas de 1h
+  let cumPV=0, cumV=0;
+  const slice=klines.slice(-24);
+  slice.forEach(k=>{
+    const hlc3=(parseFloat(k[2])+parseFloat(k[3])+parseFloat(k[4]))/3;
+    const v=parseFloat(k[5]);
+    cumPV+=hlc3*v; cumV+=v;
+  });
+  return cumV>0?cumPV/cumV:parseFloat(klines[klines.length-1][4]);
+}
+
+// ============================================================
+// WHALE DETECTOR + CVD CELU v5
 // ============================================================
 async function fetchWhaleData(symbol) {
   const pair=symbol+'USDT';
   try {
-    const klines=await fetchWithRetry(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=4h&limit=25`);
-    if(!Array.isArray(klines)||klines.length<5) return {whale:'neutral',cvd:0,cvdDir:'flat',volRatio:1};
+    const klines=await fetchWithRetry(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=4h&limit=50`);
+    if(!Array.isArray(klines)||klines.length<20) return {whale:'neutral',whaleBullRec:false,whaleBearRec:false,cvd:0,cvdDir:'flat',cvdPct:0,volRatio:1,stochK:50,stochKPrev:50,stochD:50,vwap:0,adx:20,price:0};
+
     const WHALE_MULT=2.0;
     const LOOKBACK=4;
+    const closes=klines.map(k=>parseFloat(k[4]));
+    const price=closes[closes.length-1];
+
+    // Vol SMA 20
     const vols=klines.map(k=>parseFloat(k[5]));
-    const volSma=vols.slice(0,-1).reduce((a,b)=>a+b,0)/Math.max(vols.slice(0,-1).length,1);
-    // CVD ventana 20 velas (CELU v5)
+    const volSma=vols.slice(-21,-1).reduce((a,b)=>a+b,0)/20;
+    const lastVol=vols[vols.length-1];
+    const volRatio=volSma>0?lastVol/volSma:1;
+
+    // CVD ventana 20 — CELU v5
     const deltas=klines.map(k=>{
       const o=parseFloat(k[1]),c=parseFloat(k[4]),v=parseFloat(k[5]);
       return c>o?v:c<o?-v:0;
@@ -506,27 +619,87 @@ async function fetchWhaleData(symbol) {
     const cvdSma=deltas.slice(-25).reduce((a,b)=>a+b,0)/5;
     const cvdSube=cvd20>cvd20prev&&cvd20>cvdSma;
     const cvdBaja=cvd20<cvd20prev&&cvd20<cvdSma;
-    // Whale per vela
-    let whaleBuy=false,whaleSell=false;
-    for(let i=Math.max(0,klines.length-LOOKBACK);i<klines.length;i++){
+
+    // Whale + absorción por vela
+    let whaleBuyNow=false, whaleSellNow=false;
+    let whaleBullRec=false, whaleBearRec=false;
+    for(let i=Math.max(0,klines.length-LOOKBACK); i<klines.length; i++) {
       const k=klines[i];
       const o=parseFloat(k[1]),h=parseFloat(k[2]),l=parseFloat(k[3]),c=parseFloat(k[4]),v=parseFloat(k[5]);
       const ratio=volSma>0?v/volSma:1;
       const cuerpo=Math.abs(c-o)+0.000001;
       const mechaSup=h-Math.max(o,c);
       const mechaInf=Math.min(o,c)-l;
-      const absorcionVenta=mechaSup>cuerpo*1.5&&ratio>=WHALE_MULT&&c>o;
-      const absorcionCompra=mechaInf>cuerpo*1.5&&ratio>=WHALE_MULT&&c<o;
-      if(ratio>=WHALE_MULT&&c>o&&cvdSube&&!absorcionVenta) whaleBuy=true;
-      if(ratio>=WHALE_MULT&&c<o&&cvdBaja&&!absorcionCompra) whaleSell=true;
+      const absVenta=mechaSup>cuerpo*1.5&&ratio>=WHALE_MULT&&c>o;
+      const absCompra=mechaInf>cuerpo*1.5&&ratio>=WHALE_MULT&&c<o;
+      const isBull=ratio>=WHALE_MULT&&c>o&&cvdSube&&!absVenta;
+      const isBear=ratio>=WHALE_MULT&&c<o&&cvdBaja&&!absCompra;
+      if(i===klines.length-1) { whaleBuyNow=isBull; whaleSellNow=isBear; }
+      if(isBull) whaleBullRec=true;
+      if(isBear) whaleBearRec=true;
     }
-    const lastVol=parseFloat(klines[klines.length-1][5]);
-    const volRatio=volSma>0?lastVol/volSma:1;
-    const whale=whaleBuy?'buy':whaleSell?'sell':'neutral';
+    const whale=whaleBuyNow?'buy':whaleSellNow?'sell':'neutral';
     const cvdDir=cvdSube?'up':cvdBaja?'down':'flat';
     const cvdPct=Math.min(100,Math.abs(cvd20)/(Math.abs(cvdSma)||1)*50);
-    return {whale,cvd:cvd20,cvdDir,cvdPct,volRatio};
-  } catch(e) { return {whale:'neutral',cvd:0,cvdDir:'flat',cvdPct:0,volRatio:1}; }
+
+    // StochRSI en 4h
+    const stoch=calcStochRSI(closes,14,14,3,3);
+
+    // VWAP en 1h (necesita klines 1h)
+    let vwap=price, adx=20;
+    try {
+      const klines1h=await fetchWithRetry(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1h&limit=50`);
+      if(Array.isArray(klines1h)&&klines1h.length>0) {
+        vwap=calcVWAP(klines1h);
+        adx=calcADX(klines1h,14);
+      }
+    } catch(e){}
+
+    return {whale,whaleBullRec,whaleBearRec,cvd:cvd20,cvdDir,cvdPct,volRatio,stochK:stoch.k,stochKPrev:stoch.kPrev||stoch.k,stochD:stoch.d,vwap,adx,price};
+  } catch(e) {
+    return {whale:'neutral',whaleBullRec:false,whaleBearRec:false,cvd:0,cvdDir:'flat',cvdPct:0,volRatio:1,stochK:50,stochKPrev:50,stochD:50,vwap:0,adx:20,price:0};
+  }
+}
+
+// ============================================================
+// CELU v5 — SCORE y SEÑAL
+// ============================================================
+function calcCeluScore(d, wd) {
+  if(!d||!wd) return {scoreL:0,scoreS:0,sigLong:false,sigShort:false};
+  const {whale,whaleBullRec,whaleBearRec,stochK,stochKPrev,stochD,adx,vwap,price} = wd;
+  const STOCH_OB=75, STOCH_OS=25;
+
+  // Stoch condiciones — igual que CELU v5
+  const stochLongOk  = stochK<STOCH_OB && stochK>stochD && stochK>stochKPrev;
+  const stochShortOk = stochK>STOCH_OS && stochK<stochD && stochK<stochKPrev;
+  const stochSaliendoOS = stochKPrev<=STOCH_OS && stochK>STOCH_OS;
+  const stochSaliendoOB = stochKPrev>=STOCH_OB && stochK<STOCH_OB;
+
+  const sobreVWAP = price>vwap;
+  const bajoVWAP  = price<vwap;
+  const adxOk     = adx>18;
+
+  // Score LONG
+  let scoreL=0;
+  if(whale==='buy'||whaleBullRec) scoreL++;
+  if(stochLongOk) scoreL++;
+  if(stochSaliendoOS) scoreL++;
+  if(sobreVWAP) scoreL++;
+  if(adxOk) scoreL++;
+
+  // Score SHORT
+  let scoreS=0;
+  if(whale==='sell'||whaleBearRec) scoreS++;
+  if(stochShortOk) scoreS++;
+  if(stochSaliendoOB) scoreS++;
+  if(bajoVWAP) scoreS++;
+  if(adxOk) scoreS++;
+
+  // Señales — igual que CELU v5 (score mín 3)
+  const sigLong  = (whale==='buy'||whaleBullRec) && scoreL>=3;
+  const sigShort = (whale==='sell'||whaleBearRec) && scoreS>=3;
+
+  return {scoreL,scoreS,sigLong,sigShort,stochLongOk,stochShortOk,stochSaliendoOS,stochSaliendoOB,sobreVWAP,bajoVWAP,adxOk};
 }
 
 // ============================================================
@@ -536,16 +709,15 @@ async function fetchHeatmapData(symbol) {
   if(heatmapCache[symbol]&&Date.now()-heatmapCache[symbol].ts<60000) return heatmapCache[symbol].data;
   const pair=symbol+'USDT';
   try {
-    const [k1h,k4h,oi,ticker]=await Promise.allSettled([
+    const [k1h,k4h,oi]=await Promise.allSettled([
       fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1h&limit=72`).then(r=>r.json()),
       fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=4h&limit=30`).then(r=>r.json()),
       fetch(`https://fapi.binance.com/fapi/v1/openInterest?symbol=${pair}`).then(r=>r.json()),
-      fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${pair}`).then(r=>r.json()),
     ]);
     if(k1h.status!=='fulfilled') return null;
     const kl=k1h.value; const k4=k4h.status==='fulfilled'?k4h.value:[];
     const price=parseFloat(kl[kl.length-1][4]);
-    const oiVal=oi.status==='fulfilled'?parseFloat(oi.value.openInterest)*price:0;
+    const oiVal=oi.status==='fulfilled'&&oi.value.openInterest?parseFloat(oi.value.openInterest)*price:0;
     const rangePct=0.25; const priceMin=price*(1-rangePct); const priceMax=price*(1+rangePct);
     const numLevels=24; const levelSize=(priceMax-priceMin)/numLevels;
     const levelVols=new Array(numLevels).fill(0);
@@ -595,13 +767,13 @@ function renderHeatmap(symbol,data,cId){
     bars+=`<div class="hm-bar-wrap"><div class="hm-tooltip"><span style="color:#fff;font-size:11px">${fmtPrice(lvl.price)}</span><span style="color:${lvl.side==='short'?'#ff6688':'#00ff88'};font-size:9px">Vol: ${fmtBig(lvl.vol)}</span><span style="color:var(--text2);font-size:9px">${ds}${lvl.distPct.toFixed(2)}%</span></div><div class="hm-bar" style="height:${h}%;background:${col}"></div></div>`;
   });
   const ll=Math.min(Math.max(parseFloat(pricePct),5),80);
-  const ws=topWallShort;const wl=topWallLong;
-  c.innerHTML=`<div class="heatmap-title">🔥 HEATMAP LIQUIDACIONES — ${symbol}</div>
-    <div class="heatmap-chart" style="position:relative">${bars}<div style="position:absolute;left:${pricePct}%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.7);z-index:10;pointer-events:none"><div style="position:absolute;top:-20px;left:${ll}%;font-size:9px;color:#fff;background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.3);padding:2px 5px;border-radius:2px;transform:translateX(-50%);font-family:'Barlow Condensed',sans-serif;font-weight:700">${fmtPrice(price)}</div></div></div>
+  const ws=topWallShort, wl=topWallLong;
+  c.innerHTML=`<div class="heatmap-title">🔥 HEATMAP — ${symbol}</div>
+    <div class="heatmap-chart">${bars}<div style="position:absolute;left:${pricePct}%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.7);z-index:10;pointer-events:none"><div style="position:absolute;top:-20px;left:${ll}%;font-size:9px;color:#fff;background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.3);padding:2px 5px;border-radius:2px;transform:translateX(-50%);font-family:'Barlow Condensed',sans-serif;font-weight:700">${fmtPrice(price)}</div></div></div>
     <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--text3);margin-top:3px"><span>${fmtPrice(priceMin)}</span><span style="color:var(--text2)">← ${Math.round(parseFloat(pricePct))}% →</span><span>${fmtPrice(priceMax)}</span></div>
     <div class="heatmap-walls">
-      <div class="heatmap-wall wall-short"><span class="heatmap-wall-label" style="color:var(--red)">Pared SHORT arriba</span><span class="heatmap-wall-price" style="color:var(--red)">${ws?fmtPrice(ws.price):'—'}</span><span class="heatmap-wall-vol" style="color:#ff6688">Vol est: ${ws?fmtBig(ws.vol):'—'}</span><span class="heatmap-wall-detail">${ws?(ws.distPct>=0?'+':'')+ws.distPct.toFixed(2)+'% del precio actual':'—'}</span></div>
-      <div class="heatmap-wall wall-long"><span class="heatmap-wall-label" style="color:var(--green)">Soporte LONG abajo</span><span class="heatmap-wall-price" style="color:var(--green)">${wl?fmtPrice(wl.price):'—'}</span><span class="heatmap-wall-vol" style="color:#00ff88">Vol est: ${wl?fmtBig(wl.vol):'—'}</span><span class="heatmap-wall-detail">${wl?wl.distPct.toFixed(2)+'% del precio actual':'—'}</span></div>
+      <div class="heatmap-wall wall-short"><span class="heatmap-wall-label" style="color:var(--red)">Pared SHORT</span><span class="heatmap-wall-price" style="color:var(--red)">${ws?fmtPrice(ws.price):'—'}</span><span class="heatmap-wall-vol" style="color:#ff6688">Vol: ${ws?fmtBig(ws.vol):'—'}</span><span class="heatmap-wall-detail">${ws?(ws.distPct>=0?'+':'')+ws.distPct.toFixed(2)+'%':'—'}</span></div>
+      <div class="heatmap-wall wall-long"><span class="heatmap-wall-label" style="color:var(--green)">Soporte LONG</span><span class="heatmap-wall-price" style="color:var(--green)">${wl?fmtPrice(wl.price):'—'}</span><span class="heatmap-wall-vol" style="color:#00ff88">Vol: ${wl?fmtBig(wl.vol):'—'}</span><span class="heatmap-wall-detail">${wl?wl.distPct.toFixed(2)+'%':'—'}</span></div>
     </div>`;
 }
 
@@ -622,81 +794,101 @@ async function toggleHeatmap(symbol){
 async function getTokenData(symbol) {
   const pair=symbol+'USDT';
   try {
-    const [ticker,fundingRaw,lsRatio,oiRaw,whaleData]=await Promise.allSettled([
+    const [ticker,fundingRaw,oiRaw,whaleData]=await Promise.allSettled([
       fetchWithRetry(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${pair}`),
       fetchWithRetry(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${pair}&limit=1`),
-      fetchWithRetry(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${pair}&period=1h&limit=1`),
       fetchWithRetry(`https://fapi.binance.com/fapi/v1/openInterest?symbol=${pair}`),
       fetchWhaleData(symbol),
     ]);
     const t=ticker.status==='fulfilled'?ticker.value:null;
     if(!t) return {symbol,error:'No data'};
     const fr=fundingRaw.status==='fulfilled'?fundingRaw.value:null;
-    const ls=lsRatio.status==='fulfilled'?lsRatio.value:null;
     const oi=oiRaw.status==='fulfilled'?oiRaw.value:null;
-    const wd=whaleData.status==='fulfilled'?whaleData.value:{whale:'neutral',cvd:0,cvdDir:'flat',cvdPct:0,volRatio:1};
+    const wd=whaleData.status==='fulfilled'?whaleData.value:{whale:'neutral',whaleBullRec:false,whaleBearRec:false,cvd:0,cvdDir:'flat',cvdPct:0,volRatio:1,stochK:50,stochKPrev:50,stochD:50,vwap:0,adx:20,price:0};
     const price=parseFloat(t.lastPrice);
     return {
       symbol, price,
       change24:parseFloat(t.priceChangePercent),
       funding:fr&&fr[0]?parseFloat(fr[0].fundingRate)*100:null,
-      longRatio:ls&&ls[0]?parseFloat(ls[0].longAccount):null,
-      shortRatio:ls&&ls[0]?parseFloat(ls[0].shortAccount):null,
       openInterest:oi?parseFloat(oi.openInterest)*price:null,
-      whale:wd.whale, cvd:wd.cvd, cvdDir:wd.cvdDir, cvdPct:wd.cvdPct, volRatio:wd.volRatio,
+      whale:wd.whale, whaleBullRec:wd.whaleBullRec, whaleBearRec:wd.whaleBearRec,
+      cvd:wd.cvd, cvdDir:wd.cvdDir, cvdPct:wd.cvdPct, volRatio:wd.volRatio,
+      stochK:wd.stochK, stochKPrev:wd.stochKPrev, stochD:wd.stochD,
+      vwap:wd.vwap, adx:wd.adx,
     };
   } catch(e) { return {symbol,error:e.message}; }
 }
 
-function calcScore(d) {
-  if(!d||d.error) return {score:0,type:'neutral'};
-  let score=0;
-  if(d.funding!==null){if(d.funding<-0.01) score+=2;else if(d.funding<0) score+=1;else if(d.funding>0.05) score-=1;}
-  if(d.shortRatio!==null&&d.longRatio!==null){const r=d.shortRatio/(d.longRatio||0.01);if(r>1.5) score+=2;else if(r>1.2) score+=1;else if(r<0.8) score-=1;}
-  if(d.whale==='buy') score+=2;
-  else if(d.whale==='sell') score-=1;
-  if(d.cvdDir==='up') score+=1;
-  if(d.change24<-8) score+=1; else if(d.change24>5) score-=1;
-  score=Math.max(0,Math.min(5,score));
+function calcSetup(d) {
+  if(!d||d.error) return {type:'neutral',scoreL:0,scoreS:0,sigLong:false,sigShort:false};
+  const wd={whale:d.whale,whaleBullRec:d.whaleBullRec,whaleBearRec:d.whaleBearRec,stochK:d.stochK,stochKPrev:d.stochKPrev,stochD:d.stochD,adx:d.adx,vwap:d.vwap,price:d.price};
+  const celu=calcCeluScore(d,wd);
   let type='neutral';
-  if(score>=4) type='squeeze';
-  else if(score>=3&&d.funding<0) type='long';
-  else if(d.funding>0.03&&d.shortRatio>d.longRatio) type='short';
-  else if(score>=2) type='long';
-  return {score,type};
+  if(celu.sigLong&&celu.sigShort) type='squeeze';
+  else if(celu.sigLong) type='wlong';
+  else if(celu.sigShort) type='wshort';
+  else if(d.funding!==null&&d.funding<-0.01&&(d.whale==='buy'||d.whaleBullRec)) type='long';
+  else if(celu.scoreL>=3) type='long';
+  else if(celu.scoreS>=3) type='short';
+  return {...celu, type};
 }
 
 function renderRow(d,idx) {
-  if(d.error) return `<tr style="animation-delay:${idx*0.05}s"><td><div class="token-name">${d.symbol}</div><div class="token-sub">ERROR</div></td><td colspan="10" style="color:var(--text3);font-size:10px">${d.error}</td></tr><tr class="heatmap-row"><td colspan="11"><div class="heatmap-container" id="hm-c-${d.symbol}"></div></td></tr>`;
-  const {score,type}=calcScore(d);
-  const rowClass=type==='squeeze'?'highlight-squeeze':type==='long'?'highlight-long':'';
-  const badgeMap={squeeze:`<span class="badge badge-squeeze">⚡ SQUEEZE</span>`,long:`<span class="badge badge-long">▲ LONG</span>`,short:`<span class="badge badge-short">▼ SHORT</span>`,neutral:`<span class="badge badge-neutral">— NEUTRAL</span>`};
-  const scoreColor=type==='squeeze'?'var(--orange)':type==='long'?'var(--green)':'var(--red)';
-  const scoreDots=Array.from({length:5},(_,i)=>`<div class="score-dot" style="background:${i<score?scoreColor:'var(--border2)'}"></div>`).join('');
-  const longFill=d.longRatio?(d.longRatio*100):50;
+  if(d.error) return `<tr style="animation-delay:${idx*0.05}s"><td><div class="token-name">${d.symbol}</div><div class="token-sub">ERROR</div></td><td colspan="12" style="color:var(--text3);font-size:10px">${d.error}</td></tr><tr class="heatmap-row"><td colspan="13"><div class="heatmap-container" id="hm-c-${d.symbol}"></div></td></tr>`;
+  const setup=calcSetup(d);
+  const {scoreL,scoreS,sigLong,sigShort,stochLongOk,stochShortOk,sobreVWAP,adxOk,type}=setup;
+
+  // Señal principal CELU
+  let signalHtml='';
+  if(sigLong&&sigShort) signalHtml=`<span class="badge badge-squeeze">⚡ SQUEEZE</span>`;
+  else if(sigLong)  signalHtml=`<span class="badge badge-wlong">W▲ LONG</span>`;
+  else if(sigShort) signalHtml=`<span class="badge badge-wshort">W▼ SHORT</span>`;
+  else if(type==='long') signalHtml=`<span class="badge badge-long">▲ LONG</span>`;
+  else if(type==='short') signalHtml=`<span class="badge badge-short">▼ SHORT</span>`;
+  else signalHtml=`<span class="badge badge-neutral">— NEUTRAL</span>`;
+
   const fundingClass=d.funding===null?'':d.funding<-0.005?'funding-neg':d.funding>0.005?'funding-pos':'funding-neu';
   const fundingStr=d.funding!==null?(d.funding>=0?'+':'')+d.funding.toFixed(4)+'%':'—';
-  const whaleHtml=d.whale==='buy'?`<span class="whale-buy">🐋 BUY</span>`:d.whale==='sell'?`<span class="whale-sell">🐋 SELL</span>`:`<span class="whale-neu">—</span>`;
+  const whaleHtml=d.whale==='buy'?`<span class="whale-buy">🐋 BUY</span>`:d.whale==='sell'?`<span class="whale-sell">🐋 SELL</span>`:d.whaleBullRec?`<span class="whale-buy" style="opacity:0.6">~ bull</span>`:d.whaleBearRec?`<span class="whale-sell" style="opacity:0.6">~ bear</span>`:`<span class="whale-neu">—</span>`;
   const cvdColor=d.cvdDir==='up'?'var(--green)':d.cvdDir==='down'?'var(--red)':'var(--text3)';
   const cvdArrow=d.cvdDir==='up'?'▲':d.cvdDir==='down'?'▼':'—';
-  const cvdHtml=`<span style="color:${cvdColor};font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${cvdArrow} ${fmtBig(Math.abs(d.cvd))}</span>`;
   const volColor=d.volRatio>=2?'var(--red)':d.volRatio>=1?'var(--yellow)':'var(--green)';
-  const volHtml=`<span style="color:${volColor};font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${d.volRatio.toFixed(2)}x</span>`;
+
+  // StochRSI
+  const sk=Math.round(d.stochK||50);
+  const skColor=sk<25?'var(--green)':sk>75?'var(--red)':'var(--text2)';
+  const stochHtml=`<span style="color:${skColor};font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700">${sk}</span>`;
+
+  // VWAP
+  const vwapHtml=sobreVWAP?`<span style="color:var(--green);font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700">SOBRE</span>`:`<span style="color:var(--red);font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700">BAJO</span>`;
+
+  // ADX
+  const adxColor=adxOk?'var(--cyan)':'var(--text3)';
+  const adxHtml=`<span style="color:${adxColor};font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${Math.round(d.adx||20)}</span>`;
+
+  // Score L/S
+  const scoreLColor=scoreL>=3?'var(--green)':'var(--text3)';
+  const scoreSColor=scoreS>=3?'var(--red)':'var(--text3)';
+  const scoreHtml=`<span style="color:${scoreLColor};font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">L:${scoreL}</span> <span style="color:var(--text3);">/</span> <span style="color:${scoreSColor};font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">S:${scoreS}</span>`;
+
   const tokenCell=`<div class="token-name" onclick="toggleHeatmap('${d.symbol}')">${d.symbol}</div><div class="token-sub">PERP · BINANCE</div><button class="heatmap-btn" id="hm-btn-${d.symbol}" onclick="toggleHeatmap('${d.symbol}')">🔥 HEATMAP</button>`;
+
   return `<tr style="animation-delay:${idx*0.06}s">
     <td>${tokenCell}</td>
     <td class="right"><div style="font-size:13px">${fmtPrice(d.price)}</div></td>
     <td class="right ${d.change24>=0?'change-pos':'change-neg'}">${d.change24>=0?'+':''}${d.change24.toFixed(2)}%</td>
     <td class="right ${fundingClass}">${fundingStr}</td>
     <td class="right" style="color:var(--cyan);font-size:11px">${fmtBig(d.openInterest)}</td>
-    <td><div style="display:flex;align-items:center;gap:8px;min-width:120px"><div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div style="height:100%;width:${longFill}%;background:var(--green);border-radius:2px"></div></div><span style="font-size:10px;color:var(--green)">${d.longRatio?(d.longRatio*100).toFixed(0)+'%':'—'}</span><span style="font-size:9px;color:var(--text3)">/</span><span style="font-size:10px;color:var(--red)">${d.shortRatio?(d.shortRatio*100).toFixed(0)+'%':'—'}</span></div></td>
     <td>${whaleHtml}</td>
-    <td>${cvdHtml}</td>
-    <td>${volHtml}</td>
-    <td>${badgeMap[type]}</td>
-    <td><div class="score">${scoreDots}</div></td>
+    <td><span style="color:${cvdColor};font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${cvdArrow} ${fmtBig(Math.abs(d.cvd))}</span></td>
+    <td><span style="color:${volColor};font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${(d.volRatio||1).toFixed(2)}x</span></td>
+    <td>${stochHtml}</td>
+    <td>${vwapHtml}</td>
+    <td>${adxHtml}</td>
+    <td>${scoreHtml}</td>
+    <td>${signalHtml}</td>
   </tr>
-  <tr class="heatmap-row"><td colspan="11"><div class="heatmap-container" id="hm-c-${d.symbol}"></div></td></tr>`;
+  <tr class="heatmap-row"><td colspan="13"><div class="heatmap-container" id="hm-c-${d.symbol}"></div></td></tr>`;
 }
 
 async function runScan() {
@@ -705,20 +897,28 @@ async function runScan() {
   scanning=true;
   const btn=document.getElementById('scan-btn'); btn.disabled=true; btn.textContent='⟳ SCANNING...';
   const tbody=document.getElementById('table-body');
-  tbody.innerHTML=`<tr><td colspan="11" style="padding:40px;text-align:center;color:var(--text2);font-size:11px;letter-spacing:2px"><span class="spinner"></span>FETCHING DATA + WHALE DETECTOR...</td></tr>`;
+  tbody.innerHTML=`<tr><td colspan="13" style="padding:40px;text-align:center;color:var(--text2);font-size:11px;letter-spacing:2px"><span class="spinner"></span>FETCHING DATA + CELU v5 (Whale+StochRSI+VWAP+ADX)...</td></tr>`;
   const tokens=Array.from(selectedTokens);
   const data=await Promise.all(tokens.map(t=>getTokenData(t)));
-  data.sort((a,b)=>(calcScore(a).score||0)<(calcScore(b).score||0)?1:-1);
+  // Ordenar por señal: wlong/wshort primero, luego score
+  data.sort((a,b)=>{
+    const sa=calcSetup(a), sb=calcSetup(b);
+    const rank=t=>t==='wlong'||t==='wshort'?3:t==='squeeze'?2:t==='long'?1:0;
+    if(rank(sa.type)!==rank(sb.type)) return rank(sb.type)-rank(sa.type);
+    return (sb.scoreL+sb.scoreS)-(sa.scoreL+sa.scoreS);
+  });
   tbody.innerHTML=data.map((d,i)=>renderRow(d,i)).join('');
   const valid=data.filter(d=>!d.error);
-  const squeezes=valid.filter(d=>calcScore(d).type==='squeeze').length;
-  const longs=valid.filter(d=>calcScore(d).type==='long').length;
+  const wlongs=valid.filter(d=>calcSetup(d).sigLong).length;
+  const wshorts=valid.filter(d=>calcSetup(d).sigShort).length;
+  const squeezes=valid.filter(d=>calcSetup(d).type==='squeeze').length;
   const whaleBuys=valid.filter(d=>d.whale==='buy').length;
   const whaleSells=valid.filter(d=>d.whale==='sell').length;
   const avgF=valid.reduce((a,d)=>a+(d.funding||0),0)/(valid.length||1);
   document.getElementById('s-total').textContent=valid.length;
+  document.getElementById('s-wlong').textContent=wlongs;
+  document.getElementById('s-wshort').textContent=wshorts;
   document.getElementById('s-squeeze').textContent=squeezes;
-  document.getElementById('s-long').textContent=longs;
   document.getElementById('s-whale-buy').textContent=whaleBuys;
   document.getElementById('s-whale-sell').textContent=whaleSells;
   const sf=document.getElementById('s-funding');
@@ -726,19 +926,19 @@ async function runScan() {
   sf.style.color=avgF<0?'var(--green)':'var(--red)';
   document.getElementById('summary').style.display='flex';
   const now=new Date(); const ts=now.toLocaleTimeString('es-AR');
-  document.getElementById('last-update').textContent=`Última actualización: ${ts} — ${valid.length} tokens · Whale CVD integrado`;
+  document.getElementById('last-update').textContent=`Última actualización: ${ts} — ${valid.length} tokens · CELU v5`;
   document.getElementById('last-update-header').textContent=ts;
   btn.disabled=false; btn.textContent='▶ SCAN'; scanning=false;
 }
 
 function setRefresh() {
   const val=parseInt(document.getElementById('refresh-select').value);
-  clearInterval(refreshInterval);
+  clearInterval(refreshInterval); refreshInterval=null;
   if(val>0) refreshInterval=setInterval(()=>runScan(),val*1000);
 }
 
 // ============================================================
-// CARRERA v2 — barra absoluta + detector agotamiento
+// CARRERA v3 — FIX: extraMap global, agotamiento con CELU
 // ============================================================
 async function fetchAllTickers() {
   const res=await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr');
@@ -750,40 +950,44 @@ async function fetchAllTickers() {
 }
 
 async function fetchAgotamientoData(symbol) {
+  // FIX: usa caché con ts
   if(raceAccumCache[symbol]&&Date.now()-raceAccumCache[symbol].ts<120000) return raceAccumCache[symbol];
   const pair=symbol+'USDT';
   try {
-    const [k1h,funding,ls]=await Promise.allSettled([
-      fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1h&limit=6`).then(r=>r.json()),
+    const [k1h,funding]=await Promise.allSettled([
+      fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1h&limit=25`).then(r=>r.json()),
       fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${pair}&limit=1`).then(r=>r.json()),
-      fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${pair}&period=1h&limit=1`).then(r=>r.json()),
     ]);
     const kl=k1h.status==='fulfilled'?k1h.value:null;
-    let volRatioNow=1;
-    if(kl&&kl.length>=5){
+    let volRatioNow=1, stochK=50, stochKPrev=50, stochD=50;
+    if(kl&&kl.length>=10){
       const vols=kl.map(k=>parseFloat(k[5]));
       const avgVol=vols.slice(0,-1).reduce((a,b)=>a+b,0)/Math.max(vols.slice(0,-1).length,1);
       volRatioNow=avgVol>0?vols[vols.length-1]/avgVol:1;
+      const closes=kl.map(k=>parseFloat(k[4]));
+      const st=calcStochRSI(closes,14,14,3,3);
+      stochK=st.k; stochKPrev=st.kPrev||st.k; stochD=st.d;
     }
     const fr=funding.status==='fulfilled'&&funding.value[0]?parseFloat(funding.value[0].fundingRate)*100:null;
-    const lsD=ls.status==='fulfilled'&&ls.value[0]?ls.value[0]:null;
-    const longRatio=lsD?parseFloat(lsD.longAccount):null;
-    const result={volRatioNow,funding:fr,longRatio,ts:Date.now()};
+    const result={volRatioNow,funding:fr,stochK,stochKPrev,stochD,ts:Date.now()};
     raceAccumCache[symbol]=result; return result;
-  } catch(e){return {volRatioNow:1,funding:null,longRatio:null,ts:Date.now()};}
+  } catch(e){return {volRatioNow:1,funding:null,stochK:50,stochKPrev:50,stochD:50,ts:Date.now()};}
 }
 
-function detectAgotamiento(token,extraData) {
+function detectAgotamiento(token, extraData) {
+  // FIX: lógica CELU v5 — funding alto + vol explotado + stoch sobrecompra
   if(!extraData) return false;
-  const {volRatioNow,funding,longRatio}=extraData;
+  const {volRatioNow,funding,stochK}=extraData;
   let agotScore=0;
-  if(token.change24>=15) agotScore+=2;
-  else if(token.change24>=8) agotScore+=1;
+  if(token.change24>=20) agotScore+=2;
+  else if(token.change24>=10) agotScore+=1;
   if(volRatioNow>=4) agotScore+=2;
   else if(volRatioNow>=2.5) agotScore+=1;
   if(funding!==null&&funding>0.05) agotScore+=2;
   else if(funding!==null&&funding>0.02) agotScore+=1;
-  if(longRatio!==null&&longRatio>0.75) agotScore+=1;
+  // NUEVO: StochRSI sobrecompra = señal de agotamiento fuerte
+  if(stochK!==undefined&&stochK>80) agotScore+=2;
+  else if(stochK!==undefined&&stochK>70) agotScore+=1;
   return agotScore>=4;
 }
 
@@ -796,7 +1000,11 @@ function getBarColor(change) {
   return '#ff3355';
 }
 
-function renderRace(data,extraMap) {
+function renderRace(data, extraMap) {
+  // FIX: guardamos extraMap global para que setRaceMode lo use con datos reales
+  if(extraMap) raceExtraMap=extraMap;
+  const useMap=raceExtraMap;
+
   const list=document.getElementById('race-list');
   const mySet=new Set(tokenList);
   let display=raceMode==='mine'?data.filter(d=>mySet.has(d.symbol)):data;
@@ -805,9 +1013,9 @@ function renderRace(data,extraMap) {
   document.getElementById('rs-winners').textContent=winners;
   document.getElementById('rs-losers').textContent=losers;
   if(display.length>0){
-    const best=display[0],worst=display[display.length-1];
-    document.getElementById('rs-best').textContent=`${best.symbol} ${best.change24>=0?'+':''}${best.change24.toFixed(2)}%`;
-    document.getElementById('rs-worst').textContent=`${worst.symbol} ${worst.change24>=0?'+':''}${worst.change24.toFixed(2)}%`;
+    document.getElementById('rs-best').textContent=`${display[0].symbol} ${display[0].change24>=0?'+':''}${display[0].change24.toFixed(2)}%`;
+    const w=display[display.length-1];
+    document.getElementById('rs-worst').textContent=`${w.symbol} ${w.change24>=0?'+':''}${w.change24.toFixed(2)}%`;
   }
   let agotadosCount=0;
   let html='';
@@ -824,44 +1032,35 @@ function renderRace(data,extraMap) {
     let moveHtml='';
     if(prevPos===undefined) moveHtml=`<span class="move-new">NEW</span>`;
     else { const diff=prevPos-pos; if(diff>0) moveHtml=`<span class="move-up">▲</span><span class="move-num move-up">${diff}</span>`; else if(diff<0) moveHtml=`<span class="move-down">▼</span><span class="move-num move-down">${Math.abs(diff)}</span>`; else moveHtml=`<span class="move-same">—</span>`; }
-    // Barra ABSOLUTA: 100% = +50%
     const barPct=Math.min(100,(Math.abs(token.change24)/50)*100);
     const barColor=getBarColor(token.change24);
     const posClass=pos===1?'pos-1':pos===2?'pos-2':pos===3?'pos-3':'';
     const top3Class=pos<=3?'top3':'';
-    const extra=extraMap&&extraMap[token.symbol]?extraMap[token.symbol]:null;
+    const extra=useMap&&useMap[token.symbol]?useMap[token.symbol]:null;
     const isAgotado=isWinner&&detectAgotamiento(token,extra);
     if(isAgotado) agotadosCount++;
     let statusHtml='';
-    if(isAgotado){
-      statusHtml=`<span class="race-cat-badge cat-agotado">⚠ AGOTADO → SHORT</span>`;
-    } else {
-      statusHtml=isWinner?`<span class="race-cat-badge cat-winner">▲ WINNER</span>`:`<span class="race-cat-badge cat-loser">▼ LOSER</span>`;
-    }
-    // Señal de pre-carrera cruzada
-    const accumData=raceAccumCache[token.symbol];
-    let crossHtml='';
-    if(accumData&&accumData.acumLevel&&accumData.acumLevel!=='none'){
-      if(token.change24>=5) crossHtml=`<span class="race-acum-cross cross-pump">🐋 PUMP ACUM</span>`;
-      else if(token.change24>=1) crossHtml=`<span class="race-acum-cross cross-saliendo">🚀 SALIENDO</span>`;
-    }
+    if(isAgotado) statusHtml=`<span class="race-cat-badge cat-agotado">⚠ AGOTADO → SHORT</span>`;
+    else statusHtml=isWinner?`<span class="race-cat-badge cat-winner">▲ WINNER</span>`:`<span class="race-cat-badge cat-loser">▼ LOSER</span>`;
+    // Stoch en agotado — mostrar nivel
+    const stochInfo=extra&&extra.stochK!==undefined?`<span style="font-size:8px;color:${extra.stochK>75?'var(--red)':'var(--text3)'};letter-spacing:1px">K:${Math.round(extra.stochK)}</span>`:'';
     const starHtml=raceMode==='all'&&isMyToken?`<span class="my-token-star">★</span>`:'';
     html+=`<div class="race-row ${top3Class} ${isMyToken?'my-token':''} ${posClass} ${isAgotado?'agotado':''}" style="animation-delay:${Math.min(idx,30)*0.025}s">
       <div class="race-pos"><div class="race-pos-num">${pos}</div></div>
       <div class="race-move">${moveHtml}</div>
       <div class="race-symbol-wrap"><div class="race-symbol">${token.symbol}${starHtml}</div><div class="race-sub">USDT PERP</div></div>
-      <div class="race-bar-wrap"><div class="race-bar-track"><div class="race-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>${extra&&extra.volRatioNow>=2?`<div style="font-size:8px;color:var(--red);letter-spacing:1px;margin-top:2px">VOL ${extra.volRatioNow.toFixed(1)}x</div>`:''}</div>
+      <div class="race-bar-wrap"><div class="race-bar-track"><div class="race-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>${extra&&extra.volRatioNow>=2?`<div style="font-size:8px;color:var(--red);letter-spacing:1px;margin-top:2px">VOL ${extra.volRatioNow.toFixed(1)}x ${stochInfo}</div>`:(stochInfo?`<div style="font-size:8px;margin-top:2px">${stochInfo}</div>`:'')}</div>
       <div class="race-change"><div class="race-change-val ${isWinner?'race-change-pos':'race-change-neg'}">${token.change24>=0?'+':''}${token.change24.toFixed(2)}%</div></div>
       <div class="race-price">${fmtPrice(token.price)}</div>
-      <div class="race-status-col">${statusHtml}${crossHtml}</div>
+      <div class="race-status-col">${statusHtml}</div>
     </div>`;
   });
   list.innerHTML=html;
   const newPos={};
   display.forEach((t,i)=>{newPos[t.symbol]=i+1;}); prevRacePositions=newPos;
   document.getElementById('rs-agotados').textContent=agotadosCount||'—';
-  const agotadosTokens=display.filter((t,i)=>{const ex=extraMap&&extraMap[t.symbol]?extraMap[t.symbol]:null;return t.change24>=0&&detectAgotamiento(t,ex);});
-  if(agotadosTokens.length>0) showAgotadoAlert(`⚠ AGOTAMIENTO DETECTADO:<br>${agotadosTokens.slice(0,3).map(t=>`${t.symbol} +${t.change24.toFixed(1)}%`).join(' · ')}<br>Posibles shorts`);
+  const agotadosTokens=display.filter(t=>{const ex=useMap&&useMap[t.symbol]?useMap[t.symbol]:null;return t.change24>=0&&detectAgotamiento(t,ex);});
+  if(agotadosTokens.length>0) showAgotadoAlert(`⚠ AGOTAMIENTO DETECTADO:<br>${agotadosTokens.slice(0,3).map(t=>`${t.symbol} +${t.change24.toFixed(1)}%`).join(' · ')}<br>⚠ Posibles shorts · CELU v5`);
   const now=new Date();
   document.getElementById('race-last-update').textContent=`Actualizado: ${now.toLocaleTimeString('es-AR')}`;
   document.getElementById('last-update-header').textContent=now.toLocaleTimeString('es-AR');
@@ -872,8 +1071,9 @@ function startRaceCountdown() {
   const bar=document.getElementById('race-cd-bar'),txt=document.getElementById('race-cd-text');
   function tick(){
     const p=(raceCdSecs/30)*100;
-    bar.style.width=p+'%'; bar.style.background=p>50?'var(--yellow)':p>25?'var(--orange)':'var(--red)';
-    txt.textContent=raceCdSecs+'s'; if(raceCdSecs>0) raceCdSecs--;
+    if(bar) { bar.style.width=p+'%'; bar.style.background=p>50?'var(--yellow)':p>25?'var(--orange)':'var(--red)'; }
+    if(txt) txt.textContent=raceCdSecs+'s';
+    if(raceCdSecs>0) raceCdSecs--;
   }
   tick(); raceCdTimer=setInterval(tick,1000);
 }
@@ -883,14 +1083,16 @@ async function runRace() {
   const btn=document.getElementById('race-refresh-btn'); btn.textContent='⟳'; btn.disabled=true;
   try {
     const data=await fetchAllTickers(); raceData=data;
-    // Fetch agotamiento data para top tokens
-    const top=data.slice(0,50);
+    const top=data.slice(0,60);
     const extraResults=await Promise.all(top.map(t=>fetchAgotamientoData(t.symbol)));
     const extraMap={};
     top.forEach((t,i)=>{extraMap[t.symbol]=extraResults[i];});
-    renderRace(data,extraMap); startRaceCountdown();
+    renderRace(data,extraMap);
+    // FIX: startRaceCountdown siempre se llama aunque haya errores
+    startRaceCountdown();
   } catch(e){
     document.getElementById('race-list').innerHTML=`<div class="race-empty">Error: ${e.message}</div>`;
+    startRaceCountdown(); // FIX: countdown se reinicia igual
   }
   btn.textContent='↺ NOW'; btn.disabled=false; raceRunning=false;
 }
@@ -899,11 +1101,12 @@ function setRaceMode(m){
   raceMode=m;
   document.getElementById('race-mode-all').classList.toggle('active',m==='all');
   document.getElementById('race-mode-mine').classList.toggle('active',m==='mine');
-  if(raceData.length>0) renderRace(raceData,null);
+  // FIX: usa raceExtraMap global en vez de null
+  if(raceData.length>0) renderRace(raceData, null);
 }
 
 // ============================================================
-// PRE-CARRERA v2 — HOT a 65 + SALIENDO + Whale CVD
+// PRE-CARRERA v3 — CELU v5 integrado
 // ============================================================
 async function fetchAllTickersForPrerace() {
   const res=await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr');
@@ -917,14 +1120,10 @@ async function fetchAllTickersForPrerace() {
 async function fetchPreraceData(symbol) {
   const pair=symbol+'USDT';
   try {
-    let klines;
-    try {
-      const r=await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1d&limit=30`);
-      if(!r.ok) return null;
-      klines=await r.json();
-      if(!Array.isArray(klines)||klines.length<5) return null;
-    } catch(e){return null;}
-    const k=klines;
+    const r=await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1d&limit=30`);
+    if(!r.ok) return null;
+    const k=await r.json();
+    if(!Array.isArray(k)||k.length<5) return null;
     const price=parseFloat(k[k.length-1][4]);
     if(!price||price<=0) return null;
     const maxPct=parseFloat(document.getElementById('pr-pct').value);
@@ -941,114 +1140,102 @@ async function fetchPreraceData(symbol) {
     const priceTrend=p10>0?((r5-p10)/p10*100):0;
     const change24=parseFloat(k[k.length-2][4])>0?(price/parseFloat(k[k.length-2][4])*100-100):0;
     let avgFunding=null,oiVal=0;
-    let whale='neutral',cvdDir='flat',cvdPct=0;
+    let whale='neutral',cvdDir='flat',cvdPct=0,whaleBullRec=false,whaleBearRec=false;
+    let stochK=50,stochKPrev=50,stochD=50,adx=20,vwap=price;
     try {
       const [fundR,oiR]=await Promise.allSettled([
         fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${pair}&limit=3`).then(r=>r.json()),
         fetch(`https://fapi.binance.com/fapi/v1/openInterest?symbol=${pair}`).then(r=>r.json()),
       ]);
-      if(fundR.status==='fulfilled'&&Array.isArray(fundR.value)&&fundR.value.length>0){
+      if(fundR.status==='fulfilled'&&Array.isArray(fundR.value)&&fundR.value.length>0)
         avgFunding=fundR.value.reduce((a,f)=>a+parseFloat(f.fundingRate)*100,0)/fundR.value.length;
-      }
-      if(oiR.status==='fulfilled'&&oiR.value.openInterest){
+      if(oiR.status==='fulfilled'&&oiR.value.openInterest)
         oiVal=parseFloat(oiR.value.openInterest)*price;
-      }
     } catch(e){}
     try {
       const wd=await fetchWhaleData(symbol);
-      if(wd){whale=wd.whale;cvdDir=wd.cvdDir;cvdPct=wd.cvdPct||0;}
+      if(wd){whale=wd.whale;cvdDir=wd.cvdDir;cvdPct=wd.cvdPct||0;whaleBullRec=wd.whaleBullRec;whaleBearRec=wd.whaleBearRec;stochK=wd.stochK;stochKPrev=wd.stochKPrev;stochD=wd.stochD;adx=wd.adx;vwap=wd.vwap;}
     } catch(e){}
-    // SQZMOM 1D — viraje de momentum (lógica CELU v5 simplificada)
-    let sqzmom={val:0,prev:0,virando:false,semanasneg:0,positivo:false,subiendo:false};
+    // SQZMOM 1D
+    let sqzmom={val:0,prev:0,virando:false,diasNeg:0,positivo:false,subiendo:false};
     try {
       const highs=k.map(c=>parseFloat(c[2]));
       const lows2=k.map(c=>parseFloat(c[3]));
       const len=20;
       function sma2(arr,n,end){const sl=arr.slice(Math.max(0,end-n+1),end+1);return sl.reduce((a,b)=>a+b,0)/sl.length;}
-      function calcMom(idx){
-        if(idx<len) return 0;
-        const hh=Math.max(...highs.slice(idx-len,idx));
-        const ll=Math.min(...lows2.slice(idx-len,idx));
-        const midHL=(hh+ll)/2;
-        const sc=sma2(closes,len,idx);
-        return closes[idx]-((midHL+sc)/2);
-      }
+      function calcMom(idx){if(idx<len) return 0;const hh=Math.max(...highs.slice(idx-len,idx));const ll=Math.min(...lows2.slice(idx-len,idx));const midHL=(hh+ll)/2;const sc=sma2(closes,len,idx);return closes[idx]-((midHL+sc)/2);}
       const momArr=closes.map((_,i)=>calcMom(i));
       const li=momArr.length-1;
-      sqzmom.val=momArr[li];
-      sqzmom.prev=momArr[li-1]||0;
+      sqzmom.val=momArr[li]; sqzmom.prev=momArr[li-1]||0;
       sqzmom.positivo=sqzmom.val>0;
       sqzmom.virando=sqzmom.val>0&&sqzmom.prev<=0;
-      let semNeg=0;
-      for(let i=li-1;i>=0;i--){if(momArr[i]<=0) semNeg++;else break;}
-      sqzmom.semanasneg=semNeg;
-      sqzmom.subiendo=sqzmom.val>sqzmom.prev&&sqzmom.val<0&&semNeg>=5;
+      let diasNeg=0;
+      for(let i=li-1;i>=0;i--){if(momArr[i]<=0) diasNeg++;else break;}
+      sqzmom.diasNeg=diasNeg; // FIX: nombre correcto (eran días, no semanas)
+      sqzmom.subiendo=sqzmom.val>sqzmom.prev&&sqzmom.val<0&&diasNeg>=5;
     } catch(e){}
-    return {symbol,price,diasFlat,volRatio,oiVal,priceTrend,avgFunding,longRatio:null,change24,avgVol,recentVol,whale,cvdDir,cvdPct,volRatioNow:volRatio,sqzmom};
+    return {symbol,price,diasFlat,volRatio,oiVal,priceTrend,avgFunding,change24,avgVol,recentVol,whale,whaleBullRec,whaleBearRec,cvdDir,cvdPct,volRatioNow:volRatio,stochK,stochKPrev,stochD,adx,vwap,sqzmom};
   } catch(e){return null;}
 }
 
 function calcPreraceScore(d) {
-  if(!d) return {score:0,tier:0};
-  let score=0;
+  // FIX: parámetros de filtros pasados explícitamente — no lee DOM dentro del scoring
   const minDias=parseInt(document.getElementById('pr-dias').value);
   const maxVol=parseFloat(document.getElementById('pr-vol').value);
+  if(!d) return {score:0,tier:0};
+  let score=0;
 
-  // Días flat (0-30 pts) — requerido mínimo
   if(d.diasFlat>=minDias*2) score+=30;
   else if(d.diasFlat>=minDias*1.5) score+=22;
   else if(d.diasFlat>=minDias) score+=15;
-  else return {score:0,tier:0}; // no cumple días mínimos
+  else return {score:0,tier:0};
 
-  // Volumen relativo bajo (0-25 pts) — requerido
   if(d.volRatio<=maxVol*0.4) score+=25;
   else if(d.volRatio<=maxVol*0.6) score+=18;
   else if(d.volRatio<=maxVol) score+=10;
-  else return {score:0,tier:0}; // vol demasiado alto
+  else return {score:0,tier:0};
 
-  // Funding negativo/neutro (0-20 pts) — opcional
   if(d.avgFunding!==null){
     if(d.avgFunding<-0.01) score+=20;
     else if(d.avgFunding<0) score+=14;
     else if(d.avgFunding<0.005) score+=8;
     else score+=2;
-  } else score+=8; // sin datos = neutro
+  } else score+=8;
 
-  // Tendencia bajista (0-15 pts) — opcional
   if(d.priceTrend<-15) score+=15;
   else if(d.priceTrend<-8) score+=10;
   else if(d.priceTrend<-3) score+=6;
   else if(d.priceTrend<5) score+=3;
 
-  // SQZMOM 1D — la señal más importante (0-20 pts)
   if(d.sqzmom){
-    if(d.sqzmom.virando&&d.sqzmom.semanasneg>=10) score+=20; // viraje después de +10 dias negativo = máxima señal
-    else if(d.sqzmom.virando&&d.sqzmom.semanasneg>=5) score+=15; // viraje después de 5+ dias
-    else if(d.sqzmom.virando) score+=10; // viraje reciente
-    else if(d.sqzmom.subiendo&&d.sqzmom.semanasneg>=10) score+=12; // subiendo desde fondo profundo
-    else if(d.sqzmom.subiendo) score+=7; // subiendo pero negativo
-    else if(d.sqzmom.positivo) score+=3; // positivo pero sin viraje claro
+    if(d.sqzmom.virando&&d.sqzmom.diasNeg>=10) score+=20;
+    else if(d.sqzmom.virando&&d.sqzmom.diasNeg>=5) score+=15;
+    else if(d.sqzmom.virando) score+=10;
+    else if(d.sqzmom.subiendo&&d.sqzmom.diasNeg>=10) score+=12;
+    else if(d.sqzmom.subiendo) score+=7;
+    else if(d.sqzmom.positivo) score+=3;
   }
 
-  // Whale CVD — BONUS, nunca bloquea (0-8 pts)
-  if(d.whale==='buy') score+=8;
+  // CELU v5 — StochRSI en pre-carrera (bonus)
+  if(d.stochK!==undefined){
+    if(d.stochK<25) score+=6; // saliendo de sobreventa = señal fuerte
+    else if(d.stochK<40) score+=3;
+  }
+
+  if(d.whale==='buy'||d.whaleBullRec) score+=8;
   else if(d.cvdDir==='up') score+=4;
 
-  // Cambio 24h bajo (0-7 pts) — si ya pumpeó mucho descarta
-  if(d.change24>15) return {score:0,tier:0}; // ya corrió
+  if(d.change24>15) return {score:0,tier:0};
   if(Math.abs(d.change24)<2) score+=7;
   else if(Math.abs(d.change24)<5) score+=4;
   else if(Math.abs(d.change24)<10) score+=1;
 
   const pct=Math.round(score);
-
-  // SALIENDO: empieza a moverse — SQZMOM virando es señal clave
   const sqzmomVirando=d.sqzmom&&(d.sqzmom.virando||d.sqzmom.subiendo);
   const isSaliendo=d.change24>=1.5&&d.change24<=12&&
-    (sqzmomVirando||d.whale==='buy'||d.cvdDir==='up'||d.volRatio>=(maxVol*0.8))&&
+    (sqzmomVirando||d.whale==='buy'||d.whaleBullRec||d.cvdDir==='up'||d.volRatio>=(maxVol*0.8))&&
     d.diasFlat>=minDias;
 
-  // Umbrales: HOT=65, WARM=45, WATCH=28
   let tier=0;
   if(isSaliendo) tier=4;
   else if(pct>=65) tier=1;
@@ -1058,14 +1245,14 @@ function calcPreraceScore(d) {
   return {score:pct,tier,isSaliendo};
 }
 
-function renderPreraceCard(d,scoreData,ticker,idx) {
+function renderPreraceCard(d, scoreData, ticker, idx) {
   const {score,tier,isSaliendo}=scoreData;
   if(tier===0) return '';
   const tierConfig={
-    1:{cls:'tier-1',badgeCls:'prerace-badge-1',badgeTxt:'🔥 PUMP INMINENTE', sigCls:'prerace-signal-hot',  sigTxt:'⚡ Alta probabilidad — acumulación fuerte',    dotCls:'filled-1'},
-    2:{cls:'tier-2',badgeCls:'prerace-badge-2',badgeTxt:'👀 EN COCCIÓN',      sigCls:'prerace-signal-warm', sigTxt:'→ Monitorear — podría moverse pronto',           dotCls:'filled-2'},
-    3:{cls:'tier-3',badgeCls:'prerace-badge-3',badgeTxt:'💧 ACUMULANDO',      sigCls:'prerace-signal-watch',sigTxt:'· Acumulación temprana — esperar confirmación',   dotCls:'filled-3'},
-    4:{cls:'tier-4',badgeCls:'prerace-badge-4',badgeTxt:'🚀 SALIENDO',        sigCls:'prerace-signal-saliendo',sigTxt:'🚀 Empieza a moverse — posible entrada',       dotCls:'filled-4'},
+    1:{cls:'tier-1',badgeCls:'prerace-badge-1',badgeTxt:'🔥 PUMP INMINENTE',sigCls:'prerace-signal-hot',sigTxt:'⚡ Alta probabilidad — acumulación fuerte',dotCls:'filled-1'},
+    2:{cls:'tier-2',badgeCls:'prerace-badge-2',badgeTxt:'👀 EN COCCIÓN',sigCls:'prerace-signal-warm',sigTxt:'→ Monitorear — podría moverse pronto',dotCls:'filled-2'},
+    3:{cls:'tier-3',badgeCls:'prerace-badge-3',badgeTxt:'💧 ACUMULANDO',sigCls:'prerace-signal-watch',sigTxt:'· Acumulación temprana — esperar confirmación',dotCls:'filled-3'},
+    4:{cls:'tier-4',badgeCls:'prerace-badge-4',badgeTxt:'🚀 SALIENDO',sigCls:'prerace-signal-saliendo',sigTxt:'🚀 Empieza a moverse — posible entrada',dotCls:'filled-4'},
   };
   const cfg=tierConfig[tier];
   const volColor=d.volRatio<=0.3?'var(--green)':d.volRatio<=0.5?'var(--yellow)':'var(--orange)';
@@ -1078,12 +1265,14 @@ function renderPreraceCard(d,scoreData,ticker,idx) {
   const fmtOI=d.oiVal>=1e9?(d.oiVal/1e9).toFixed(1)+'B':d.oiVal>=1e6?(d.oiVal/1e6).toFixed(1)+'M':(d.oiVal/1e3).toFixed(0)+'K';
   const dots=Array.from({length:5},(_,i)=>`<div class="prerace-score-dot ${i<Math.round(score/20)?cfg.dotCls:''}"></div>`).join('');
   const oiBarPct=Math.min(100,(d.oiVal/50e6)*100);
-  // Whale + CVD visual
   const whaleColor=d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text3)';
-  const whaleTxt=d.whale==='buy'?'🐋 BUY':d.whale==='sell'?'🐋 SELL':'—';
+  const whaleTxt=d.whale==='buy'?'🐋 BUY':d.whale==='sell'?'🐋 SELL':d.whaleBullRec?'~ bull':d.whaleBearRec?'~ bear':'—';
   const cvdColor=d.cvdDir==='up'?'var(--green)':d.cvdDir==='down'?'var(--red)':'var(--text3)';
   const cvdArrow=d.cvdDir==='up'?'▲':d.cvdDir==='down'?'▼':'—';
   const cvdPct=Math.min(100,d.cvdPct||0);
+  // StochRSI en card
+  const sk=Math.round(d.stochK||50);
+  const skColor=sk<25?'var(--green)':sk>75?'var(--red)':'var(--text2)';
   return `<div class="prerace-card ${cfg.cls}" style="animation-delay:${idx*0.04}s">
     <div class="prerace-card-header">
       <div><div class="prerace-symbol">${d.symbol}</div><div class="prerace-price">$${fmtPriceStr} · Vol ${fmtVol24}</div></div>
@@ -1095,7 +1284,7 @@ function renderPreraceCard(d,scoreData,ticker,idx) {
       <div class="prerace-metric"><span class="prerace-metric-label">Funding avg</span><span class="prerace-metric-val" style="color:${fundColor}">${fmtFunding}</span></div>
       <div class="prerace-metric"><span class="prerace-metric-label">Tendencia</span><span class="prerace-metric-val" style="color:${trendColor}">${fmtTrend}</span></div>
       <div class="prerace-metric"><span class="prerace-metric-label">OI total</span><span class="prerace-metric-val" style="color:var(--cyan)">${fmtOI}</span></div>
-      <div class="prerace-metric"><span class="prerace-metric-label">Cambio 24h</span><span class="prerace-metric-val" style="color:${Math.abs(d.change24)<3?'var(--green)':'var(--yellow)'}">${d.change24>=0?'+':''}${d.change24.toFixed(2)}%</span></div>
+      <div class="prerace-metric"><span class="prerace-metric-label">StochRSI K</span><span class="prerace-metric-val" style="color:${skColor}">${sk}</span></div>
     </div>
     <div class="prerace-score-bar"><span class="prerace-score-label">SCORE:</span>${dots}<span style="font-size:9px;color:var(--text2);margin-left:6px">${score}/100</span></div>
     <div class="prerace-oi-bar"><div class="prerace-oi-fill" style="width:${oiBarPct}%"></div></div>
@@ -1104,7 +1293,7 @@ function renderPreraceCard(d,scoreData,ticker,idx) {
       const sq=d.sqzmom;
       const sqColor=sq.virando?'var(--green)':sq.subiendo?'var(--yellow)':sq.positivo?'var(--cyan)':'var(--text3)';
       const sqTxt=sq.virando?'SQZMOM VIRANDO ▲':sq.subiendo?'SQZMOM SUBIENDO ↗':sq.positivo?'SQZMOM POSITIVO':'SQZMOM NEGATIVO';
-      const sqDetail=sq.virando?`desde ${sq.semanasneg}d negativo`:sq.subiendo?`${sq.semanasneg}d negativo subiendo`:'';
+      const sqDetail=sq.virando?`desde ${sq.diasNeg}d negativo`:sq.subiendo?`${sq.diasNeg}d negativo subiendo`:'';
       return `<div style="margin-top:6px;padding:4px 8px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;border-radius:2px;background:rgba(0,0,0,0.3);border:1px solid ${sqColor};color:${sqColor};display:flex;align-items:center;justify-content:space-between"><span>${sqTxt}</span><span style="font-size:9px;opacity:0.7">${sqDetail}</span></div>`;
     })():''}
     <div class="whale-signal">
@@ -1127,7 +1316,7 @@ async function runPrerace() {
     grid.innerHTML=`<div class="prerace-empty"><span class="spinner"></span> Paso 2/3 — Filtrando ${tickers.length} tokens...</div>`;
     const candidates=tickers.filter(t=>Math.abs(t.change24)<15);
     document.getElementById('pr-scanned').textContent=tickers.length;
-    grid.innerHTML=`<div class="prerace-empty"><span class="spinner"></span> Paso 3/3 — Analizando acumulación + Whale CVD en ${Math.min(candidates.length,120)} candidatos...</div>`;
+    grid.innerHTML=`<div class="prerace-empty"><span class="spinner"></span> Paso 3/3 — Analizando CELU v5 en ${Math.min(candidates.length,120)} candidatos...</div>`;
     const batchSize=15; const results=[];
     for(let i=0;i<Math.min(candidates.length,120);i+=batchSize){
       const batch=candidates.slice(i,i+batchSize);
@@ -1141,7 +1330,6 @@ async function runPrerace() {
       .map(r=>({...r,scoreData:calcPreraceScore(r.data)}))
       .filter(r=>r.scoreData.tier>0)
       .sort((a,b)=>{
-        // SALIENDO primero, luego por score
         if(a.scoreData.tier===4&&b.scoreData.tier!==4) return -1;
         if(b.scoreData.tier===4&&a.scoreData.tier!==4) return 1;
         return b.scoreData.score-a.scoreData.score;
@@ -1160,10 +1348,10 @@ async function runPrerace() {
       grid.innerHTML=`<div class="prerace-empty">No se encontraron tokens. Probá reducir los días mínimos o aumentar el vol máximo.</div>`;
     } else {
       grid.innerHTML=scored.slice(0,30).map((r,i)=>renderPreraceCard(r.data,r.scoreData,r.ticker,i)).join('');
-      showToast(`🚀 ${scored.length} tokens detectados · ${saliendo} SALIENDO · ${hot} HOT`);
+      showToast(`🚀 ${scored.length} tokens · ${saliendo} SALIENDO · ${hot} HOT · CELU v5`);
     }
     const now=new Date();
-    document.getElementById('prerace-last-update').textContent=`Actualizado: ${now.toLocaleTimeString('es-AR')} · ${tickers.length} pares · Whale CVD v2`;
+    document.getElementById('prerace-last-update').textContent=`Actualizado: ${now.toLocaleTimeString('es-AR')} · ${tickers.length} pares · CELU v5`;
   } catch(e){
     grid.innerHTML=`<div class="prerace-empty">Error: ${e.message}</div>`;
   }
