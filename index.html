@@ -240,9 +240,66 @@
   .race-empty { text-align:center; padding:60px 24px; color:var(--text2); font-size:11px; letter-spacing:2px; }
   .my-token-star { font-size:10px; color:var(--yellow); animation:pulse 2s infinite; }
   .agotado-alert { position:fixed; bottom:24px; left:24px; background:rgba(255,51,85,0.15); border:1px solid var(--red); color:var(--red); padding:12px 20px; font-size:12px; letter-spacing:1px; z-index:9999; animation:toastIn 0.3s ease, toastOut 0.4s ease 4s forwards; pointer-events:none; font-family:'Barlow Condensed',sans-serif; font-weight:700; max-width:320px; }
+
+  /* ===== PANEL DE ALERTAS ===== */
+  #alert-panel { position:fixed; top:70px; right:0; width:300px; background:var(--bg2); border-left:1px solid var(--border2); border-bottom:1px solid var(--border2); z-index:500; transform:translateX(100%); transition:transform 0.3s ease; max-height:calc(100vh - 70px); display:flex; flex-direction:column; }
+  #alert-panel.open { transform:translateX(0); }
+  #alert-toggle { position:fixed; top:150px; right:0; z-index:501; background:var(--bg2); border:1px solid var(--border2); border-right:none; padding:10px 6px; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:11px; letter-spacing:2px; color:var(--text2); transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:4px; border-radius:4px 0 0 4px; }
+  #alert-toggle:hover { color:var(--cyan); border-color:var(--cyan); }
+  #alert-toggle.has-long { color:var(--green); border-color:var(--green); animation:pulse 1.5s infinite; }
+  #alert-toggle.has-short { color:var(--red); border-color:var(--red); animation:pulse 1.5s infinite; }
+  .alert-panel-header { padding:12px 16px; border-bottom:1px solid var(--border2); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; background:var(--bg2); }
+  .alert-panel-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:3px; color:var(--cyan); }
+  .alert-panel-clear { font-size:9px; color:var(--text3); cursor:pointer; letter-spacing:1px; padding:3px 8px; border:1px solid var(--border); transition:all 0.15s; }
+  .alert-panel-clear:hover { color:var(--red); border-color:var(--red); }
+  .alert-list { flex:1; overflow-y:auto; padding:8px; display:flex; flex-direction:column; gap:6px; }
+  .alert-list::-webkit-scrollbar { width:3px; }
+  .alert-list::-webkit-scrollbar-thumb { background:var(--border2); }
+  .alert-item { background:var(--bg3); border-radius:3px; padding:10px 12px; border-left:3px solid transparent; position:relative; animation:alertSlideIn 0.35s ease forwards; opacity:0; }
+  .alert-item.type-wlong { border-left-color:var(--green); }
+  .alert-item.type-wshort { border-left-color:var(--red); }
+  .alert-item.type-agotado { border-left-color:var(--orange); }
+  .alert-item.type-saliendo { border-left-color:var(--cyan); }
+  .alert-item-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  .alert-item-symbol { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:17px; color:#fff; }
+  .alert-item-time { font-size:9px; color:var(--text3); letter-spacing:1px; }
+  .alert-item-badge { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:10px; letter-spacing:1.5px; padding:2px 7px; border-radius:2px; }
+  .badge-al-wlong  { background:rgba(0,255,136,0.15); border:1px solid var(--green2); color:var(--green); }
+  .badge-al-wshort { background:rgba(255,51,85,0.15); border:1px solid var(--red2); color:var(--red); }
+  .badge-al-agotado{ background:rgba(255,107,0,0.15); border:1px solid var(--orange); color:var(--orange); }
+  .badge-al-saliendo{background:rgba(0,229,255,0.1); border:1px solid var(--cyan); color:var(--cyan); }
+  .alert-item-detail { font-size:10px; color:var(--text2); letter-spacing:1px; margin-top:2px; }
+  .alert-item-price { font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; color:var(--text); margin-top:1px; }
+  .alert-empty { text-align:center; padding:40px 16px; color:var(--text3); font-size:10px; letter-spacing:2px; }
+  .alert-cnt { background:var(--green); color:#000; font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:12px; min-width:20px; height:20px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; padding:0 4px; }
+  .alert-cnt.red { background:var(--red); color:#fff; }
+  @keyframes alertSlideIn { from{opacity:0;transform:translateX(15px);}to{opacity:1;transform:translateX(0);} }
+  .alert-flash { position:fixed; top:0;left:0;right:0;bottom:0; pointer-events:none; z-index:9998; opacity:0; transition:opacity 0.1s; }
+  .alert-flash.show { opacity:1; }
 </style>
 </head>
 <body>
+
+<!-- FLASH OVERLAY -->
+<div class="alert-flash" id="alert-flash"></div>
+
+<!-- PANEL DE ALERTAS -->
+<div id="alert-panel">
+  <div class="alert-panel-header">
+    <span class="alert-panel-title">⚡ ALERTAS</span>
+    <span class="alert-panel-clear" onclick="clearAlerts()">LIMPIAR</span>
+  </div>
+  <div class="alert-list" id="alert-list">
+    <div class="alert-empty">Sin alertas aún<br>Las señales CELU aparecerán acá</div>
+  </div>
+</div>
+
+<!-- TOGGLE BOTÓN -->
+<div id="alert-toggle" onclick="toggleAlertPanel()">
+  <span id="alert-toggle-icon">🔔</span>
+  <span id="alert-toggle-label" style="writing-mode:vertical-rl;font-size:9px;letter-spacing:2px">ALERTAS</span>
+  <span id="alert-toggle-cnt" style="display:none"></span>
+</div>
 
 <header>
   <div class="logo">LIQ<span>SCAN</span> // BINANCE FUTURES <sup>v3 CELU</sup></div>
@@ -1382,6 +1439,188 @@ document.getElementById('refresh-select').addEventListener('change',setRefresh);
 document.getElementById('custom-input').addEventListener('keydown',e=>{if(e.key==='Enter') addCustomToken();});
 document.getElementById('prerace-scan-btn').addEventListener('click',runPrerace);
 document.getElementById('race-refresh-btn').addEventListener('click',runRace);
+
+// ============================================================
+// SISTEMA DE ALERTAS VISUAL
+// ============================================================
+let alertHistory = [];
+let prevScanSignals = {}; // symbol -> tipo de señal anterior
+let prevAgotados = new Set();
+let alertPanelOpen = false;
+let unreadLongs = 0;
+let unreadShorts = 0;
+
+function toggleAlertPanel() {
+  alertPanelOpen = !alertPanelOpen;
+  document.getElementById('alert-panel').classList.toggle('open', alertPanelOpen);
+  if(alertPanelOpen) {
+    unreadLongs = 0; unreadShorts = 0;
+    updateAlertToggle();
+  }
+}
+
+function updateAlertToggle() {
+  const btn = document.getElementById('alert-toggle');
+  const cnt = document.getElementById('alert-toggle-cnt');
+  const icon = document.getElementById('alert-toggle-icon');
+  btn.classList.remove('has-long','has-short');
+  if(unreadShorts > 0) {
+    btn.classList.add('has-short');
+    icon.textContent = '⚠️';
+    cnt.textContent = unreadShorts;
+    cnt.className = 'alert-cnt red';
+    cnt.style.display = 'inline-flex';
+  } else if(unreadLongs > 0) {
+    btn.classList.add('has-long');
+    icon.textContent = '🚀';
+    cnt.textContent = unreadLongs;
+    cnt.className = 'alert-cnt';
+    cnt.style.display = 'inline-flex';
+  } else {
+    icon.textContent = '🔔';
+    cnt.style.display = 'none';
+  }
+}
+
+function flashScreen(color) {
+  const el = document.getElementById('alert-flash');
+  el.style.background = color === 'green' ? 'rgba(0,255,136,0.07)' : 'rgba(255,51,85,0.07)';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 300);
+}
+
+function addAlert(type, symbol, detail, price, scoreL, scoreS) {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+  const item = {type, symbol, detail, price, scoreL, scoreS, time: timeStr, id: Date.now()};
+  alertHistory.unshift(item);
+  if(alertHistory.length > 50) alertHistory = alertHistory.slice(0, 50);
+
+  // Contar no leídos
+  if(!alertPanelOpen) {
+    if(type === 'wlong' || type === 'saliendo') unreadLongs++;
+    if(type === 'wshort' || type === 'agotado') unreadShorts++;
+    updateAlertToggle();
+  }
+
+  // Flash pantalla
+  if(type === 'wlong' || type === 'saliendo') flashScreen('green');
+  if(type === 'wshort' || type === 'agotado') flashScreen('red');
+
+  renderAlertList();
+}
+
+function renderAlertList() {
+  const list = document.getElementById('alert-list');
+  if(alertHistory.length === 0) {
+    list.innerHTML = '<div class="alert-empty">Sin alertas aún<br>Las señales CELU aparecerán acá</div>';
+    return;
+  }
+  const badgeMap = {
+    wlong:   ['badge-al-wlong',  'W▲ LONG'],
+    wshort:  ['badge-al-wshort', 'W▼ SHORT'],
+    agotado: ['badge-al-agotado','⚠ AGOTADO'],
+    saliendo:['badge-al-saliendo','🚀 SALIENDO'],
+  };
+  list.innerHTML = alertHistory.map((item,i) => {
+    const [bc, bt] = badgeMap[item.type] || ['badge-al-wlong','SEÑAL'];
+    const priceStr = item.price ? '$' + fmtPrice(item.price) : '';
+    const scoreStr = item.scoreL !== undefined ? `Score L:${item.scoreL}/5 · S:${item.scoreS}/5` : '';
+    return `<div class="alert-item type-${item.type}" style="animation-delay:${i===0?'0':'0.05'}s">
+      <div class="alert-item-header">
+        <span class="alert-item-symbol">${item.symbol}</span>
+        <span class="alert-item-time">${item.time}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+        <span class="alert-item-badge ${bc}">${bt}</span>
+        ${priceStr ? `<span class="alert-item-price">${priceStr}</span>` : ''}
+      </div>
+      <div class="alert-item-detail">${item.detail}</div>
+      ${scoreStr ? `<div style="font-size:9px;color:var(--text3);margin-top:2px;letter-spacing:1px">${scoreStr}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function clearAlerts() {
+  alertHistory = [];
+  prevScanSignals = {};
+  prevAgotados = new Set();
+  unreadLongs = 0; unreadShorts = 0;
+  updateAlertToggle();
+  renderAlertList();
+  showToast('Alertas limpiadas');
+}
+
+// Hook en runScan para detectar señales nuevas
+const _origRunScan = runScan;
+runScan = async function() {
+  await _origRunScan.apply(this, arguments);
+  // Después del scan, revisamos señales nuevas
+  checkScanAlerts();
+};
+
+function checkScanAlerts() {
+  // Leemos la tabla actual del DOM
+  const rows = document.querySelectorAll('#table-body tr:not(.heatmap-row)');
+  rows.forEach(row => {
+    const nameEl = row.querySelector('.token-name');
+    if(!nameEl) return;
+    const symbol = nameEl.textContent.trim();
+    const priceEl = row.querySelector('td:nth-child(2)');
+    const price = priceEl ? parseFloat(priceEl.textContent.replace(/[^0-9.]/g,'')) : 0;
+
+    // Detectar badge de señal
+    const badge = row.querySelector('.badge');
+    if(!badge) return;
+    const badgeText = badge.textContent.trim();
+
+    let newType = null;
+    if(badgeText.includes('W▲')) newType = 'wlong';
+    else if(badgeText.includes('W▼')) newType = 'wshort';
+    else if(badgeText.includes('SQUEEZE')) newType = 'wlong';
+
+    const prevType = prevScanSignals[symbol];
+    if(newType && newType !== prevType) {
+      // Señal nueva o cambió
+      const detail = newType === 'wlong'
+        ? 'Whale BUY + StochRSI + VWAP — posible entrada LONG'
+        : 'Whale SELL + StochRSI — posible entrada SHORT';
+      addAlert(newType, symbol, detail, price);
+      prevScanSignals[symbol] = newType;
+    } else if(!newType) {
+      prevScanSignals[symbol] = null;
+    }
+  });
+}
+
+// Hook en renderRace para detectar agotados nuevos
+const _origRenderRace = renderRace;
+renderRace = function(data, extraMap) {
+  _origRenderRace.apply(this, arguments);
+  checkRaceAlerts(data, extraMap || raceExtraMap);
+};
+
+function checkRaceAlerts(data, extraMap) {
+  if(!data || !extraMap) return;
+  const top = data.slice(0, 80);
+  top.forEach(token => {
+    const extra = extraMap[token.symbol];
+    const isAgotado = token.change24 >= 0 && detectAgotamiento(token, extra);
+    const key = token.symbol;
+    if(isAgotado && !prevAgotados.has(key)) {
+      prevAgotados.add(key);
+      const k = extra && extra.stochK ? Math.round(extra.stochK) : '?';
+      const vol = extra && extra.volRatioNow ? extra.volRatioNow.toFixed(1) : '?';
+      addAlert(
+        'agotado', token.symbol,
+        `K:${k} · VOL ${vol}x · +${token.change24.toFixed(1)}% — SHORT potencial`,
+        token.price
+      );
+    } else if(!isAgotado && prevAgotados.has(key)) {
+      prevAgotados.delete(key);
+    }
+  });
+}
 
 initTags();
 setTimeout(()=>{runScan();setRefresh();},400);
