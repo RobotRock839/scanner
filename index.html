@@ -954,16 +954,19 @@ async function fetchAgotamientoData(symbol) {
   if(raceAccumCache[symbol]&&Date.now()-raceAccumCache[symbol].ts<120000) return raceAccumCache[symbol];
   const pair=symbol+'USDT';
   try {
-    const [k1h,funding]=await Promise.allSettled([
-      fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1h&limit=25`).then(r=>r.json()),
+    // FIX: usar 4h igual que TradingView, con 50 velas para StochRSI real
+    const [k4h,funding]=await Promise.allSettled([
+      fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=4h&limit=50`).then(r=>r.json()),
       fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${pair}&limit=1`).then(r=>r.json()),
     ]);
-    const kl=k1h.status==='fulfilled'?k1h.value:null;
+    const kl=k4h.status==='fulfilled'?k4h.value:null;
     let volRatioNow=1, stochK=50, stochKPrev=50, stochD=50;
-    if(kl&&kl.length>=10){
+    if(kl&&kl.length>=20){
+      // Vol ratio en 4h (últimas 20 velas)
       const vols=kl.map(k=>parseFloat(k[5]));
-      const avgVol=vols.slice(0,-1).reduce((a,b)=>a+b,0)/Math.max(vols.slice(0,-1).length,1);
+      const avgVol=vols.slice(-21,-1).reduce((a,b)=>a+b,0)/20;
       volRatioNow=avgVol>0?vols[vols.length-1]/avgVol:1;
+      // StochRSI en 4h — ahora tiene suficientes velas para valor real
       const closes=kl.map(k=>parseFloat(k[4]));
       const st=calcStochRSI(closes,14,14,3,3);
       stochK=st.k; stochKPrev=st.kPrev||st.k; stochD=st.d;
@@ -975,19 +978,18 @@ async function fetchAgotamientoData(symbol) {
 }
 
 function detectAgotamiento(token, extraData) {
-  // FIX: lógica CELU v5 — funding alto + vol explotado + stoch sobrecompra
+  // METODO USUARIO: 4h — Stoch K >= 90 es gatillo principal (JTO: K:95-100)
   if(!extraData) return false;
   const {volRatioNow,funding,stochK}=extraData;
   let agotScore=0;
+  if(stochK!==undefined&&stochK>=90) agotScore+=3;
+  else if(stochK!==undefined&&stochK>=75) agotScore+=1;
   if(token.change24>=20) agotScore+=2;
   else if(token.change24>=10) agotScore+=1;
   if(volRatioNow>=4) agotScore+=2;
   else if(volRatioNow>=2.5) agotScore+=1;
   if(funding!==null&&funding>0.05) agotScore+=2;
   else if(funding!==null&&funding>0.02) agotScore+=1;
-  // NUEVO: StochRSI sobrecompra = señal de agotamiento fuerte
-  if(stochK!==undefined&&stochK>80) agotScore+=2;
-  else if(stochK!==undefined&&stochK>70) agotScore+=1;
   return agotScore>=4;
 }
 
