@@ -267,6 +267,7 @@ td.right{text-align:right;}
   <div class="status-bar">
     <span><span class="dot"></span>LIVE DATA</span>
     <span id="last-update-header">--:--:--</span>
+    <span id="liq-ws-status" style="font-size:10px;cursor:pointer" onclick="connectLiqWS()" title="WebSocket liquidaciones">LIQ WS ○</span>
     <span>UTC-3</span>
   </div>
 </header>
@@ -465,6 +466,183 @@ function detectMecanico(oiHist,pChange){
   const oiCaida=oiP>0?(oiN-oiP)/oiP*100:0;
   return{mecanico:pChange>1.0&&oiCaida<-3.0,oiCaida};
 }
+
+
+// ============================================================
+// *** WEBSOCKET LIQUIDACIONES EN TIEMPO REAL v4 ***
+// wss://fstream.binance.com/ws/!forceOrder@arr
+// Escucha TODAS las liquidaciones de Binance en tiempo real
+// Acumula por token en ventana deslizante de 5 minutos
+// ============================================================
+const LIQ_WINDOW_MS = 5 * 60 * 1000; // 5 minutos
+const LIQ_CLIMAX_THRESHOLD = 200000; // $200K de shorts liquidados = climax
+const liqBuffer = {}; // { symbol: [{side, usdValue, time}] }
+let liqWS = null;
+let liqWSStatus = 'disconnected';
+let liqWSRetries = 0;
+
+function getLiqStats(symbol) {
+  const now = Date.now();
+  const buf = liqBuffer[symbol] || [];
+  // Solo los últimos 5 minutos
+  const recent = buf.filter(e => now - e.time < LIQ_WINDOW_MS);
+  liqBuffer[symbol] = recent; // limpiar viejos
+  let shortLiqs = 0, longLiqs = 0;
+  recent.forEach(e => {
+    if (e.side === 'short') shortLiqs += e.usdValue;
+    else longLiqs += e.usdValue;
+  });
+  const climax = shortLiqs > LIQ_CLIMAX_THRESHOLD;
+  return { shortLiqs, longLiqs, climax };
+}
+
+function connectLiqWS() {
+  if (liqWS && liqWS.readyState === WebSocket.OPEN) return;
+  try {
+    liqWS = new WebSocket('wss://fstream.binance.com/ws/!forceOrder@arr');
+    liqWSStatus = 'connecting';
+    updateLiqWSIndicator();
+
+    liqWS.onopen = () => {
+      liqWSStatus = 'connected';
+      liqWSRetries = 0;
+      updateLiqWSIndicator();
+      console.log('✅ WebSocket liquidaciones conectado');
+    };
+
+    liqWS.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        // Formato: { e: "forceOrder", o: { s: "BTCUSDT", S: "SELL", q: "0.001", p: "50000", ... } }
+        const order = msg.o || msg;
+        if (!order || !order.s) return;
+
+        const symbol = order.s.replace('USDT', '');
+        const side = order.S === 'BUY' ? 'short' : 'long'; // BUY = cierre de SHORT liquidado
+        const usdValue = parseFloat(order.q || 0) * parseFloat(order.p || 0);
+
+        if (!liqBuffer[symbol]) liqBuffer[symbol] = [];
+        liqBuffer[symbol].push({ side, usdValue, time: Date.now() });
+
+        // Mantener buffer manejable (max 500 por token)
+        if (liqBuffer[symbol].length > 500) {
+          liqBuffer[symbol] = liqBuffer[symbol].slice(-500);
+        }
+
+        // Verificar si hay climax en tiempo real
+        const stats = getLiqStats(symbol);
+        if (stats.climax) {
+          onClimaxDetected(symbol, stats);
+        }
+      } catch (e) {}
+    };
+
+    liqWS.onerror = () => {
+      liqWSStatus = 'error';
+      updateLiqWSIndicator();
+    };
+
+    liqWS.onclose = () => {
+      liqWSStatus = 'disconnected';
+      updateLiqWSIndicator();
+      // Reconexión automática con backoff
+      liqWSRetries++;
+      const delay = Math.min(1000 * Math.pow(2, liqWSRetries), 30000);
+      console.log('WebSocket cerrado, reconectando en ' + (delay/1000) + 's...');
+      setTimeout(connectLiqWS, delay);
+    };
+  } catch(e) {
+    liqWSStatus = 'error';
+    updateLiqWSIndicator();
+    setTimeout(connectLiqWS, 5000);
+  }
+}
+
+// Indicador visual del estado del WebSocket
+function updateLiqWSIndicator() {
+  const el = document.getElementById('liq-ws-status');
+  if (!el) return;
+  const colors = { connected: '#00ff88', connecting: '#ffd700', disconnected: '#ff3355', error: '#ff3355' };
+  const labels = { connected: 'LIQ WS ●', connecting: 'LIQ WS ◌', disconnected: 'LIQ WS ○', error: 'LIQ WS ✗' };
+  el.style.color = colors[liqWSStatus] || '#666';
+  el.textContent = labels[liqWSStatus] || 'LIQ WS ○';
+  el.title = 'WebSocket liquidaciones: ' + liqWSStatus;
+}
+
+// Alerta en tiempo real cuando se detecta climax
+let lastClimaxAlert = {}; // evitar spam de alertas
+function onClimaxDetected(symbol, stats) {
+  const now = Date.now();
+  // Solo alertar cada 2 minutos por token
+  if (lastClimaxAlert[symbol] && now - lastClimaxAlert[symbol] < 120000) return;
+  lastClimaxAlert[symbol] = now;
+
+  console.log('💀 CLIMAX SHORT TRAP detectado:', symbol, '$' + stats.shortLiqs.toFixed(0));
+
+  // Flash de pantalla
+  flashSc('magenta');
+
+  // Alerta en panel
+  addAlert('climax', symbol,
+    '💀 WS TIEMPO REAL · Liq shorts $' + fmtBig(stats.shortLiqs) + ' en 5min — agotamiento de vendedores',
+    null);
+
+  // Notificación del navegador si está habilitada
+  if (Notification.permission === 'granted') {
+    new Notification('💀 CLIMAX SHORT TRAP: ' + symbol, {
+      body: 'Liquidaciones shorts: $' + fmtBig(stats.shortLiqs) + '\nPosible reversa — SHORT potencial',
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💀</text></svg>'
+    });
+  }
+
+  // Actualizar badge en scanner si el token está visible
+  updateClimaxBadge(symbol, stats);
+}
+
+function updateClimaxBadge(symbol, stats) {
+  // Buscar la fila del token en la tabla y actualizar badge
+  const rows = document.querySelectorAll('#table-body tr:not(.heatmap-row)');
+  rows.forEach(row => {
+    const nameEl = row.querySelector('.token-name');
+    if (nameEl && nameEl.textContent.trim() === symbol) {
+      const sigCell = row.querySelector('td:last-child');
+      if (sigCell && !sigCell.querySelector('.badge-climax')) {
+        const existing = sigCell.querySelector('.badge');
+        if (existing) {
+          const climaxBadge = document.createElement('span');
+          climaxBadge.className = 'badge badge-climax';
+          climaxBadge.textContent = '💀 CLIMAX WS';
+          climaxBadge.style.marginLeft = '4px';
+          sigCell.appendChild(document.createElement('br'));
+          sigCell.appendChild(climaxBadge);
+        }
+      }
+    }
+  });
+}
+
+// Pedir permiso para notificaciones del navegador
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+// Sobrescribir fetchLiqs para usar datos del WebSocket cuando esté disponible
+const _origFetchLiqs = fetchLiqs;
+fetchLiqs = async function(symbol) {
+  // Si el WebSocket está conectado, usar datos en tiempo real
+  if (liqWS && liqWS.readyState === WebSocket.OPEN) {
+    const stats = getLiqStats(symbol);
+    return { sL: stats.shortLiqs, lL: stats.longLiqs, climax: stats.climax };
+  }
+  // Fallback a API REST si el WS no está disponible
+  return await _origFetchLiqs(symbol);
+};
+
+// Iniciar WebSocket automáticamente
+connectLiqWS();
+requestNotificationPermission();
 
 // *** NUEVA v4 #3: CLIMAX SHORT TRAP ***
 // Pico masivo de liquidaciones de shorts = agotamiento de vendedores
