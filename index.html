@@ -22,74 +22,368 @@
             --green: #00ff88;
             --purple: #7c3aed;
         }
-        /* Estilos generales simplificados para mantener la estructura original */
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
             background-color: var(--bg);
             color: var(--text);
             font-family: 'Share Tech Mono', monospace;
-            margin: 0;
             padding: 20px;
+            overflow-x: hidden;
         }
-        .badge-absorcion { color: var(--magenta); animation: pulse 1.5s infinite; }
-        .badge-mecanico { color: var(--purple); }
-        .badge-climax { color: red; }
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
         }
+
+        h1 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .filtros-v4 {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            background: var(--bg2);
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        .filtros-v4 input[type="checkbox"] {
+            margin-right: 6px;
+            accent-color: var(--magenta);
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th {
+            color: var(--text2);
+            font-size: 11px;
+            text-transform: uppercase;
+            padding: 12px 8px;
+            border-bottom: 1px solid var(--border2);
+            font-weight: 600;
+        }
+
+        tr.token-row {
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        tr.token-row:hover {
+            background: rgba(20, 20, 36, 0.4);
+        }
+
+        td {
+            padding: 14px 8px;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .btn-heatmap {
+            background: transparent;
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+            padding: 2px 6px;
+            font-size: 9px;
+            font-weight: bold;
+            border-radius: 2px;
+            cursor: pointer;
+            display: block;
+            margin-top: 4px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .btn-heatmap:hover {
+            background: #ffaa00;
+            color: #000;
+        }
+
+        /* Contenedores de Despliegue Expandible */
+        .heatmap-container-row {
+            background: #040407;
+        }
+
+        .heatmap-wrapper-box {
+            padding: 15px;
+            border-left: 3px solid var(--orange);
+            background: rgba(10, 10, 18, 0.5);
+        }
+
+        .mock-heatmap-graphic {
+            background: #0b0b14;
+            border: 1px solid var(--border2);
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text3);
+            font-size: 12px;
+            margin-bottom: 15px;
+            border-radius: 2px;
+        }
+
+        /* Estilos del Medidor Cuantitativo Celu v4 */
+        .celu-gauge-wrapper {
+            background: #06060a;
+            border: 1px solid var(--border2);
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 24px;
+            margin-top: 10px;
+            animation: fadeInCelu 0.3s ease forwards;
+        }
+
+        .celu-gauge-left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .celu-svg-space {
+            width: 220px;
+            height: 120px;
+        }
+
+        .gauge-bg { fill: none; stroke: #141424; stroke-width: 12; stroke-linecap: round; }
+        
+        .gauge-fill { 
+            fill: none; stroke-width: 12; stroke-linecap: round; 
+            stroke-dasharray: 314; stroke-dashoffset: 314;
+            transition: stroke-dashoffset 0.8s ease-out;
+        }
+
+        .gauge-needle {
+            fill: #ffffff;
+            transform-origin: 120px 120px;
+            transition: transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .gauge-labels {
+            position: absolute;
+            bottom: 2px;
+            width: 85%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: var(--text3);
+            font-weight: 700;
+        }
+
+        .gauge-text-center {
+            text-align: center;
+            margin-top: -12px;
+        }
+
+        .gauge-title-top {
+            font-size: 11px;
+            color: var(--text2);
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 600;
+        }
+
+        .celu-gauge-right {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .celu-card-mini {
+            background: #08080e;
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 2px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .celu-card-full {
+            grid-column: 1 / -1;
+            background: rgba(124, 58, 237, 0.03);
+            border: 1px dashed var(--border2);
+            padding: 10px 12px;
+            border-radius: 2px;
+        }
+
+        .cm-lbl { font-size: 9px; color: var(--text2); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
+        .cm-val { font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 700; color: #fff; }
+        .cm-desc { font-size: 9px; color: var(--text3); margin-top: 1px; }
+
+        /* Clases de Estado Dinámicas */
+        .badge-v4 { padding: 4px 8px; border-radius: 2px; font-size: 11px; font-weight: bold; font-family: 'Barlow Condensed', sans-serif; }
+        .badge-absorcion { background: rgba(255, 0, 204, 0.1); color: var(--magenta); border: 1px solid var(--magenta); }
+        .badge-mecanico { background: rgba(124, 58, 237, 0.1); color: var(--purple); border: 1px solid var(--purple); }
+        .badge-climax { background: rgba(255, 0, 0, 0.1); color: #ff3333; border: 1px solid #ff3333; }
+        .badge-neutral { background: rgba(68, 68, 102, 0.1); color: var(--text2); border: 1px solid var(--border2); }
+
+        .color-n1 { color: var(--cyan) !important; }
+        .color-n2 { color: var(--yellow) !important; }
+        .color-n3 { color: var(--magenta) !important; }
+        .bg-n1 { stroke: var(--cyan) !important; }
+        .bg-n2 { stroke: var(--yellow) !important; }
+        .bg-n3 { stroke: var(--magenta) !important; }
+
+        @keyframes fadeInCelu { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div id="scanner-container">
-        <h2>LIQSCAN // BINANCE FUTURES <span style="color:var(--orange);">V4 CELU+</span></h2>
-        
-        <div class="filtros-v4" style="margin-bottom: 20px; font-size: 12px;">
-            <span style="color: var(--magenta);">■ FILTROS v4:</span>
-            <label><input type="checkbox" checked> ABSORCIÓN CVD</label>
-            <label><input type="checkbox" checked> OI MECÁNICO</label>
-            <label><input type="checkbox" checked> CLIMAX SHORT TRAP</label>
-        </div>
+    <header>
+        <h1>LIQSCAN // BINANCE FUTURES <span style="color: var(--orange);">V4 CELU+</span></h1>
+        <div style="font-size: 11px; color: var(--text3);">LIVE DATA WS • UTC-3</div>
+    </header>
 
-        <table style="width: 100%; text-align: left; border-collapse: collapse;">
-            <thead>
-                <tr style="color: var(--text2); font-size: 11px; border-bottom: 1px solid var(--border2);">
-                    <th>TOKEN</th>
-                    <th>PRECIO</th>
-                    <th>24H %</th>
-                    <th>FUNDING</th>
-                    <th>OI (USDT)</th>
-                    <th>WHALE</th>
-                    <th>CVD</th>
-                    <th>VOL</th>
-                    <th>STOCH K</th>
-                    <th>VWAP</th>
-                    <th>ADX</th>
-                    <th>SCORE L/S</th>
-                    <th>SEÑAL CELU V4</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                </tbody>
-        </table>
+    <div class="filtros-v4">
+        <span style="color: var(--magenta); font-weight: bold; letter-spacing: 1px;">■ FILTROS V4:</span>
+        <label><input type="checkbox" id="chk-absorcion" checked> ABSORCIÓN CVD</label>
+        <label><input type="checkbox" id="chk-mecanico" checked> OI MECÁNICO</label>
+        <label><input type="checkbox" id="chk-climax" checked> CLIMAX SHORT TRAP</label>
     </div>
 
+    <table>
+        <thead>
+            <tr>
+                <th>Token</th>
+                <th>Precio</th>
+                <th>24h %</th>
+                <th>Funding</th>
+                <th>OI (USDT)</th>
+                <th>Whale</th>
+                <th>CVD</th>
+                <th>Vol</th>
+                <th>Stoch K</th>
+                <th>VWAP</th>
+                <th>ADX</th>
+                <th>Score L/S</th>
+                <th>Señal Celu V4</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            <tr class="token-row" onclick="toggleHeatmap('hm-play')">
+                <td>
+                    <span style="font-weight: bold; color: #fff;">PLAY</span><br>
+                    <span style="font-size: 9px; color: var(--text3);">PERP · BINANCE</span>
+                    <button class="btn-heatmap">🔥 HEATMAP</button>
+                </td>
+                <td style="color: #fff;">0.18509</td>
+                <td style="color: #ff3333;">-3.12%</td>
+                <td style="color: var(--yellow);">+0.0200%</td>
+                <td style="color: var(--cyan);">11.40M</td>
+                <td>1.8x</td>
+                <td style="color: var(--green);">▲ 1.36B</td>
+                <td>0.15x</td>
+                <td style="color: #ff3333;">98</td>
+                <td style="color: var(--magenta);">SOBRE</td>
+                <td style="color: var(--cyan);">37</td>
+                <td>L:2 / S:2</td>
+                <td><span class="badge-v4 badge-mecanico">OI MECÁNICO</span></td>
+            </tr>
+            <tr id="hm-play" class="heatmap-container-row" style="display: none;">
+                <td colspan="13">
+                    <div class="heatmap-wrapper-box">
+                        <div class="mock-heatmap-graphic">[ GRÁFICO LIQUIDATION HEATMAP EN VIVO - RECIPIENTE ORIGINAL ]</div>
+                        </div>
+                </td>
+            </tr>
+
+            <tr class="token-row" onclick="toggleHeatmap('hm-genius')">
+                <td>
+                    <span style="font-weight: bold; color: #fff;">GENIUS</span><br>
+                    <span style="font-size: 9px; color: var(--text3);">PERP · BINANCE</span>
+                    <button class="btn-heatmap">🔥 HEATMAP</button>
+                </td>
+                <td style="color: #fff;">0.71190</td>
+                <td style="color: var(--green);">+9.88%</td>
+                <td style="color: #ff3333; font-weight: bold;">+0.0630%</td>
+                <td style="color: var(--cyan);">14.52M</td>
+                <td style="color: var(--magenta); font-weight: bold;">3.7x</td>
+                <td style="color: var(--green);">▲ 104.28M</td>
+                <td>0.13x</td>
+                <td style="color: var(--green);">21</td>
+                <td style="color: var(--magenta);">SOBRE</td>
+                <td style="color: var(--magenta); font-weight: bold;">58</td>
+                <td>L:2 / S:1</td>
+                <td><span class="badge-v4 badge-absorcion">ABSORCIÓN CVD</span></td>
+            </tr>
+            <tr id="hm-genius" class="heatmap-container-row" style="display: none;">
+                <td colspan="13">
+                    <div class="heatmap-wrapper-box">
+                        <div class="mock-heatmap-graphic">[ GRÁFICO LIQUIDATION HEATMAP EN VIVO - RECIPIENTE ORIGINAL ]</div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr class="token-row" onclick="toggleHeatmap('hm-nil')">
+                <td>
+                    <span style="font-weight: bold; color: #fff;">NIL</span><br>
+                    <span style="font-size: 9px; color: var(--text3);">PERP · BINANCE</span>
+                    <button class="btn-heatmap">🔥 HEATMAP</button>
+                </td>
+                <td style="color: #fff;">0.08005</td>
+                <td style="color: #ff3333;">-4.91%</td>
+                <td style="color: var(--cyan);">+0.0014%</td>
+                <td style="color: var(--cyan);">8.89M</td>
+                <td>0.8x</td>
+                <td style="color: var(--green);">▲ 2.07B</td>
+                <td>0.11x</td>
+                <td>27</td>
+                <td style="color: #ff3333;">BAJO</td>
+                <td>12</td>
+                <td>L:0 / S:2</td>
+                <td><span class="badge-v4 badge-neutral">- NEUTRAL</span></td>
+            </tr>
+            <tr id="hm-nil" class="heatmap-container-row" style="display: none;">
+                <td colspan="13">
+                    <div class="heatmap-wrapper-box">
+                        <div class="mock-heatmap-graphic">[ GRÁFICO LIQUIDATION HEATMAP EN VIVO - RECIPIENTE ORIGINAL ]</div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
     <script>
-        // Variables globales de tu sistema original
         let alertHist = [];
         let prevSS = {};
         let prevAg = new Set();
         let prevCl = new Set();
-        let unrl = 0;
-        let unrS = 0;
 
-        function clearAlerts() {
-            alertHist = []; prevSS = {}; prevAg = new Set(); prevCl = new Set();
-            unrl = 0; unrS = 0; updAT(); renderAlerts(); showTo();
+        function toggleHeatmap(id) {
+            const container = document.getElementById(id);
+            if (container) {
+                container.style.display = container.style.display === 'none' ? 'table-row' : 'none';
+                
+                // Si pasa a visible, disparamos el evento de actualización para inyectar el velocímetro
+                if (container.style.display === 'table-row') {
+                    window.dispatchEvent(new CustomEvent('heatmapOpened', { detail: { targetId: id } }));
+                }
+            }
         }
 
-        // Tu función exacta de la captura de pantalla de GitHub sin tocar una sola letra
+        // Tu función exacta checkScanAlerts copiada de la captura de GitHub
         function checkScanAlerts(data) {
             if (!data) return;
             data.forEach(d => {
@@ -108,233 +402,83 @@
             });
         }
 
-        // Funciones auxiliares mockeadas para que el script original no tire error si faltan piezas
         function calcSetup(d) { return { type: d.setupType || 'neutral' }; }
-        function addAlert(type, sym, det, price) { console.log(`Alerta [${type}] en ${sym}: ${det} a $${price}`); }
+        function addAlert(type, sym, det, price) { console.log(`Alerta [${type}]: ${det} a $${price}`); }
         function fmtBig(val) { return val ? (val / 1000).toFixed(1) + 'K' : '0'; }
-        function updAT() {} function renderAlerts() {} function showTo() {}
     </script>
-
 
     <script>
     (function() {
-        // 1. Estilos Visuales del Medidor v4 encapsulados
-        const style = document.createElement('style');
-        style.innerHTML = `
-            .celu-gauge-wrapper {
-                background: #07070d;
-                border-left: 2px solid var(--cyan, #00e5ff);
-                border-top: 1px solid var(--border, #1a1a2e);
-                padding: 20px;
-                font-family: "Share Tech Mono", monospace;
-                display: grid;
-                grid-template-columns: 1fr 1.2fr;
-                gap: 24px;
-                animation: fadeIn 0.25s ease forwards;
-            }
-            .celu-gauge-left {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                position: relative;
-            }
-            .celu-svg-space {
-                width: 220px;
-                height: 120px;
-            }
-            .gauge-bg { fill: none; stroke: #141424; stroke-width: 12; stroke-linecap: round; }
-            .gauge-fill { 
-                fill: none; stroke: #444466; stroke-width: 12; stroke-linecap: round; 
-                stroke-dasharray: 314; stroke-dashoffset: 314;
-                transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.4s;
-            }
-            .gauge-needle {
-                fill: #fff;
-                transform-origin: 120px 120px;
-                transition: transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            }
-            .gauge-labels {
-                position: absolute;
-                bottom: 2px;
-                width: 85%;
-                display: flex;
-                justify-content: space-between;
-                font-size: 10px;
-                color: #444466;
-                font-weight: 700;
-            }
-            .gauge-text-center {
-                text-align: center;
-                margin-top: -10px;
-            }
-            .gauge-title-top {
-                font-size: 11px;
-                color: #6666aa;
-                letter-spacing: 2px;
-                margin-bottom: 8px;
-                text-transform: uppercase;
-                font-family: "Barlow Condensed", sans-serif;
-                font-weight: 600;
-            }
-            .celu-gauge-right {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-            }
-            .celu-card-mini {
-                background: #09090f;
-                border: 1px solid #141424;
-                padding: 8px 12px;
-                border-radius: 2px;
-                display: flex;
-                flex-direction: column;
-            }
-            .celu-card-full {
-                grid-column: 1 / -1;
-                background: rgba(124, 58, 237, 0.03);
-                border: 1px dashed #252540;
-                padding: 10px 12px;
-                border-radius: 2px;
-            }
-            .cm-lbl { font-size: 9px; color: #6666aa; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
-            .cm-val { font-family: "Barlow Condensed", sans-serif; font-size: 16px; font-weight: 700; color: #fff; }
-            .cm-desc { font-size: 9px; color: #444466; margin-top: 1px; }
-            
-            .color-n1 { color: #00e5ff !important; }
-            .color-n2 { color: #ffd700 !important; }
-            .color-n3 { color: #ff00cc !important; }
-            .bg-n1 { stroke: #00e5ff !important; }
-            .bg-n2 { stroke: #ffd700 !important; }
-            .bg-n3 { stroke: #ff00cc !important; }
-            @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        `;
-        document.head.appendChild(style);
-
-        // 2. Procesador Cuantitativo de Variables (Extrae de la fila madre de la tabla)
-        function extraerMecanicaFila(trNode) {
-            const fndTxt = trNode.querySelector('td:nth-child(4)')?.innerText || "+0.0000%";
-            const whlTxt = trNode.querySelector('td:nth-child(6)')?.innerText || "1.0x";
+        // Función procesadora que evalúa las variables de la fila según tus notas del cuaderno
+        function procesarEstrategiaFila(trNode) {
+            const fundingTxt = trNode.querySelector('td:nth-child(4)')?.innerText || "+0.0000%";
+            const whaleTxt = trNode.querySelector('td:nth-child(6)')?.innerText || "1.0x";
             const adxTxt = trNode.querySelector('td:nth-child(11)')?.innerText || "15";
-            const sigTxt = trNode.querySelector('td:nth-child(13)')?.innerText || "";
+            const signalNode = trNode.querySelector('td:nth-child(13)');
+            const signalTxt = signalNode ? signalNode.innerText : "";
 
-            const funding = parseFloat(fndTxt.replace('%', '')) || 0;
+            const funding = parseFloat(fundingTxt.replace('%', '')) || 0;
             const adx = parseFloat(adxTxt) || 0;
-            const whale = parseFloat(whlTxt.replace('x', '')) || 1.0;
+            const whaleMult = parseFloat(whaleTxt.replace('x', '')) || 1.0;
             
-            const absorcion = sigTxt.includes("ABSORCIÓN") || trNode.querySelector('.badge-absorcion') !== null;
-            const mecanico = sigTxt.includes("MECÁNICO") || trNode.querySelector('.badge-mecanico') !== null;
-            const climax = sigTxt.includes("CLIMAX") || trNode.querySelector('.badge-climax') !== null;
+            const tieneAbsorcion = signalTxt.includes("ABSORCIÓN") || trNode.querySelector('.badge-absorcion') !== null;
+            const tieneMecanico = signalTxt.includes("MECÁNICO") || trNode.querySelector('.badge-mecanico') !== null;
+            const tieneClimax = signalTxt.includes("CLIMAX") || trNode.querySelector('.badge-climax') !== null;
 
-            // Clasificación estricta según tus notas manuscritas
+            // Valores base para Nivel 1 (Confianza Baja - 30%)
             let nivel = 1;
             let confianza = 30;
-            let desc = "SEÑAL DÉBIL · NO HAY RASTRO INSTITUCIONAL O VOLUMEN APAGADO · PELIGRO PARA SHORT";
-            let cClass = "color-n1";
-            let sClass = "bg-n1";
-            let fndEst = "NORMAL CON EUFORIA";
-            let adxEst = "TENDENCIA EN DESARROLLO";
+            let desc = "SEÑAL DÉBIL · VOLUMEN APAGADO O SIN RASTRO INSTITUCIONAL RELEVANTE · PELIGRO PARA SHORT";
+            let colorClass = "color-n1";
+            let strokeClass = "bg-n1";
+            let estadoFunding = "NORMAL PERO CON EUFORIA";
+            let estadoAdx = "TENDENCIA EN DESARROLLO";
 
-            // Regla de Oro Nivel 3: Short Premium
-            if (funding > 0.050 || adx >= 50 || whale >= 3.0 || absorcion || climax) {
+            // Regla de Oro Nivel 3: Short Premium (90%) -> Clímax o absorciones críticas
+            if (funding > 0.050 || adx >= 50 || whaleMult >= 3.0 || tieneAbsorcion || tieneClimax) {
                 nivel = 3;
                 confianza = 90;
-                desc = "[CLÍMAX ABSOLUTO] BALLENA INYECTANDO BLOQUES DE VENTA · RETAIL ATRAPADO EN TECHO · ALTA PROBABILIDAD DE REVERSIÓN VIOLENTA";
-                cClass = "color-n3";
-                sClass = "bg-n3";
-                fndEst = "EUFORIA EXTREMA (SQUEEZE RISK)";
-                adxEst = "CLÍMAX ABSOLUTO DEL MOVIMIENTO";
+                desc = "[CLÍMAX ABSOLUTO] BALLENA INYECTANDO BLOQUES DE VENTA EN LA PARTE ALTA · ABSORCIÓN INSTITUCIONAL SOBRE EL FOMO RETAIL · REVERSIÓN INMINENTE";
+                colorClass = "color-n3";
+                strokeClass = "bg-n3";
+                estadoFunding = "EUFORIA EXTREMA (SQUEEZE RISK)";
+                estadoAdx = "CLÍMAX ABSOLUTO DEL MOVIMIENTO";
             } 
-            // Regla Nivel 2: Trade Estándar
-            else if ((funding >= 0.0010 && funding <= 0.0100) || (adx >= 30 && adx < 50) || (whale >= 1.5 && whale < 3.0) || mecanico) {
+            // Regla Nivel 2: Trade Estándar (65%) -> Agotamiento maduro
+            else if ((funding >= 0.0010 && funding <= 0.0100) || (adx >= 30 && adx < 50) || (whaleMult >= 1.5 && whaleMult < 3.0) || tieneMecanico) {
                 nivel = 2;
                 confianza = 65;
-                desc = "TRADE MADURO POR AGOTAMIENTO PURO · TRADERS MINORISTAS ATRAPADOS ARRIBA · BUEN R:R AL POC/TP";
-                cClass = "color-n2";
-                sClass = "bg-n2";
-                fndEst = "NEUTRAL / MINORISTAS ATRAPADOS";
-                adxEst = "TENDENCIA FUERTE Y MADURA";
+                desc = "TRADE MADURO POR AGOTAMIENTO PURO · TRADERS MINORISTAS ATRAPADOS EN EL TECHO · OPTIMO RATIO RIESGO/BENEFICIO (R:R) AL POC/TP";
+                colorClass = "color-n2";
+                strokeClass = "bg-n2";
+                estadoFunding = "NEUTRAL / MINORISTAS ATRAPADOS";
+                estadoAdx = "TENDENCIA FUERTE Y MADURA";
             }
 
-            return { nivel, confianza, desc, cClass, sClass, fndTxt, fndEst, adx, adxEst, whale, absorcion, climax, mecanico };
+            return { nivel, confianza, desc, colorClass, strokeClass, fundingTxt, estadoFunding, adx, estadoAdx, whaleMult, tieneAbsorcion };
         }
 
-        // 3. Observer para detectar la apertura del Contenedor de Gráficos original
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1 && node.classList.contains('heatmap-container')) {
-                        
-                        if (node.querySelector('.celu-gauge-wrapper')) return;
+        // Escuchamos el evento controlado de apertura para dibujar el panel
+        window.addEventListener('heatmapOpened', function(e) {
+            const containerId = e.detail.targetId;
+            const containerRow = document.getElementById(containerId);
+            if (!containerRow) return;
 
-                        let trMadre = node.closest('tr');
-                        if (!trMadre) {
-                            let subtr = node.parentNode;
-                            while (subtr && subtr.tagName !== 'TR') { subtr = subtr.parentNode; }
-                            trMadre = subtr ? subtr.previousElementSibling : null;
-                        }
-                        if (!trMadre) return;
+            const wrapperBox = containerRow.querySelector('.heatmap-wrapper-box');
+            if (!wrapperBox || wrapperBox.querySelector('.celu-gauge-wrapper')) return;
 
-                        const mt = extraerMecanicaFila(trMadre);
+            // Conseguimos la fila madre anterior para succionar los datos
+            const trMadre = containerRow.previousElementSibling;
+            if (!trMadre) return;
 
-                        const offsetMap = 314 - ((mt.confianza / 100) * 314);
-                        const degMap = ((mt.confianza / 100) * 180) - 90;
+            const metricas = procesarEstrategiaFila(trMadre);
 
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'celu-gauge-wrapper';
-                        wrapper.innerHTML = `
-                            <div class="celu-gauge-left">
-                                <div class="gauge-title-top">AGOTAMIENTO / ABSORCIÓN</div>
-                                <svg class="celu-svg-space" viewBox="0 0 240 130">
-                                    <path class="gauge-bg" d="M 20 120 A 100 100 0 0 1 220 120" />
-                                    <path class="gauge-fill ${mt.sClass}" d="M 20 120 A 100 100 0 0 1 220 120" style="stroke-dashoffset: ${offsetMap};" />
-                                    <g class="gauge-needle" style="transform: translate(120px, 120px) rotate(${degMap}deg);">
-                                        <polygon points="-4,0 4,0 0,-95" fill="#ffffff" />
-                                    </g>
-                                    <circle cx="120" cy="120" r="6" fill="#fff" />
-                                </svg>
-                                <div class="gauge-text-center">
-                                    <span style="font-size: 9px; color: #6666aa; letter-spacing: 1px;">CONFIANZA DE GIRO</span>
-                                    <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 900; line-height:1;" class="${mt.cClass}">${mt.confianza}% (N${mt.nivel})</div>
-                                </div>
-                                <div class="gauge-labels"><span>N1</span><span>N2</span><span>N3</span></div>
-                            </div>
-                            <div class="celu-gauge-right">
-                                <div class="celu-card-mini">
-                                    <span class="cm-lbl">ADX CRÍTICO</span>
-                                    <span class="cm-val ${mt.cClass}">${mt.adx}</span>
-                                    <span class="cm-desc">${mt.adxEst}</span>
-                                </div>
-                                <div class="celu-card-mini">
-                                    <span class="cm-lbl">FUNDING RATE</span>
-                                    <span class="cm-val" style="color: #ffd700;">${mt.fndTxt}</span>
-                                    <span class="cm-desc">${mt.fndEst}</span>
-                                </div>
-                                <div class="celu-card-mini">
-                                    <span class="cm-lbl">VOL WHALE MULTIPLIER</span>
-                                    <span class="cm-val" style="color: #ff6b00;">${mt.whale}x</span>
-                                    <span class="cm-desc">${mt.whale >= 3.0 ? 'INYECCIÓN CRÍTICA' : mt.whale >= 1.5 ? 'FLUJO INSTITUCIONAL' : 'COMPORTAMIENTO PASIVO'}</span>
-                                </div>
-                                <div class="celu-card-mini">
-                                    <span class="cm-lbl">DETECTOR V4 STATUS</span>
-                                    <span class="cm-val" style="color: #fff;">${mt.absorcion ? 'ABSORCIÓN CVD' : mt.mecanico ? 'OI MECÁNICO' : mt.climax ? 'CLIMAX TRAP' : 'NEUTRAL'}</span>
-                                    <span class="cm-desc">MECÁNICA DE FLUJO DE ÓRDENES</span>
-                                </div>
-                                <div class="celu-card-full">
-                                    <span class="cm-lbl" style="color: #7c3aed">DIAGNÓSTICO ESTRATÉGICO CELU v4</span>
-                                    <div style="font-size: 10px; color: #c8c8e0; line-height: 1.3; margin-top: 3px; font-weight: 400;">${mt.desc}</div>
-                                </div>
-                            </div>
-                        `;
-                        node.appendChild(wrapper);
-                    }
-                });
-            });
-        });
+            // Cálculos del semicírculo SVG y la aguja mecánica
+            const offset = 314 - ((metricas.confianza / 100) * 314);
+            const gradosAguja = ((metricas.confianza / 100) * 180) - 90;
 
-        const target = document.getElementById('table-body');
-        if (target) { observer.observe(target, { childList: true, subtree: true }); }
-    })();
-    </script>
-</body>
-</html>
+            const gaugeDiv = document.createElement('div');
+            gaugeDiv.className = 'celu-gauge-wrapper';
+            gaugeDiv.innerHTML = `
+                <div class="celu-gauge-left">
+                    <div class
