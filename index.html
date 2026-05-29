@@ -516,68 +516,152 @@ function renderHM(sym,data,cId){const c=document.getElementById(cId);if(!c)retur
 // N1=30% / N2=65% / N3=90%
 // ============================================================
 function calcCeluNivel(d){
-  if(!d||d.error)return{nivelNum:1,confianza:0,estado:['SIN DATOS'],tipo:'N/A',adxTag:'—',fundingTag:'—',whaleTag:'—',adxPct:0,fundingPct:0,whalePct:0,absorcion:false,agotado:false};
+  if(!d||d.error)return{nivelNum:1,confianza:0,estado:['SIN DATOS'],tipo:'N/A',modo:'SHORT',adxTag:'—',fundingTag:'—',whaleTag:'—',adxPct:0,fundingPct:0,whalePct:0,absorcion:false,agotado:false};
   const funding=d.funding!==null?d.funding:0;
   const adx=d.adx||20;
   const vRatio=d.vRatio||1;
   const absorcion=d.absorcion||false;
-  // Agotamiento: stochK alto + cambio significativo
-  const agotado=(d.stochK||50)>=75&&d.change24>=5;
+  const stochK=d.stochK||50;
+  const change24=d.change24||0;
+  const cvdDir=d.cvdDir||'flat';
+  const whale=d.whale||'neutral';
+  const wBR=d.wBR||false;
 
-  // FUNDING TAGS (del manuscrito)
+  // ── DETECCIÓN AUTOMÁTICA DE MODO ────────────────────────────────
+  // MODO LONG: funding neutro/negativo + precio flat/caído + CVD o whale alcista
+  // MODO SHORT: funding elevado + precio subió + stochK alto
+  const signosLong=(
+    funding<=0.003&&           // funding barato o negativo
+    change24<3&&               // no está ya pumpeando
+    (cvdDir==='up'||absorcion||whale==='buy'||wBR||stochK<50)
+  );
+  const signosShort=(
+    funding>0.003||            // longs pagando tasa
+    (change24>=5&&stochK>=70)  // subió fuerte y está sobrecomprado
+  );
+  const modo=signosLong&&!signosShort?'LONG':'SHORT';
+
+  // Agotamiento (solo relevante en modo SHORT)
+  const agotado=stochK>=75&&change24>=5;
+
+  // ── FUNDING TAGS ─────────────────────────────────────────────────
   let fundingTag,fundingPct;
-  if(funding>0.05){fundingTag='EUFORIA EXTREMA';fundingPct=100;}
-  else if(funding>0.01){fundingTag='RETAIL ATRAPADO ARRIBA';fundingPct=65;}
-  else if(funding>0.001){fundingTag='NEUTRAL + RETAIL ARRIBA';fundingPct=40;}
-  else{fundingTag='NEGATIVO / NORMAL';fundingPct=15;}
+  if(modo==='SHORT'){
+    if(funding>0.05){fundingTag='EUFORIA EXTREMA';fundingPct=100;}
+    else if(funding>0.01){fundingTag='RETAIL ATRAPADO ARRIBA';fundingPct=65;}
+    else if(funding>0.001){fundingTag='NEUTRAL + RETAIL ARRIBA';fundingPct=40;}
+    else{fundingTag='NEGATIVO / NORMAL';fundingPct=15;}
+  }else{
+    if(funding<-0.01){fundingTag='SHORTS PAGANDO · SPRING';fundingPct=100;}
+    else if(funding<0){fundingTag='FUNDING NEGATIVO · BUENO';fundingPct=70;}
+    else if(funding<=0.003){fundingTag='NEUTRAL · SIN PRESIÓN';fundingPct=45;}
+    else{fundingTag='LEVE RETAIL ARRIBA';fundingPct=20;}
+  }
 
-  // ADX TAGS (del manuscrito)
+  // ── ADX TAGS ─────────────────────────────────────────────────────
   let adxTag,adxPct;
-  if(adx>=50){adxTag='CLÍMAX ABSOLUTO';adxPct=100;}
-  else if(adx>=30){adxTag='FUERTE Y MADURA';adxPct=65;}
-  else{adxTag='TENDENCIA DESARROLLO';adxPct=Math.min(60,Math.max(15,adx/30*60));}
+  if(modo==='SHORT'){
+    if(adx>=50){adxTag='CLÍMAX ABSOLUTO';adxPct=100;}
+    else if(adx>=30){adxTag='FUERTE Y MADURA';adxPct=65;}
+    else{adxTag='TENDENCIA DESARROLLO';adxPct=Math.min(60,Math.max(15,adx/30*60));}
+  }else{
+    if(adx<=15){adxTag='COMPRESIÓN MÁXIMA';adxPct=100;}
+    else if(adx<=25){adxTag='ACUMULACIÓN SILENCIOSA';adxPct=70;}
+    else if(adx<=35){adxTag='INICIO MOVIMIENTO';adxPct=40;}
+    else{adxTag='YA EN MOVIMIENTO';adxPct=20;}
+  }
 
-  // WHALE MULT TAGS (del manuscrito)
+  // ── WHALE / VOL TAGS ─────────────────────────────────────────────
   let whaleTag,whalePct;
-  if(vRatio>=3){whaleTag='INYECCIÓN MASIVA';whalePct=100;}
-  else if(vRatio>=1.5){whaleTag='INSTITUCIONAL';whalePct=Math.min(90,(vRatio-1.5)/(3-1.5)*60+40);}
-  else{whaleTag='APAGADO';whalePct=Math.min(30,vRatio/1.5*30);}
+  if(modo==='SHORT'){
+    if(vRatio>=3){whaleTag='INYECCIÓN MASIVA';whalePct=100;}
+    else if(vRatio>=1.5){whaleTag='INSTITUCIONAL';whalePct=Math.min(90,(vRatio-1.5)/(3-1.5)*60+40);}
+    else{whaleTag='APAGADO';whalePct=Math.min(30,vRatio/1.5*30);}
+  }else{
+    // En LONG el volumen bajo es bueno (acumulación), CVD/whale alcista suma
+    if(whale==='buy'||wBR){whaleTag='ABSORCIÓN INSTITUCIONAL';whalePct=100;}
+    else if(cvdDir==='up'&&vRatio<=0.4){whaleTag='ACUMULANDO SILENCIOSO';whalePct=80;}
+    else if(cvdDir==='up'){whaleTag='CVD ALCISTA';whalePct=55;}
+    else if(vRatio<=0.3){whaleTag='VOLUMEN SECO · SPRING';whalePct=45;}
+    else{whaleTag='NEUTRO';whalePct=15;}
+  }
 
-  // DETERMINAR NIVEL (lógica exacta del manuscrito)
+  // ── DETERMINAR NIVEL ─────────────────────────────────────────────
   let nivelNum,confianza,tipo,estado=[];
 
-  // NIVEL 3 — SHORT PREMIUM (90%) — Ballena inyectando, bloques venta, funding >0.05%, ADX 50-60 clímax, absorción SI, agotado SI
-  if(funding>0.05&&adx>=50&&vRatio>=3&&absorcion){
-    nivelNum=3;confianza=90;tipo='SHORT PREMIUM';
-    estado=['[ESTADO: CLÍMAX ABSOLUTO]','DIVERGENCIA INSTITUCIONAL DETECTADA','BALLENA ABSORBIENDO FOMO RETAIL UPSTREAM','ALTA PROBABILIDAD DE REVERSIÓN VIOLENTA'];
+  if(modo==='SHORT'){
+    // N3 SHORT — 90%: funding euforia + ADX clímax + whale + absorción
+    if(funding>0.05&&adx>=50&&vRatio>=3&&absorcion){
+      nivelNum=3;confianza=90;tipo='SHORT PREMIUM';
+      estado=['[ESTADO: CLÍMAX ABSOLUTO]','DIVERGENCIA INSTITUCIONAL DETECTADA','BALLENA ABSORBIENDO FOMO RETAIL UPSTREAM','ALTA PROBABILIDAD DE REVERSIÓN VIOLENTA'];
+    }
+    // N3 SHORT — 85%: mayoría condiciones sin absorción
+    else if(funding>0.05&&adx>=50&&(agotado||vRatio>=3)){
+      nivelNum=3;confianza=85;tipo='SHORT PREMIUM';
+      estado=['[ESTADO: CLÍMAX ABSOLUTO PARCIAL]','FUNDING EUFORIA + ADX CLÍMAX','CONFIRMAR ABSORCIÓN CVD PARA 90%','ALTA PROBABILIDAD REVERSIÓN'];
+    }
+    // N3 SHORT — 80%: funding+ADX fuertes
+    else if(funding>0.05&&adx>=45){
+      nivelNum=3;confianza=80;tipo='SHORT PREMIUM';
+      estado=['[ESTADO: CLÍMAX — CONFIRMAR]','LONG PAGA TASA CARÍSIMA · POSIBLE SQUEEZE','BUSCAR ABSORCIÓN CVD PARA CONFIRMAR','RIESGO ALTO'];
+    }
+    // N2 SHORT — 65%: condiciones maduras
+    else if(funding>0.001&&funding<=0.05&&adx>=30&&vRatio>=1.5){
+      nivelNum=2;confianza=65;tipo='TRADE ESTÁNDAR';
+      estado=['[ESTADO: TRADE MADURO POR AGOTAMIENTO]','TENDENCIA FUERTE Y MADURA · BUSCAR REVERSIÓN','FILTRO AGOTAMIENTO SC4/SC5 ACTIVO','BUEN R:R AL POCTP'];
+      if(agotado)estado.push('⚠ AGOTAMIENTO CONFIRMADO');
+    }
+    // N2 SHORT — 55%: parcial
+    else if(adx>=30&&(vRatio>=1.5||funding>0.001)){
+      nivelNum=2;confianza=55;tipo='TRADE ESTÁNDAR';
+      estado=['[ESTADO: SEÑAL MEDIA EN DESARROLLO]','CONFIANZA MEDIA · TRADE ESTÁNDAR','CONFIRMAR VOLUMEN INSTITUCIONAL (1.5-3x)','MONITOREAR FUNDING Y ADX'];
+    }
+    // N1 SHORT — señal débil
+    else{
+      nivelNum=1;confianza=30;tipo='SEÑAL DÉBIL — PELIGRO';
+      estado=['[ESTADO: SEÑAL DÉBIL]','FUNDING: NORMAL · SIN EUFORIA CONFIRMADA','ADX: TENDENCIA EN DESARROLLO','WHALE MULT <1.5x: SIN RASTRO INSTITUCIONAL','SIN ABSORCIÓN CVD · SIN AGOTAMIENTO · ESPERAR'];
+    }
+  }else{
+    // ── MODO LONG ──
+    const stochBajo=stochK<30;
+    const stochSubiendo=stochK>=(d.stochKP||stochK)&&stochK<55;
+    const cvdAlcista=cvdDir==='up';
+    const whaleCompra=whale==='buy'||wBR;
+
+    // N3 LONG — 90%: absorción confirmada + funding negativo + ADX bajo + whale buy
+    if(absorcion&&funding<=0&&adx<=25&&whaleCompra){
+      nivelNum=3;confianza=90;tipo='LONG PREMIUM';
+      estado=['[ESTADO: SPRING INSTITUCIONAL]','ABSORCIÓN CVD CONFIRMADA · BALLENA COMPRANDO','FUNDING NEGATIVO · SHORTS FINANCIANDO REBOTE','ALTA PROBABILIDAD PUMP VIOLENTO'];
+    }
+    // N3 LONG — 85%: mayoría condiciones sin whale directo
+    else if(absorcion&&funding<=0.001&&(cvdAlcista||stochBajo)&&adx<=30){
+      nivelNum=3;confianza=85;tipo='LONG PREMIUM';
+      estado=['[ESTADO: ACUMULACIÓN INSTITUCIONAL]','ABSORCIÓN CVD + FUNDING NEUTRAL/NEGATIVO','ADX BAJO · COMPRESIÓN MÁXIMA DETECTADA','CONFIRMAR WHALE BUY PARA 90%'];
+    }
+    // N3 LONG — 80%: funding negativo + CVD alcista fuerte
+    else if(funding<-0.005&&cvdAlcista&&adx<=35){
+      nivelNum=3;confianza=80;tipo='LONG PREMIUM';
+      estado=['[ESTADO: SPRING EN DESARROLLO]','SHORTS PAGANDO CARO · PRESIÓN AL ALZA','CVD ALCISTA · ACUMULACIÓN ACTIVA','BUSCAR ABSORCIÓN CVD PARA CONFIRMAR'];
+    }
+    // N2 LONG — 65%: condiciones intermedias
+    else if(funding<=0.003&&adx<=30&&(cvdAlcista||stochBajo||whaleCompra)){
+      nivelNum=2;confianza=65;tipo='LONG ESTÁNDAR';
+      estado=['[ESTADO: ACUMULACIÓN EN DESARROLLO]','FUNDING NEUTRAL · SIN PRESIÓN VENDEDORA','ADX BAJO · PRECIO EN COMPRESIÓN','BUEN R:R SI CONFIRMA CVD O WHALE BUY'];
+      if(stochBajo)estado.push('✅ STOCH RSI OVERSOLD · REBOTE PROBABLE');
+    }
+    // N2 LONG — 55%: señal media
+    else if(funding<=0.003&&(cvdAlcista||stochSubiendo)){
+      nivelNum=2;confianza=55;tipo='LONG ESTÁNDAR';
+      estado=['[ESTADO: SEÑAL MEDIA EN DESARROLLO]','FUNDING OK · MONITOREAR CVD Y WHALE','STOCH RSI SUBIENDO · MOMENTUM INCIPIENTE','ESPERAR CONFIRMACIÓN ANTES DE ENTRAR'];
+    }
+    // N1 LONG — señal débil
+    else{
+      nivelNum=1;confianza=30;tipo='LONG DÉBIL — ESPERAR';
+      estado=['[ESTADO: SEÑAL LONG DÉBIL]','FUNDING NEUTRAL PERO SIN CATALIZADORES','CVD PLANO · SIN ABSORCIÓN CONFIRMADA','WHALE NEUTRO · ESPERAR SETUP COMPLETO','MONITOREAR SQZMOM Y ABSORCIÓN CVD'];
+    }
   }
-  // NIVEL 3 parcial 85% — mayoría condiciones N3 sin absorción confirmada
-  else if(funding>0.05&&adx>=50&&(agotado||vRatio>=3)){
-    nivelNum=3;confianza=85;tipo='SHORT PREMIUM';
-    estado=['[ESTADO: CLÍMAX ABSOLUTO PARCIAL]','FUNDING EUFORIA + ADX CLÍMAX','CONFIRMAR ABSORCIÓN CVD PARA 90%','ALTA PROBABILIDAD REVERSIÓN'];
-  }
-  // NIVEL 3 parcial 80% — funding+ADX muy fuertes
-  else if(funding>0.05&&adx>=45){
-    nivelNum=3;confianza=80;tipo='SHORT PREMIUM';
-    estado=['[ESTADO: CLÍMAX — CONFIRMAR]','LONG PAGA TASA CARÍSIMA · POSSIBLE SQUEEZE','BUSCAR ABSORCIÓN CVD PARA CONFIRMAR','RIESGO ALTO'];
-  }
-  // NIVEL 2 — TRADE ESTÁNDAR (65%) — funding neutral+retail, ADX 30-50, whale 1.5-3x, agotamiento SC4/SC5
-  else if(funding>0.001&&funding<=0.05&&adx>=30&&vRatio>=1.5){
-    nivelNum=2;confianza=65;tipo='TRADE ESTÁNDAR';
-    estado=['[ESTADO: TRADE MADURO POR AGOTAMIENTO]','TENDENCIA FUERTE Y MADURA · BUSCAR REVERSIÓN','FILTRO AGOTAMIENTO SC4/SC5 ACTIVO','BUEN R:R AL POCTP'];
-    if(agotado)estado.push('⚠ AGOTAMIENTO CONFIRMADO');
-  }
-  // NIVEL 2 parcial (55%) — mayoría condiciones
-  else if(adx>=30&&(vRatio>=1.5||funding>0.001)){
-    nivelNum=2;confianza=55;tipo='TRADE ESTÁNDAR';
-    estado=['[ESTADO: SEÑAL MEDIA EN DESARROLLO]','CONFIANZA MEDIA · TRADE ESTÁNDAR','CONFIRMAR VOLUMEN INSTITUCIONAL (1.5-3x)','MONITOREAR FUNDING Y ADX'];
-  }
-  // NIVEL 1 — SEÑAL DÉBIL (30%) — whale <1.5x, sin absorción, sin agotamiento
-  else{
-    nivelNum=1;confianza=30;tipo='SEÑAL DÉBIL — PELIGRO';
-    estado=['[ESTADO: SEÑAL DÉBIL]','FUNDING: +0.01-0.05% / NORMAL PERO CON EUFORIA','ADX: 18-30 / TENDENCIA EN DESARROLLO','WHALE MULT <1.5x: NO HAY RASTRO INSTITUCIONAL','SIN ABSORCIÓN CVD · SIN AGOTAMIENTO · PELIGRO SHORT'];
-  }
-  return{nivelNum,confianza,estado,tipo,adxTag,fundingTag,whaleTag,adxPct,fundingPct,whalePct,absorcion,agotado};
+
+  return{nivelNum,confianza,estado,tipo,modo,adxTag,fundingTag,whaleTag,adxPct,fundingPct,whalePct,absorcion,agotado};
 }
 
 function sparkBars(val,max,color,count=10){
@@ -597,7 +681,7 @@ function renderCeluWidget(sym,d,hmContainer){
   if(!wEl){wEl=document.createElement('div');wEl.id='celu-w-'+sym;hmContainer.after(wEl);}
 
   const n=calcCeluNivel(d);
-  const{nivelNum,confianza,estado,tipo,adxTag,fundingTag,whaleTag,adxPct,fundingPct,whalePct,absorcion,agotado}=n;
+  const{nivelNum,confianza,estado,tipo,modo,adxTag,fundingTag,whaleTag,adxPct,fundingPct,whalePct,absorcion,agotado}=n;
 
   // Colores por nivel
   const nc=nivelNum===3?'var(--magenta)':nivelNum===2?'var(--yellow)':'var(--green)';
@@ -629,15 +713,15 @@ function renderCeluWidget(sym,d,hmContainer){
   // Funding color & val
   const fd=d.funding;
   const fv=fd!==null?(fd>=0?'+':'')+fd.toFixed(4)+'%':'—';
-  const fCol=adxTag==='CLÍMAX ABSOLUTO'?'var(--magenta)':adxTag==='FUERTE Y MADURA'?'var(--yellow)':'var(--green)';
-  const fundColor=fundingTag==='EUFORIA EXTREMA'?'var(--yellow)':fundingTag.includes('RETAIL')?'var(--orange)':'var(--green)';
-  const whaleColor=whaleTag==='INYECCIÓN MASIVA'?'var(--orange)':whaleTag==='INSTITUCIONAL'?'var(--cyan)':'var(--text3)';
+  const fCol=modo==='LONG'?(adxTag==='COMPRESIÓN MÁXIMA'?'var(--cyan)':adxTag==='ACUMULACIÓN SILENCIOSA'?'var(--green)':adxTag==='INICIO MOVIMIENTO'?'var(--yellow)':'var(--orange)'):(adxTag==='CLÍMAX ABSOLUTO'?'var(--magenta)':adxTag==='FUERTE Y MADURA'?'var(--yellow)':'var(--green)');
+  const fundColor=modo==='LONG'?(fundingTag.includes('SPRING')?'var(--cyan)':fundingTag.includes('NEGATIVO')?'var(--green)':fundingTag.includes('NEUTRAL')?'var(--yellow)':'var(--orange)'):(fundingTag==='EUFORIA EXTREMA'?'var(--yellow)':fundingTag.includes('RETAIL')?'var(--orange)':'var(--green)');
+  const whaleColor=modo==='LONG'?(whaleTag.includes('INSTITUCIONAL')||whaleTag.includes('ABSORCIÓN')?'var(--cyan)':whaleTag.includes('CVD')||whaleTag.includes('ACUMULANDO')?'var(--green)':whaleTag.includes('SPRING')?'var(--yellow)':'var(--text3)'):(whaleTag==='INYECCIÓN MASIVA'?'var(--orange)':whaleTag==='INSTITUCIONAL'?'var(--cyan)':'var(--text3)');
 
   wEl.innerHTML=`
   <div class="celu-widget">
     <div class="celu-widget-header">
       <div>
-        <div class="celu-widget-title">⚡ CELU CONFIANZA — ${sym}</div>
+        <div class="celu-widget-title">⚡ CELU CONFIANZA — ${sym} <span style="font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:2px;padding:2px 8px;border:1px solid ${modo==='LONG'?'var(--cyan)':'var(--red)'};color:${modo==='LONG'?'var(--cyan)':'var(--red)'};background:${modo==='LONG'?'rgba(0,229,255,0.08)':'rgba(255,51,85,0.08)'};">${modo==='LONG'?'▲ LONG':'▼ SHORT'}</span></div>
         <div class="celu-widget-sub">SHORT/LONG PREMIUM · 3 NIVELES · MANUSCRITO v1 · BINANCE FUTURES</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
@@ -660,7 +744,7 @@ function renderCeluWidget(sym,d,hmContainer){
             </filter>
           </defs>
           <!-- Label arco superior -->
-          <text x="100" y="45" fill="rgba(200,200,224,0.35)" font-family="Barlow Condensed,sans-serif" font-size="6.5" font-weight="600" text-anchor="middle" letter-spacing="2">AGOTAMIENTO / ABSORCIÓN</text>
+          <text x="100" y="45" fill="rgba(200,200,224,0.35)" font-family="Barlow Condensed,sans-serif" font-size="6.5" font-weight="600" text-anchor="middle" letter-spacing="2">${modo==='LONG'?'ACUMULACIÓN / SPRING':'AGOTAMIENTO / ABSORCIÓN'}</text>
           <!-- Track total -->
           <path d="${arcBg}" fill="none" stroke="#16162a" stroke-width="11" stroke-linecap="round"/>
           <!-- Zonas de color por nivel -->
@@ -686,7 +770,7 @@ function renderCeluWidget(sym,d,hmContainer){
         <!-- Confianza label -->
         <div class="celu-gauge-label" style="color:${nc}">CONFIANZA: ${confianza}% (N${nivelNum})</div>
         <div class="celu-gauge-nivel" style="border:1px solid ${nc};color:${nc}">
-          ${nivelNum===3?'N3 — SHORT PREMIUM':nivelNum===2?'N2 — TRADE ESTÁNDAR':'N1 — SEÑAL DÉBIL'}
+          ${nivelNum===3?(modo==='LONG'?'N3 — LONG PREMIUM':'N3 — SHORT PREMIUM'):nivelNum===2?(modo==='LONG'?'N2 — LONG ESTÁNDAR':'N2 — TRADE ESTÁNDAR'):(modo==='LONG'?'N1 — LONG DÉBIL':'N1 — SEÑAL DÉBIL')}
         </div>
 
         <!-- Estado descriptivo -->
