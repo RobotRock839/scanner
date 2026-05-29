@@ -531,7 +531,7 @@ function calcCeluNivel(d){
   // MODO LONG: funding neutro/negativo + precio flat/caído + CVD o whale alcista
   // MODO SHORT: funding elevado + precio subió + stochK alto
   const signosLong=(
-    funding<=0.003&&           // funding barato o negativo
+    funding<=0.01&&            // funding neutral/negativo (no hay presión real de longs)
     change24<3&&               // no está ya pumpeando
     (cvdDir==='up'||absorcion||whale==='buy'||wBR||stochK<50)
   );
