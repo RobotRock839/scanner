@@ -150,7 +150,6 @@ td.right{text-align:right;}
 .cat-loser{background:rgba(255,51,85,0.1);border:1px solid var(--red2);color:var(--red);}
 .cat-agotado{background:rgba(255,51,85,0.2);border:1px solid var(--red);color:var(--red);animation:pulse 1s infinite;font-size:10px;padding:3px 8px;}
 .cat-climax{background:rgba(255,0,204,0.2);border:1px solid var(--magenta);color:var(--magenta);animation:pulse 0.8s infinite;font-size:10px;padding:3px 8px;}
-.cat-ascenso{background:rgba(0,229,255,0.2);border:1px solid var(--cyan);color:var(--cyan);animation:pulse 1s infinite;font-size:10px;padding:3px 8px;}
 .race-divider{padding:8px 0;display:flex;align-items:center;gap:12px;font-size:9px;letter-spacing:2px;color:var(--text3);}
 .race-divider-line{flex:1;height:1px;background:var(--border);}
 .race-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;font-size:10px;color:var(--text3);border-top:1px solid var(--border);margin-top:8px;flex-wrap:wrap;gap:8px;}
@@ -400,7 +399,6 @@ td.right{text-align:right;}
         </div>
       </div>
     </div>
-    <div id="candidatos-panel" style="display:none;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.3);border-radius:4px;padding:10px 14px;margin:10px 0;"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px">🎯 CANDIDATOS AL TOP — DETECCIÓN TEMPRANA</div><div id="candidatos-list"></div></div>
     <div class="race-list" id="race-list"><div class="race-empty"><span class="spinner"></span> Cargando ranking...</div></div>
     <div class="race-footer">
       <span><span class="race-update-dot"></span>BINANCE FUTURES · TODOS LOS PARES USDT · CELU v4</span>
@@ -460,7 +458,6 @@ function saveSt(){try{localStorage.setItem(ST,JSON.stringify(tokenList));localSt
 let tokenList=loadTokens(),selectedTokens=loadSel(tokenList);
 let scanning=false,refreshInterval=null,raceMode='all',raceData=[],prevRacePos={};
 let raceCdTimer=null,raceCdSecs=30,raceRunning=false,preraceRunning=false,raceInit=false,raceExtraMap={};
-let prevAscenso=new Set();
 const hmCache={},raCache={};
 
 function showToast(msg){const e=document.querySelector('.toast');if(e)e.remove();const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2100);}
@@ -821,77 +818,8 @@ function setRefresh(){const v=parseInt(document.getElementById('refresh-select')
 async function fetchAllTickers(){const r=await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr');if(!r.ok)throw new Error('No tickers');const d=await r.json();return d.filter(t=>t.symbol.endsWith('USDT')&&!t.symbol.includes('_')).map(t=>({symbol:t.symbol.replace('USDT',''),price:parseFloat(t.lastPrice),change24:parseFloat(t.priceChangePercent),volume:parseFloat(t.quoteVolume)})).sort((a,b)=>b.change24-a.change24);}
 async function fetchAgotData(symbol){if(raCache[symbol]&&Date.now()-raCache[symbol].ts<120000)return raCache[symbol];const pair=symbol+'USDT';try{const[k4,fr,liq]=await Promise.allSettled([fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=4h&limit=50').then(r=>r.json()),fetch('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=1').then(r=>r.json()),fetchLiqs(symbol)]);const kl=k4.status==='fulfilled'?k4.value:null;let vR=1,sk=50,skP=50,sd=50;if(kl&&kl.length>=20){const vols=kl.map(k=>parseFloat(k[5]));const av=vols.slice(-21,-1).reduce((a,b)=>a+b,0)/20;vR=av>0?vols[vols.length-1]/av:1;const cls=kl.map(k=>parseFloat(k[4]));const st=cStochRSI(cls,14,14,3,3);sk=st.k;skP=st.kP||st.k;sd=st.d;}const funding=fr.status==='fulfilled'&&fr.value[0]?parseFloat(fr.value[0].fundingRate)*100:null;const lv=liq.status==='fulfilled'?liq.value:{sL:0,lL:0,climax:false};const res={vR,funding,stochK:sk,stochKP:skP,stochD:sd,shortLiqs:lv.sL,climax:lv.climax,ts:Date.now()};raCache[symbol]=res;return res;}catch(e){return{vR:1,funding:null,stochK:50,climax:false,shortLiqs:0,ts:Date.now()};}}
 function detectAgot(token,ex){if(!ex)return false;let sc=0;if(ex.stochK>=90)sc+=3;else if(ex.stochK>=75)sc+=1;if(token.change24>=20)sc+=2;else if(token.change24>=10)sc+=1;if(ex.vR>=4)sc+=2;else if(ex.vR>=2.5)sc+=1;if(ex.funding!==null&&ex.funding>0.05)sc+=2;else if(ex.funding!==null&&ex.funding>0.02)sc+=1;return sc>=4;}
-// ============================================================
-// DETECCIÓN TEMPRANA — CANDIDATOS AL TOP
-// Detecta tokens en pos 10-80 con momentum acelerando
-// SIN modificar ninguna lógica existente
-// ============================================================
-function calcAscensoScore(token,ex,pos){
-  let sc=0;
-  if(token.change24>=10&&token.change24<25)sc+=30;
-  else if(token.change24>=5&&token.change24<10)sc+=15;
-  else if(token.change24>=2&&token.change24<5)sc+=8;
-  if(ex&&ex.vR>=4)sc+=25;
-  else if(ex&&ex.vR>=2.5)sc+=15;
-  else if(ex&&ex.vR>=1.5)sc+=8;
-  if(ex&&ex.stochK>=40&&ex.stochK<=75)sc+=20;
-  else if(ex&&ex.stochK<40)sc+=10;
-  else if(ex&&ex.stochK>75)sc-=10;
-  if(pos>=20&&pos<=50)sc+=15;
-  else if(pos>=10&&pos<20)sc+=8;
-  else if(pos>50&&pos<=80)sc+=5;
-  if(ex&&ex.funding!==null){
-    if(ex.funding<0.01)sc+=15;
-    else if(ex.funding<0.03)sc+=8;
-    else sc-=10;
-  }
-  if(ex&&ex.whale==='buy')sc+=20;
-  else if(ex&&ex.wBR)sc+=10;
-  if(ex&&detectAgot(token,ex))sc-=30;
-  return sc;
-}
-function renderCandidatos(candidatos){
-  const panel=document.getElementById('candidatos-panel');
-  const list=document.getElementById('candidatos-list');
-  if(!panel||!list)return;
-  if(candidatos.length===0){panel.style.display='none';return;}
-  panel.style.display='block';
-  list.innerHTML=candidatos.sort((a,b)=>b.score-a.score).slice(0,6).map(c=>{
-    const proj=Math.max(1,Math.round(c.pos*(1-c.score/200)));
-    const barW=Math.min(100,c.score);
-    return '<div style="display:flex;align-items:center;gap:10px;padding:5px 8px;border-left:2px solid var(--cyan);margin-bottom:4px;background:rgba(0,229,255,0.03)">'
-      +'<div style="width:32px;text-align:center;font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:16px;color:var(--text3)">#'+c.pos+'</div>'
-      +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-weight:700;font-size:16px;color:#fff;width:70px">'+c.symbol+'</div>'
-      +'<div style="flex:1">'
-        +'<div style="height:4px;background:var(--border2);border-radius:2px;overflow:hidden;margin-bottom:3px"><div style="height:100%;width:'+barW+'%;background:var(--cyan);border-radius:2px"></div></div>'
-        +'<div style="font-size:9px;color:var(--text2)">+'+c.change.toFixed(1)+'% · VOL '+c.vRatio.toFixed(1)+'x · K:'+Math.round(c.stochK)+(c.whale?' · 🐋 BUY':'')+'</div>'
-      +'</div>'
-      +'<div style="text-align:right">'
-        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:10px;color:var(--cyan)">→ TOP '+proj+'</div>'
-        +'<div style="font-size:9px;color:var(--text3)">score '+c.score+'</div>'
-      +'</div>'
-    +'</div>';
-  }).join('');
-}
-
 function barColor(ch){if(ch>=20)return'#00ff88';if(ch>=10)return'#00cc66';if(ch>=3)return'#ffd700';if(ch>=0)return'#44aa66';if(ch>=-5)return'#ff6b00';return'#ff3355';}
-function renderRace(data,extraMap){if(extraMap)raceExtraMap=extraMap;const em=raceExtraMap;const list=document.getElementById('race-list');const mySet=new Set(tokenList);let disp=raceMode==='mine'?data.filter(d=>mySet.has(d.symbol)):data;const w=disp.filter(d=>d.change24>0).length,l=disp.filter(d=>d.change24<0).length;document.getElementById('rs-winners').textContent=w;document.getElementById('rs-losers').textContent=l;if(disp.length>0){document.getElementById('rs-best').textContent=disp[0].symbol+' '+(disp[0].change24>=0?'+':'')+disp[0].change24.toFixed(2)+'%';const ww=disp[disp.length-1];document.getElementById('rs-worst').textContent=ww.symbol+' '+(ww.change24>=0?'+':'')+ww.change24.toFixed(2)+'%';}let agCnt=0,clCnt=0,html='',lastW=disp[0]?.change24>=0;disp.forEach((tk,idx)=>{const pos=idx+1,isW=tk.change24>=0,isMy=mySet.has(tk.symbol);if(!isW&&lastW){html+='<div class="race-divider"><div class="race-divider-line"></div><span>▼ PERDEDORES</span><div class="race-divider-line"></div></div>';lastW=false;}const pv=prevRacePos[tk.symbol];let mv='';if(pv===undefined)mv='<span class="move-new">NEW</span>';else{const d=pv-pos;if(d>0)mv='<span class="move-up">▲</span><span class="move-num move-up">'+d+'</span>';else if(d<0)mv='<span class="move-down">▼</span><span class="move-num move-down">'+Math.abs(d)+'</span>';else mv='<span class="move-same">—</span>';}const bPct=Math.min(100,(Math.abs(tk.change24)/50)*100),bC=barColor(tk.change24);const pC=pos===1?'pos-1':pos===2?'pos-2':pos===3?'pos-3':'';const t3=pos<=3?'top3':'';const ex=em&&em[tk.symbol]?em[tk.symbol]:null;const isAg=isW&&detectAgot(tk,ex);const isCl=isW&&ex&&ex.climax;if(isAg)agCnt++;if(isCl)clCnt++;let stH='';if(isCl)stH='<span class="race-cat-badge cat-climax">💀 CLIMAX SHORT TRAP</span>';else if(isAg)stH='<span class="race-cat-badge cat-agotado">⚠ AGOTADO → SHORT</span>';else stH=isW?'<span class="race-cat-badge cat-winner">▲ WINNER</span>':'<span class="race-cat-badge cat-loser">▼ LOSER</span>';const skI=ex&&ex.stochK!==undefined?'<span style="font-size:8px;color:'+(ex.stochK>75?'var(--red)':'var(--text3)')+'">K:'+Math.round(ex.stochK)+'</span>':'';const lqI=ex&&ex.shortLiqs>50000?'<span style="font-size:8px;color:var(--magenta)">LIQ:$'+fmtBig(ex.shortLiqs)+'</span>':'';const stH2=raceMode==='all'&&isMy?'<span class="my-token-star">★</span>':'';const rC='race-row '+t3+' '+(isMy?'my-token':'')+' '+pC+' '+(isCl?'climax-trap':isAg?'agotado':'');html+='<div class="'+rC+'" style="animation-delay:'+Math.min(idx,30)*0.025+'s"><div class="race-pos"><div class="race-pos-num">'+pos+'</div></div><div class="race-move">'+mv+'</div><div class="race-symbol-wrap"><div class="race-symbol">'+tk.symbol+stH2+'</div><div class="race-sub">USDT PERP</div></div><div class="race-bar-wrap"><div class="race-bar-track"><div class="race-bar-fill" style="width:'+bPct+'%;background:'+bC+'"></div></div>'+(ex&&ex.vR>=2?'<div style="font-size:8px;color:var(--red);margin-top:2px">VOL '+ex.vR.toFixed(1)+'x '+skI+'</div>':(skI?'<div style="margin-top:2px">'+skI+'</div>':''))+(lqI?'<div style="margin-top:1px">'+lqI+'</div>':'')+'</div><div class="race-change"><div class="race-change-val '+(isW?'race-change-pos':'race-change-neg')+'">'+(tk.change24>=0?'+':'')+tk.change24.toFixed(2)+'%</div></div><div class="race-price">'+fmtP(tk.price)+'</div><div class="race-status-col">'+stH+'</div></div>';});list.innerHTML=html;const np={};disp.forEach((t,i)=>{np[t.symbol]=i+1;});prevRacePos=np;document.getElementById('rs-agotados').textContent=agCnt||'—';document.getElementById('rs-climax').textContent=clCnt||'—';const clTk=disp.filter(t=>{const ex=em&&em[t.symbol]?em[t.symbol]:null;return t.change24>=0&&ex&&ex.climax;});if(clTk.length>0)showAlert2('💀 CLIMAX SHORT TRAP:<br>'+clTk.slice(0,3).map(t=>t.symbol+' +'+t.change24.toFixed(1)+'%').join(' · ')+'<br>Liquidaciones masivas de shorts detectadas');else{const agTk=disp.filter(t=>{const ex=em&&em[t.symbol]?em[t.symbol]:null;return t.change24>=0&&detectAgot(t,ex);});if(agTk.length>0)showAlert2('⚠ AGOTAMIENTO:<br>'+agTk.slice(0,3).map(t=>t.symbol+' +'+t.change24.toFixed(1)+'%').join(' · ')+'<br>Posibles shorts · CELU v4');}const now=new Date();document.getElementById('race-last-update').textContent='Actualizado: '+now.toLocaleTimeString('es-AR');document.getElementById('last-update-header').textContent=now.toLocaleTimeString('es-AR');// DETECCIÓN TEMPRANA — recopilar candidatos al top
-const candidatos=[];
-disp.forEach((tk,idx)=>{
-  const pos=idx+1,isW=tk.change24>=0;
-  if(!isW||pos<10||pos>80)return;
-  const ex=em&&em[tk.symbol]?em[tk.symbol]:null;
-  const asc=calcAscensoScore(tk,ex,pos);
-  if(asc>=55){
-    candidatos.push({symbol:tk.symbol,pos,score:asc,change:tk.change24,vRatio:ex&&ex.vR?ex.vR:1,stochK:ex&&ex.stochK?ex.stochK:50,whale:ex&&ex.whale==='buy'});
-    if(!prevAscenso.has(tk.symbol)){
-      prevAscenso.add(tk.symbol);
-      addAlert('wlong',tk.symbol,'🎯 CANDIDATO TOP · Pos #'+pos+' · Score '+asc+' · VOL '+(ex&&ex.vR?ex.vR.toFixed(1):1)+'x · K:'+(ex&&ex.stochK?Math.round(ex.stochK):50)+' — posible ascenso al top',tk.price);
-    }
-  } else if(prevAscenso.has(tk.symbol)&&asc<40){prevAscenso.delete(tk.symbol);}
-});
-renderCandidatos(candidatos);
-checkRaceAlerts(disp,em);}
+function renderRace(data,extraMap){if(extraMap)raceExtraMap=extraMap;const em=raceExtraMap;const list=document.getElementById('race-list');const mySet=new Set(tokenList);let disp=raceMode==='mine'?data.filter(d=>mySet.has(d.symbol)):data;const w=disp.filter(d=>d.change24>0).length,l=disp.filter(d=>d.change24<0).length;document.getElementById('rs-winners').textContent=w;document.getElementById('rs-losers').textContent=l;if(disp.length>0){document.getElementById('rs-best').textContent=disp[0].symbol+' '+(disp[0].change24>=0?'+':'')+disp[0].change24.toFixed(2)+'%';const ww=disp[disp.length-1];document.getElementById('rs-worst').textContent=ww.symbol+' '+(ww.change24>=0?'+':'')+ww.change24.toFixed(2)+'%';}let agCnt=0,clCnt=0,html='',lastW=disp[0]?.change24>=0;disp.forEach((tk,idx)=>{const pos=idx+1,isW=tk.change24>=0,isMy=mySet.has(tk.symbol);if(!isW&&lastW){html+='<div class="race-divider"><div class="race-divider-line"></div><span>▼ PERDEDORES</span><div class="race-divider-line"></div></div>';lastW=false;}const pv=prevRacePos[tk.symbol];let mv='';if(pv===undefined)mv='<span class="move-new">NEW</span>';else{const d=pv-pos;if(d>0)mv='<span class="move-up">▲</span><span class="move-num move-up">'+d+'</span>';else if(d<0)mv='<span class="move-down">▼</span><span class="move-num move-down">'+Math.abs(d)+'</span>';else mv='<span class="move-same">—</span>';}const bPct=Math.min(100,(Math.abs(tk.change24)/50)*100),bC=barColor(tk.change24);const pC=pos===1?'pos-1':pos===2?'pos-2':pos===3?'pos-3':'';const t3=pos<=3?'top3':'';const ex=em&&em[tk.symbol]?em[tk.symbol]:null;const isAg=isW&&detectAgot(tk,ex);const isCl=isW&&ex&&ex.climax;if(isAg)agCnt++;if(isCl)clCnt++;let stH='';if(isCl)stH='<span class="race-cat-badge cat-climax">💀 CLIMAX SHORT TRAP</span>';else if(isAg)stH='<span class="race-cat-badge cat-agotado">⚠ AGOTADO → SHORT</span>';else stH=isW?'<span class="race-cat-badge cat-winner">▲ WINNER</span>':'<span class="race-cat-badge cat-loser">▼ LOSER</span>';const skI=ex&&ex.stochK!==undefined?'<span style="font-size:8px;color:'+(ex.stochK>75?'var(--red)':'var(--text3)')+'">K:'+Math.round(ex.stochK)+'</span>':'';const lqI=ex&&ex.shortLiqs>50000?'<span style="font-size:8px;color:var(--magenta)">LIQ:$'+fmtBig(ex.shortLiqs)+'</span>':'';const stH2=raceMode==='all'&&isMy?'<span class="my-token-star">★</span>':'';const rC='race-row '+t3+' '+(isMy?'my-token':'')+' '+pC+' '+(isCl?'climax-trap':isAg?'agotado':'');html+='<div class="'+rC+'" style="animation-delay:'+Math.min(idx,30)*0.025+'s"><div class="race-pos"><div class="race-pos-num">'+pos+'</div></div><div class="race-move">'+mv+'</div><div class="race-symbol-wrap"><div class="race-symbol">'+tk.symbol+stH2+'</div><div class="race-sub">USDT PERP</div></div><div class="race-bar-wrap"><div class="race-bar-track"><div class="race-bar-fill" style="width:'+bPct+'%;background:'+bC+'"></div></div>'+(ex&&ex.vR>=2?'<div style="font-size:8px;color:var(--red);margin-top:2px">VOL '+ex.vR.toFixed(1)+'x '+skI+'</div>':(skI?'<div style="margin-top:2px">'+skI+'</div>':''))+(lqI?'<div style="margin-top:1px">'+lqI+'</div>':'')+'</div><div class="race-change"><div class="race-change-val '+(isW?'race-change-pos':'race-change-neg')+'">'+(tk.change24>=0?'+':'')+tk.change24.toFixed(2)+'%</div></div><div class="race-price">'+fmtP(tk.price)+'</div><div class="race-status-col">'+stH+'</div></div>';});list.innerHTML=html;const np={};disp.forEach((t,i)=>{np[t.symbol]=i+1;});prevRacePos=np;document.getElementById('rs-agotados').textContent=agCnt||'—';document.getElementById('rs-climax').textContent=clCnt||'—';const clTk=disp.filter(t=>{const ex=em&&em[t.symbol]?em[t.symbol]:null;return t.change24>=0&&ex&&ex.climax;});if(clTk.length>0)showAlert2('💀 CLIMAX SHORT TRAP:<br>'+clTk.slice(0,3).map(t=>t.symbol+' +'+t.change24.toFixed(1)+'%').join(' · ')+'<br>Liquidaciones masivas de shorts detectadas');else{const agTk=disp.filter(t=>{const ex=em&&em[t.symbol]?em[t.symbol]:null;return t.change24>=0&&detectAgot(t,ex);});if(agTk.length>0)showAlert2('⚠ AGOTAMIENTO:<br>'+agTk.slice(0,3).map(t=>t.symbol+' +'+t.change24.toFixed(1)+'%').join(' · ')+'<br>Posibles shorts · CELU v4');}const now=new Date();document.getElementById('race-last-update').textContent='Actualizado: '+now.toLocaleTimeString('es-AR');document.getElementById('last-update-header').textContent=now.toLocaleTimeString('es-AR');checkRaceAlerts(disp,em);}
 function startCD(){clearInterval(raceCdTimer);raceCdSecs=30;const bar=document.getElementById('race-cd-bar'),txt=document.getElementById('race-cd-text');function tick(){const p=(raceCdSecs/30)*100;if(bar){bar.style.width=p+'%';bar.style.background=p>50?'var(--yellow)':p>25?'var(--orange)':'var(--red)';}if(txt)txt.textContent=raceCdSecs+'s';if(raceCdSecs>0)raceCdSecs--;}tick();raceCdTimer=setInterval(tick,1000);}
 async function runRace(){if(raceRunning)return;raceRunning=true;const btn=document.getElementById('race-refresh-btn');btn.textContent='⟳';btn.disabled=true;try{const data=await fetchAllTickers();raceData=data;const top=data.slice(0,60);const exR=await Promise.all(top.map(t=>fetchAgotData(t.symbol)));const em={};top.forEach((t,i)=>{em[t.symbol]=exR[i];});renderRace(data,em);startCD();}catch(e){document.getElementById('race-list').innerHTML='<div class="race-empty">Error: '+e.message+'</div>';startCD();}btn.textContent='↺ NOW';btn.disabled=false;raceRunning=false;}
 function setRaceMode(m){raceMode=m;document.getElementById('race-mode-all').classList.toggle('active',m==='all');document.getElementById('race-mode-mine').classList.toggle('active',m==='mine');if(raceData.length>0)renderRace(raceData,null);}
