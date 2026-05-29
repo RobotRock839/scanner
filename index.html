@@ -234,7 +234,6 @@ td.right{text-align:right;}
 .badge-al-climax{background:rgba(255,0,204,0.2);border:2px solid var(--magenta);color:#fff;}
 .badge-al-mecanico{background:rgba(124,58,237,0.15);border:1px solid var(--purple);color:#c4b5fd;}
 .alert-item-detail{font-size:10px;color:var(--text2);margin-top:2px;}
-.alert-empty{text-align:center;padding:40px 16px;color:var(--text3);font-size:10px;}
 .alert-cnt{background:var(--green);color:#000;font-family:"Barlow Condensed",sans-serif;font-weight:900;font-size:12px;min-width:20px;height:20px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;}
 .alert-cnt.red{background:var(--red);color:#fff;}
 .alert-flash{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:9998;opacity:0;transition:opacity 0.1s;}
@@ -246,9 +245,37 @@ td.right{text-align:right;}
 .v4-badge{font-family:"Barlow Condensed",sans-serif;font-size:11px;font-weight:700;}
 
 /* ================================================================
-   CELU CONFIANZA WIDGET — SHORT/LONG PREMIUM
-   Lógica manuscrito: N1=30% / N2=65% / N3=90%
+   CELU PRE-CARRERA — INDICADOR DE CONFIANZA LONG v4 CELU+
+   Lógica manuscrito: N1=30% (Gris) / N2=65% (Amarillo) / N3=90% (Magenta)
+   Variables: FUNDING · ADX · WHALE MULT · ABSORCIÓN CVD · SQZMOM
    ================================================================ */
+.celu-pr-wrap{margin-top:10px;border-top:1px solid var(--border2);padding-top:10px;}
+.celu-pr-header{font-family:"Barlow Condensed",sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--magenta);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.celu-pr-header::after{content:"";flex:1;height:1px;background:rgba(255,0,204,0.2);}
+.celu-pr-badge{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:3px;font-family:"Barlow Condensed",sans-serif;font-weight:700;border:1px solid;position:relative;overflow:hidden;}
+.celu-pr-badge::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;}
+.celu-pr-n1{background:rgba(136,136,136,0.07);border-color:rgba(136,136,136,0.3);color:#888;}
+.celu-pr-n1::before{background:#888;}
+.celu-pr-n2{background:rgba(255,215,0,0.07);border-color:rgba(255,215,0,0.35);color:var(--yellow);}
+.celu-pr-n2::before{background:var(--yellow);}
+.celu-pr-n3{background:rgba(255,0,204,0.1);border-color:rgba(255,0,204,0.5);color:var(--magenta);animation:pulse 1.2s infinite;}
+.celu-pr-n3::before{background:var(--magenta);}
+.celu-pr-conf{font-size:26px;font-weight:900;line-height:1;min-width:50px;}
+.celu-pr-body{flex:1;display:flex;flex-direction:column;gap:2px;}
+.celu-pr-nivel{font-size:8px;letter-spacing:2px;opacity:0.75;}
+.celu-pr-accion{font-size:11px;letter-spacing:0.5px;}
+.celu-pr-desc{font-size:9px;opacity:0.65;font-weight:400;font-family:"Share Tech Mono",monospace;line-height:1.4;margin-top:2px;}
+.celu-pr-bars{display:flex;gap:3px;align-items:flex-end;flex-shrink:0;padding-left:4px;}
+.celu-pr-bar{width:6px;border-radius:1px 1px 0 0;min-height:4px;transition:height 0.5s ease;}
+.celu-pr-vars{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:6px;}
+.celu-pr-var{display:flex;align-items:center;gap:4px;font-family:"Barlow Condensed",sans-serif;font-size:9px;padding:3px 6px;background:rgba(0,0,0,0.25);border-radius:2px;border:1px solid rgba(255,255,255,0.03);}
+.celu-pr-var-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.celu-pr-var-label{color:var(--text3);margin-right:1px;letter-spacing:1px;}
+.celu-pr-var-val{font-weight:700;margin-left:auto;}
+.celu-pr-var-bar{flex:1;height:2px;background:var(--border2);border-radius:1px;overflow:hidden;margin:0 4px;}
+.celu-pr-var-fill{height:100%;border-radius:1px;transition:width 0.4s ease;}
+
+/* CELU WIDGET FULL (Scanner heatmap) */
 .celu-widget{background:#07070d;border:1px solid var(--border2);border-top:2px solid var(--magenta);margin-top:8px;padding:0;overflow:hidden;animation:fadeIn 0.4s ease forwards;}
 .celu-widget-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;border-bottom:1px solid var(--border);}
 .celu-widget-title{font-family:"Barlow Condensed",sans-serif;font-weight:900;font-size:13px;letter-spacing:3px;color:var(--magenta);text-transform:uppercase;}
@@ -411,8 +438,10 @@ td.right{text-align:right;}
 <div id="panel-prerace" style="display:none">
   <div class="prerace-wrap">
     <div class="prerace-header">
-      <div><div class="prerace-title">🚀 PRE-CARRERA</div>
-      <div class="prerace-desc">Tokens acumulando · CELU v4 · SQZMOM + Whale CVD + StochRSI</div></div>
+      <div>
+        <div class="prerace-title">🚀 PRE-CARRERA</div>
+        <div class="prerace-desc">Tokens acumulando · CELU v4 · SQZMOM + Whale CVD + StochRSI · <span style="color:var(--magenta);font-weight:700">Confianza LONG N1/N2/N3 integrada</span></div>
+      </div>
       <button class="btn" id="prerace-scan-btn" style="background:var(--orange);color:#000">▶ ESCANEAR</button>
     </div>
     <div class="prerace-filters">
@@ -436,16 +465,19 @@ td.right{text-align:right;}
       <div style="display:flex;align-items:center;gap:6px"><span>👀 WARM:</span><span class="prerace-stat-val" style="color:var(--yellow)" id="pr-warm">—</span></div>
       <div style="display:flex;align-items:center;gap:6px"><span>🚀 SALIENDO:</span><span class="prerace-stat-val" style="color:var(--green)" id="pr-saliendo">—</span></div>
       <div style="display:flex;align-items:center;gap:6px"><span>💧 WATCH:</span><span class="prerace-stat-val" style="color:var(--cyan)" id="pr-watch">—</span></div>
+      <div style="display:flex;align-items:center;gap:6px"><span style="color:var(--magenta)">⚡ N3 CELU:</span><span class="prerace-stat-val" style="color:var(--magenta)" id="pr-celu-n3">—</span></div>
+      <div style="display:flex;align-items:center;gap:6px"><span style="color:var(--yellow)">N2 CELU:</span><span class="prerace-stat-val" style="color:var(--yellow)" id="pr-celu-n2">—</span></div>
     </div>
     <div class="prerace-grid" id="prerace-grid">
       <div class="prerace-empty">Presioná ESCANEAR para detectar los próximos corredores</div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;font-size:10px;color:var(--text3);border-top:1px solid var(--border);margin-top:8px;flex-wrap:wrap;gap:8px">
-      <span><span class="prerace-update-dot"></span>FUENTE: BINANCE FUTURES · CELU v4</span>
+      <span><span class="prerace-update-dot"></span>FUENTE: BINANCE FUTURES · CELU v4 · CONFIANZA LONG MANUSCRITO</span>
       <span id="prerace-last-update">—</span>
     </div>
   </div>
 </div>
+
 <script>
 // ============================================================
 // STATE
@@ -511,9 +543,7 @@ async function fetchHM(symbol){if(hmCache[symbol]&&Date.now()-hmCache[symbol].ts
 function renderHM(sym,data,cId){const c=document.getElementById(cId);if(!c)return;if(!data){c.innerHTML='<div class="heatmap-loading">⚠ No se pudo cargar heatmap</div>';return;}const{price,levels,pMin,pMax,ws,wl}=data;const pPct=((price-pMin)/(pMax-pMin)*100).toFixed(1);let bars='';levels.forEach(lvl=>{const h=Math.max(3,lvl.n*100),a=0.25+lvl.n*0.75,col=lvl.side==='short'?'rgba(255,51,85,'+a+')':'rgba(0,255,136,'+a+')';bars+='<div class="hm-bar-wrap"><div class="hm-tooltip"><span style="color:#fff;font-size:11px">'+fmtP(lvl.price)+'</span><span style="font-size:9px;color:'+(lvl.side==='short'?'#ff6688':'#00ff88')+'">Vol: '+fmtBig(lvl.vol)+'</span><span style="font-size:9px;color:var(--text2)">'+(lvl.d>=0?'+':'')+lvl.d.toFixed(2)+'%</span></div><div class="hm-bar" style="height:'+h+'%;background:'+col+'"></div></div>';});const ll=Math.min(Math.max(parseFloat(pPct),5),80);c.innerHTML='<div style="font-size:9px;color:var(--text2);margin-bottom:6px;letter-spacing:1px">🔥 HEATMAP — '+sym+'</div><div class="heatmap-chart">'+bars+'<div style="position:absolute;left:'+pPct+'%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.7);z-index:10;pointer-events:none"><div style="position:absolute;top:-20px;left:'+ll+'%;font-size:9px;color:#fff;background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.3);padding:2px 5px;transform:translateX(-50%);font-family:Barlow Condensed,sans-serif;font-weight:700">'+fmtP(price)+'</div></div></div><div style="display:flex;justify-content:space-between;font-size:8px;color:var(--text3);margin-top:3px"><span>'+fmtP(pMin)+'</span><span>← '+Math.round(parseFloat(pPct))+'% →</span><span>'+fmtP(pMax)+'</span></div><div class="heatmap-walls"><div class="heatmap-wall wall-short"><span class="heatmap-wall-label" style="color:var(--red)">Pared SHORT</span><span class="heatmap-wall-price" style="color:var(--red)">'+(ws?fmtP(ws.price):'—')+'</span><span class="heatmap-wall-vol" style="color:#ff6688">Vol: '+(ws?fmtBig(ws.vol):'—')+'</span></div><div class="heatmap-wall wall-long"><span class="heatmap-wall-label" style="color:var(--green)">Soporte LONG</span><span class="heatmap-wall-price" style="color:var(--green)">'+(wl?fmtP(wl.price):'—')+'</span><span class="heatmap-wall-vol" style="color:#00ff88">Vol: '+(wl?fmtBig(wl.vol):'—')+'</span></div></div>';}
 
 // ============================================================
-// CELU CONFIANZA WIDGET — LÓGICA MANUSCRITO 3 NIVELES
-// DATA = Confianza SHORT / LONG
-// N1=30% / N2=65% / N3=90%
+// CELU CONFIANZA WIDGET — SHORT/LONG PREMIUM (Scanner)
 // ============================================================
 function calcCeluNivel(d){
   if(!d||d.error)return{nivelNum:1,confianza:0,estado:['SIN DATOS'],tipo:'N/A',modo:'SHORT',adxTag:'—',fundingTag:'—',whaleTag:'—',adxPct:0,fundingPct:0,whalePct:0,absorcion:false,agotado:false};
@@ -526,367 +556,45 @@ function calcCeluNivel(d){
   const cvdDir=d.cvdDir||'flat';
   const whale=d.whale||'neutral';
   const wBR=d.wBR||false;
-
-  // ── DETECCIÓN AUTOMÁTICA DE MODO ────────────────────────────────
-  // MODO LONG: funding neutro/negativo + precio flat/caído + CVD o whale alcista
-  // MODO SHORT: funding elevado + precio subió + stochK alto
-  const signosLong=(
-    funding<=0.01&&            // funding neutral/negativo (no hay presión real de longs)
-    change24<3&&               // no está ya pumpeando
-    (cvdDir==='up'||absorcion||whale==='buy'||wBR||stochK<50)
-  );
-  const signosShort=(
-    funding>0.01||             // longs pagando tasa (>0.01% = real presión)
-    (change24>=5&&stochK>=70)  // subió fuerte y está sobrecomprado
-  );
+  const signosLong=(funding<=0.01&&change24<3&&(cvdDir==='up'||absorcion||whale==='buy'||wBR||stochK<50));
+  const signosShort=(funding>0.01||(change24>=5&&stochK>=70));
   const modo=signosLong&&!signosShort?'LONG':'SHORT';
-
-  // Agotamiento (solo relevante en modo SHORT)
   const agotado=stochK>=75&&change24>=5;
-
-  // ── FUNDING TAGS ─────────────────────────────────────────────────
   let fundingTag,fundingPct;
-  if(modo==='SHORT'){
-    if(funding>0.05){fundingTag='EUFORIA EXTREMA';fundingPct=100;}
-    else if(funding>0.01){fundingTag='RETAIL ATRAPADO ARRIBA';fundingPct=65;}
-    else if(funding>0.001){fundingTag='NEUTRAL + RETAIL ARRIBA';fundingPct=40;}
-    else{fundingTag='NEGATIVO / NORMAL';fundingPct=15;}
-  }else{
-    if(funding<-0.01){fundingTag='SHORTS PAGANDO · SPRING';fundingPct=100;}
-    else if(funding<0){fundingTag='FUNDING NEGATIVO · BUENO';fundingPct=70;}
-    else if(funding<=0.003){fundingTag='NEUTRAL · SIN PRESIÓN';fundingPct=45;}
-    else{fundingTag='LEVE RETAIL ARRIBA';fundingPct=20;}
-  }
-
-  // ── ADX TAGS ─────────────────────────────────────────────────────
+  if(modo==='SHORT'){if(funding>0.05){fundingTag='EUFORIA EXTREMA';fundingPct=100;}else if(funding>0.01){fundingTag='RETAIL ATRAPADO ARRIBA';fundingPct=65;}else if(funding>0.001){fundingTag='NEUTRAL + RETAIL ARRIBA';fundingPct=40;}else{fundingTag='NEGATIVO / NORMAL';fundingPct=15;}}else{if(funding<-0.01){fundingTag='SHORTS PAGANDO · SPRING';fundingPct=100;}else if(funding<0){fundingTag='FUNDING NEGATIVO · BUENO';fundingPct=70;}else if(funding<=0.003){fundingTag='NEUTRAL · SIN PRESIÓN';fundingPct=45;}else{fundingTag='LEVE RETAIL ARRIBA';fundingPct=20;}}
   let adxTag,adxPct;
-  if(modo==='SHORT'){
-    if(adx>=50){adxTag='CLÍMAX ABSOLUTO';adxPct=100;}
-    else if(adx>=30){adxTag='FUERTE Y MADURA';adxPct=65;}
-    else{adxTag='TENDENCIA DESARROLLO';adxPct=Math.min(60,Math.max(15,adx/30*60));}
-  }else{
-    if(adx<=15){adxTag='COMPRESIÓN MÁXIMA';adxPct=100;}
-    else if(adx<=25){adxTag='ACUMULACIÓN SILENCIOSA';adxPct=70;}
-    else if(adx<=35){adxTag='INICIO MOVIMIENTO';adxPct=40;}
-    else{adxTag='YA EN MOVIMIENTO';adxPct=20;}
-  }
-
-  // ── WHALE / VOL TAGS ─────────────────────────────────────────────
+  if(modo==='SHORT'){if(adx>=50){adxTag='CLÍMAX ABSOLUTO';adxPct=100;}else if(adx>=30){adxTag='FUERTE Y MADURA';adxPct=65;}else{adxTag='TENDENCIA DESARROLLO';adxPct=Math.min(60,Math.max(15,adx/30*60));}}else{if(adx<=15){adxTag='COMPRESIÓN MÁXIMA';adxPct=100;}else if(adx<=25){adxTag='ACUMULACIÓN SILENCIOSA';adxPct=70;}else if(adx<=35){adxTag='INICIO MOVIMIENTO';adxPct=40;}else{adxTag='YA EN MOVIMIENTO';adxPct=20;}}
   let whaleTag,whalePct;
-  if(modo==='SHORT'){
-    if(vRatio>=3){whaleTag='INYECCIÓN MASIVA';whalePct=100;}
-    else if(vRatio>=1.5){whaleTag='INSTITUCIONAL';whalePct=Math.min(90,(vRatio-1.5)/(3-1.5)*60+40);}
-    else{whaleTag='APAGADO';whalePct=Math.min(30,vRatio/1.5*30);}
-  }else{
-    // En LONG el volumen bajo es bueno (acumulación), CVD/whale alcista suma
-    if(whale==='buy'||wBR){whaleTag='ABSORCIÓN INSTITUCIONAL';whalePct=100;}
-    else if(cvdDir==='up'&&vRatio<=0.4){whaleTag='ACUMULANDO SILENCIOSO';whalePct=80;}
-    else if(cvdDir==='up'){whaleTag='CVD ALCISTA';whalePct=55;}
-    else if(vRatio<=0.3){whaleTag='VOLUMEN SECO · SPRING';whalePct=45;}
-    else{whaleTag='NEUTRO';whalePct=15;}
-  }
-
-  // ── DETERMINAR NIVEL ─────────────────────────────────────────────
+  if(modo==='SHORT'){if(vRatio>=3){whaleTag='INYECCIÓN MASIVA';whalePct=100;}else if(vRatio>=1.5){whaleTag='INSTITUCIONAL';whalePct=Math.min(90,(vRatio-1.5)/(3-1.5)*60+40);}else{whaleTag='APAGADO';whalePct=Math.min(30,vRatio/1.5*30);}}else{if(whale==='buy'||wBR){whaleTag='ABSORCIÓN INSTITUCIONAL';whalePct=100;}else if(cvdDir==='up'&&vRatio<=0.4){whaleTag='ACUMULANDO SILENCIOSO';whalePct=80;}else if(cvdDir==='up'){whaleTag='CVD ALCISTA';whalePct=55;}else if(vRatio<=0.3){whaleTag='VOLUMEN SECO · SPRING';whalePct=45;}else{whaleTag='NEUTRO';whalePct=15;}}
   let nivelNum,confianza,tipo,estado=[];
-
-  if(modo==='SHORT'){
-    // N3 SHORT — 90%: funding euforia + ADX clímax + whale + absorción
-    if(funding>0.05&&adx>=50&&vRatio>=3&&absorcion){
-      nivelNum=3;confianza=90;tipo='SHORT PREMIUM';
-      estado=['[ESTADO: CLÍMAX ABSOLUTO]','DIVERGENCIA INSTITUCIONAL DETECTADA','BALLENA ABSORBIENDO FOMO RETAIL UPSTREAM','ALTA PROBABILIDAD DE REVERSIÓN VIOLENTA'];
-    }
-    // N3 SHORT — 85%: mayoría condiciones sin absorción
-    else if(funding>0.05&&adx>=50&&(agotado||vRatio>=3)){
-      nivelNum=3;confianza=85;tipo='SHORT PREMIUM';
-      estado=['[ESTADO: CLÍMAX ABSOLUTO PARCIAL]','FUNDING EUFORIA + ADX CLÍMAX','CONFIRMAR ABSORCIÓN CVD PARA 90%','ALTA PROBABILIDAD REVERSIÓN'];
-    }
-    // N3 SHORT — 80%: funding+ADX fuertes
-    else if(funding>0.05&&adx>=45){
-      nivelNum=3;confianza=80;tipo='SHORT PREMIUM';
-      estado=['[ESTADO: CLÍMAX — CONFIRMAR]','LONG PAGA TASA CARÍSIMA · POSIBLE SQUEEZE','BUSCAR ABSORCIÓN CVD PARA CONFIRMAR','RIESGO ALTO'];
-    }
-    // N2 SHORT — 65%: condiciones maduras
-    else if(funding>0.001&&funding<=0.05&&adx>=30&&vRatio>=1.5){
-      nivelNum=2;confianza=65;tipo='TRADE ESTÁNDAR';
-      estado=['[ESTADO: TRADE MADURO POR AGOTAMIENTO]','TENDENCIA FUERTE Y MADURA · BUSCAR REVERSIÓN','FILTRO AGOTAMIENTO SC4/SC5 ACTIVO','BUEN R:R AL POCTP'];
-      if(agotado)estado.push('⚠ AGOTAMIENTO CONFIRMADO');
-    }
-    // N2 SHORT — 55%: parcial
-    else if(adx>=30&&(vRatio>=1.5||funding>0.001)){
-      nivelNum=2;confianza=55;tipo='TRADE ESTÁNDAR';
-      estado=['[ESTADO: SEÑAL MEDIA EN DESARROLLO]','CONFIANZA MEDIA · TRADE ESTÁNDAR','CONFIRMAR VOLUMEN INSTITUCIONAL (1.5-3x)','MONITOREAR FUNDING Y ADX'];
-    }
-    // N1 SHORT — señal débil
-    else{
-      nivelNum=1;confianza=30;tipo='SEÑAL DÉBIL — PELIGRO';
-      estado=['[ESTADO: SEÑAL DÉBIL]','FUNDING: NORMAL · SIN EUFORIA CONFIRMADA','ADX: TENDENCIA EN DESARROLLO','WHALE MULT <1.5x: SIN RASTRO INSTITUCIONAL','SIN ABSORCIÓN CVD · SIN AGOTAMIENTO · ESPERAR'];
-    }
-  }else{
-    // ── MODO LONG ──
-    const stochBajo=stochK<30;
-    const stochSubiendo=stochK>=(d.stochKP||stochK)&&stochK<55;
-    const cvdAlcista=cvdDir==='up';
-    const whaleCompra=whale==='buy'||wBR;
-
-    // N3 LONG — 90%: absorción confirmada + funding negativo + ADX bajo + whale buy
-    if(absorcion&&funding<=0&&adx<=25&&whaleCompra){
-      nivelNum=3;confianza=90;tipo='LONG PREMIUM';
-      estado=['[ESTADO: SPRING INSTITUCIONAL]','ABSORCIÓN CVD CONFIRMADA · BALLENA COMPRANDO','FUNDING NEGATIVO · SHORTS FINANCIANDO REBOTE','ALTA PROBABILIDAD PUMP VIOLENTO'];
-    }
-    // N3 LONG — 85%: mayoría condiciones sin whale directo
-    else if(absorcion&&funding<=0.001&&(cvdAlcista||stochBajo)&&adx<=30){
-      nivelNum=3;confianza=85;tipo='LONG PREMIUM';
-      estado=['[ESTADO: ACUMULACIÓN INSTITUCIONAL]','ABSORCIÓN CVD + FUNDING NEUTRAL/NEGATIVO','ADX BAJO · COMPRESIÓN MÁXIMA DETECTADA','CONFIRMAR WHALE BUY PARA 90%'];
-    }
-    // N3 LONG — 80%: funding negativo + CVD alcista fuerte
-    else if(funding<-0.005&&cvdAlcista&&adx<=35){
-      nivelNum=3;confianza=80;tipo='LONG PREMIUM';
-      estado=['[ESTADO: SPRING EN DESARROLLO]','SHORTS PAGANDO CARO · PRESIÓN AL ALZA','CVD ALCISTA · ACUMULACIÓN ACTIVA','BUSCAR ABSORCIÓN CVD PARA CONFIRMAR'];
-    }
-    // N2 LONG — 65%: condiciones intermedias
-    else if(funding<=0.003&&adx<=30&&(cvdAlcista||stochBajo||whaleCompra)){
-      nivelNum=2;confianza=65;tipo='LONG ESTÁNDAR';
-      estado=['[ESTADO: ACUMULACIÓN EN DESARROLLO]','FUNDING NEUTRAL · SIN PRESIÓN VENDEDORA','ADX BAJO · PRECIO EN COMPRESIÓN','BUEN R:R SI CONFIRMA CVD O WHALE BUY'];
-      if(stochBajo)estado.push('✅ STOCH RSI OVERSOLD · REBOTE PROBABLE');
-    }
-    // N2 LONG — 55%: señal media
-    else if(funding<=0.003&&(cvdAlcista||stochSubiendo)){
-      nivelNum=2;confianza=55;tipo='LONG ESTÁNDAR';
-      estado=['[ESTADO: SEÑAL MEDIA EN DESARROLLO]','FUNDING OK · MONITOREAR CVD Y WHALE','STOCH RSI SUBIENDO · MOMENTUM INCIPIENTE','ESPERAR CONFIRMACIÓN ANTES DE ENTRAR'];
-    }
-    // N1 LONG — señal débil
-    else{
-      nivelNum=1;confianza=30;tipo='LONG DÉBIL — ESPERAR';
-      estado=['[ESTADO: SEÑAL LONG DÉBIL]','FUNDING NEUTRAL PERO SIN CATALIZADORES','CVD PLANO · SIN ABSORCIÓN CONFIRMADA','WHALE NEUTRO · ESPERAR SETUP COMPLETO','MONITOREAR SQZMOM Y ABSORCIÓN CVD'];
-    }
-  }
-
+  if(modo==='SHORT'){if(funding>0.05&&adx>=50&&vRatio>=3&&absorcion){nivelNum=3;confianza=90;tipo='SHORT PREMIUM';estado=['[ESTADO: CLÍMAX ABSOLUTO]','DIVERGENCIA INSTITUCIONAL DETECTADA','BALLENA ABSORBIENDO FOMO RETAIL UPSTREAM','ALTA PROBABILIDAD DE REVERSIÓN VIOLENTA'];}else if(funding>0.05&&adx>=50&&(agotado||vRatio>=3)){nivelNum=3;confianza=85;tipo='SHORT PREMIUM';estado=['[ESTADO: CLÍMAX ABSOLUTO PARCIAL]','FUNDING EUFORIA + ADX CLÍMAX','CONFIRMAR ABSORCIÓN CVD PARA 90%','ALTA PROBABILIDAD REVERSIÓN'];}else if(funding>0.05&&adx>=45){nivelNum=3;confianza=80;tipo='SHORT PREMIUM';estado=['[ESTADO: CLÍMAX — CONFIRMAR]','LONG PAGA TASA CARÍSIMA · POSIBLE SQUEEZE','BUSCAR ABSORCIÓN CVD PARA CONFIRMAR','RIESGO ALTO'];}else if(funding>0.001&&funding<=0.05&&adx>=30&&vRatio>=1.5){nivelNum=2;confianza=65;tipo='TRADE ESTÁNDAR';estado=['[ESTADO: TRADE MADURO POR AGOTAMIENTO]','TENDENCIA FUERTE Y MADURA · BUSCAR REVERSIÓN','FILTRO AGOTAMIENTO SC4/SC5 ACTIVO','BUEN R:R AL POCTP'];if(agotado)estado.push('⚠ AGOTAMIENTO CONFIRMADO');}else if(adx>=30&&(vRatio>=1.5||funding>0.001)){nivelNum=2;confianza=55;tipo='TRADE ESTÁNDAR';estado=['[ESTADO: SEÑAL MEDIA EN DESARROLLO]','CONFIANZA MEDIA · TRADE ESTÁNDAR','CONFIRMAR VOLUMEN INSTITUCIONAL (1.5-3x)','MONITOREAR FUNDING Y ADX'];}else{nivelNum=1;confianza=30;tipo='SEÑAL DÉBIL — PELIGRO';estado=['[ESTADO: SEÑAL DÉBIL]','FUNDING: NORMAL · SIN EUFORIA CONFIRMADA','ADX: TENDENCIA EN DESARROLLO','WHALE MULT <1.5x: SIN RASTRO INSTITUCIONAL','SIN ABSORCIÓN CVD · SIN AGOTAMIENTO · ESPERAR'];}}else{const stochBajo=stochK<30;const stochSubiendo=stochK>=(d.stochKP||stochK)&&stochK<55;const cvdAlcista=cvdDir==='up';const whaleCompra=whale==='buy'||wBR;if(absorcion&&funding<=0&&adx<=25&&whaleCompra){nivelNum=3;confianza=90;tipo='LONG PREMIUM';estado=['[ESTADO: SPRING INSTITUCIONAL]','ABSORCIÓN CVD CONFIRMADA · BALLENA COMPRANDO','FUNDING NEGATIVO · SHORTS FINANCIANDO REBOTE','ALTA PROBABILIDAD PUMP VIOLENTO'];}else if(absorcion&&funding<=0.001&&(cvdAlcista||stochBajo)&&adx<=30){nivelNum=3;confianza=85;tipo='LONG PREMIUM';estado=['[ESTADO: ACUMULACIÓN INSTITUCIONAL]','ABSORCIÓN CVD + FUNDING NEUTRAL/NEGATIVO','ADX BAJO · COMPRESIÓN MÁXIMA DETECTADA','CONFIRMAR WHALE BUY PARA 90%'];}else if(funding<-0.005&&cvdAlcista&&adx<=35){nivelNum=3;confianza=80;tipo='LONG PREMIUM';estado=['[ESTADO: SPRING EN DESARROLLO]','SHORTS PAGANDO CARO · PRESIÓN AL ALZA','CVD ALCISTA · ACUMULACIÓN ACTIVA','BUSCAR ABSORCIÓN CVD PARA CONFIRMAR'];}else if(funding<=0.003&&adx<=30&&(cvdAlcista||stochBajo||whaleCompra)){nivelNum=2;confianza=65;tipo='LONG ESTÁNDAR';estado=['[ESTADO: ACUMULACIÓN EN DESARROLLO]','FUNDING NEUTRAL · SIN PRESIÓN VENDEDORA','ADX BAJO · PRECIO EN COMPRESIÓN','BUEN R:R SI CONFIRMA CVD O WHALE BUY'];if(stochBajo)estado.push('✅ STOCH RSI OVERSOLD · REBOTE PROBABLE');}else if(funding<=0.003&&(cvdAlcista||stochSubiendo)){nivelNum=2;confianza=55;tipo='LONG ESTÁNDAR';estado=['[ESTADO: SEÑAL MEDIA EN DESARROLLO]','FUNDING OK · MONITOREAR CVD Y WHALE','STOCH RSI SUBIENDO · MOMENTUM INCIPIENTE','ESPERAR CONFIRMACIÓN ANTES DE ENTRAR'];}else{nivelNum=1;confianza=30;tipo='LONG DÉBIL — ESPERAR';estado=['[ESTADO: SEÑAL LONG DÉBIL]','FUNDING NEUTRAL PERO SIN CATALIZADORES','CVD PLANO · SIN ABSORCIÓN CONFIRMADA','WHALE NEUTRO · ESPERAR SETUP COMPLETO','MONITOREAR SQZMOM Y ABSORCIÓN CVD'];}}
   return{nivelNum,confianza,estado,tipo,modo,adxTag,fundingTag,whaleTag,adxPct,fundingPct,whalePct,absorcion,agotado};
 }
 
-function sparkBars(val,max,color,count=10){
-  const bars=[];const pctFilled=Math.min(1,val/max);
-  for(let i=0;i<count;i++){
-    const filled=i/count<=pctFilled;
-    const h=filled?Math.max(4,Math.round(6+Math.sin(i*0.8+val)*5)):Math.max(2,Math.round(2+Math.random()*2));
-    const op=filled?1:0.18;
-    bars.push(`<div class="celu-spark-bar" style="height:${h}px;background:${color};opacity:${op}"></div>`);
-  }
-  return bars.join('');
-}
+function sparkBars(val,max,color,count=10){const bars=[];const pctFilled=Math.min(1,val/max);for(let i=0;i<count;i++){const filled=i/count<=pctFilled;const h=filled?Math.max(4,Math.round(6+Math.sin(i*0.8+val)*5)):Math.max(2,Math.round(2+Math.random()*2));const op=filled?1:0.18;bars.push('<div class="celu-spark-bar" style="height:'+h+'px;background:'+color+';opacity:'+op+'"></div>');}return bars.join('');}
 
-function renderCeluWidget(sym,d,hmContainer){
-  // Crear el contenedor del widget CELU debajo del heatmap
-  let wEl=document.getElementById('celu-w-'+sym);
-  if(!wEl){wEl=document.createElement('div');wEl.id='celu-w-'+sym;hmContainer.after(wEl);}
-
-  const n=calcCeluNivel(d);
-  const{nivelNum,confianza,estado,tipo,modo,adxTag,fundingTag,whaleTag,adxPct,fundingPct,whalePct,absorcion,agotado}=n;
-
-  // Colores por nivel
-  const nc=nivelNum===3?'var(--magenta)':nivelNum===2?'var(--yellow)':'var(--green)';
-  const maxLev=nivelNum===3?'25x':nivelNum===2?'15x':'5x';
-
-  // Gauge SVG — semiarco 270° desde -135° a +135°
-  function deg2rad(d){return d*Math.PI/180;}
-  function pol(deg,r,cx=100,cy=100){const rad=deg2rad(deg);return{x:cx+r*Math.cos(rad),y:cy+r*Math.sin(rad)};}
-  const R=80,cx=100,cy=100;
-  const startA=-135,endA=135;
-  const activeA=startA+(confianza/100)*(endA-startA);
-  const largeArc=activeA-startA>180?1:0;
-  const pStart=pol(startA,R);const pEnd=pol(endA,R);const pActive=pol(activeA,R);
-  // Zona N1 green: -135 to -45 | N2 yellow: -45 to 45 | N3 magenta: 45 to 135
-  const pN1e=pol(-45,R),pN2e=pol(45,R);
-  const pN1s=pol(-135,R),pN2s=pol(-45,R),pN3s=pol(45,R),pN3e=pol(135,R);
-  const arcBg=`M ${pStart.x.toFixed(1)} ${pStart.y.toFixed(1)} A ${R} ${R} 0 1 1 ${pEnd.x.toFixed(1)} ${pEnd.y.toFixed(1)}`;
-  const arcN1=`M ${pN1s.x.toFixed(1)} ${pN1s.y.toFixed(1)} A ${R} ${R} 0 0 1 ${pN1e.x.toFixed(1)} ${pN1e.y.toFixed(1)}`;
-  const arcN2=`M ${pN2s.x.toFixed(1)} ${pN2s.y.toFixed(1)} A ${R} ${R} 0 0 1 ${pN2e.x.toFixed(1)} ${pN2e.y.toFixed(1)}`;
-  const arcN3=`M ${pN3s.x.toFixed(1)} ${pN3s.y.toFixed(1)} A ${R} ${R} 0 0 1 ${pN3e.x.toFixed(1)} ${pN3e.y.toFixed(1)}`;
-  const arcActive=confianza>0?`M ${pStart.x.toFixed(1)} ${pStart.y.toFixed(1)} A ${R} ${R} 0 ${largeArc} 1 ${pActive.x.toFixed(1)} ${pActive.y.toFixed(1)}`:'';
-  const needleX=(cx+70*Math.cos(deg2rad(activeA))).toFixed(1);
-  const needleY=(cy+70*Math.sin(deg2rad(activeA))).toFixed(1);
-
-  // Labels posición
+function renderCeluWidget(sym,d,hmContainer){let wEl=document.getElementById('celu-w-'+sym);if(!wEl){wEl=document.createElement('div');wEl.id='celu-w-'+sym;hmContainer.after(wEl);}
+  const n=calcCeluNivel(d);const{nivelNum,confianza,estado,tipo,modo,adxTag,fundingTag,whaleTag,adxPct,fundingPct,whalePct,absorcion,agotado}=n;
+  const nc=nivelNum===3?'var(--magenta)':nivelNum===2?'var(--yellow)':'var(--green)';const maxLev=nivelNum===3?'25x':nivelNum===2?'15x':'5x';
+  function deg2rad(d){return d*Math.PI/180;}function pol(deg,r,cx=100,cy=100){const rad=deg2rad(deg);return{x:cx+r*Math.cos(rad),y:cy+r*Math.sin(rad)};}
+  const R=80,cx=100,cy=100,startA=-135,endA=135,activeA=startA+(confianza/100)*(endA-startA),largeArc=activeA-startA>180?1:0;
+  const pStart=pol(startA,R),pEnd=pol(endA,R),pActive=pol(activeA,R);
+  const pN1e=pol(-45,R),pN2e=pol(45,R),pN1s=pol(-135,R),pN2s=pol(-45,R),pN3s=pol(45,R),pN3e=pol(135,R);
+  const arcBg='M '+pStart.x.toFixed(1)+' '+pStart.y.toFixed(1)+' A '+R+' '+R+' 0 1 1 '+pEnd.x.toFixed(1)+' '+pEnd.y.toFixed(1);
+  const arcN1='M '+pN1s.x.toFixed(1)+' '+pN1s.y.toFixed(1)+' A '+R+' '+R+' 0 0 1 '+pN1e.x.toFixed(1)+' '+pN1e.y.toFixed(1);
+  const arcN2='M '+pN2s.x.toFixed(1)+' '+pN2s.y.toFixed(1)+' A '+R+' '+R+' 0 0 1 '+pN2e.x.toFixed(1)+' '+pN2e.y.toFixed(1);
+  const arcN3='M '+pN3s.x.toFixed(1)+' '+pN3s.y.toFixed(1)+' A '+R+' '+R+' 0 0 1 '+pN3e.x.toFixed(1)+' '+pN3e.y.toFixed(1);
+  const arcActive=confianza>0?'M '+pStart.x.toFixed(1)+' '+pStart.y.toFixed(1)+' A '+R+' '+R+' 0 '+largeArc+' 1 '+pActive.x.toFixed(1)+' '+pActive.y.toFixed(1):'';
+  const needleX=(cx+70*Math.cos(deg2rad(activeA))).toFixed(1),needleY=(cy+70*Math.sin(deg2rad(activeA))).toFixed(1);
   const lN1=pol(-135,R-18),lN2=pol(0,R-18),lN3=pol(135,R-18);
-  const lArc=pol(0,R-30); // label arco arriba
-
-  // Funding color & val
-  const fd=d.funding;
-  const fv=fd!==null?(fd>=0?'+':'')+fd.toFixed(4)+'%':'—';
+  const fd=d.funding,fv=fd!==null?(fd>=0?'+':'')+fd.toFixed(4)+'%':'—';
   const fCol=modo==='LONG'?(adxTag==='COMPRESIÓN MÁXIMA'?'var(--cyan)':adxTag==='ACUMULACIÓN SILENCIOSA'?'var(--green)':adxTag==='INICIO MOVIMIENTO'?'var(--yellow)':'var(--orange)'):(adxTag==='CLÍMAX ABSOLUTO'?'var(--magenta)':adxTag==='FUERTE Y MADURA'?'var(--yellow)':'var(--green)');
   const fundColor=modo==='LONG'?(fundingTag.includes('SPRING')?'var(--cyan)':fundingTag.includes('NEGATIVO')?'var(--green)':fundingTag.includes('NEUTRAL')?'var(--yellow)':'var(--orange)'):(fundingTag==='EUFORIA EXTREMA'?'var(--yellow)':fundingTag.includes('RETAIL')?'var(--orange)':'var(--green)');
   const whaleColor=modo==='LONG'?(whaleTag.includes('INSTITUCIONAL')||whaleTag.includes('ABSORCIÓN')?'var(--cyan)':whaleTag.includes('CVD')||whaleTag.includes('ACUMULANDO')?'var(--green)':whaleTag.includes('SPRING')?'var(--yellow)':'var(--text3)'):(whaleTag==='INYECCIÓN MASIVA'?'var(--orange)':whaleTag==='INSTITUCIONAL'?'var(--cyan)':'var(--text3)');
+  wEl.innerHTML='<div class="celu-widget"><div class="celu-widget-header"><div><div class="celu-widget-title">⚡ CELU CONFIANZA — '+sym+' <span style="font-size:10px;font-family:\'Barlow Condensed\',sans-serif;font-weight:700;letter-spacing:2px;padding:2px 8px;border:1px solid '+(modo==='LONG'?'var(--cyan)':'var(--red)')+';color:'+(modo==='LONG'?'var(--cyan)':'var(--red)')+';background:'+(modo==='LONG'?'rgba(0,229,255,0.08)':'rgba(255,51,85,0.08)')+'">'+(modo==='LONG'?'▲ LONG':'▼ SHORT')+'</span></div><div class="celu-widget-sub">SHORT/LONG PREMIUM · 3 NIVELES · MANUSCRITO v1 · BINANCE FUTURES</div></div><div style="text-align:right"><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:9px;color:var(--text3);letter-spacing:2px">MODO ACTIVO</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;color:'+nc+'">'+tipo+'</div></div></div><div class="celu-body"><div class="celu-gauge-wrap"><svg class="celu-gauge-svg" viewBox="18 25 165 95"><defs><filter id="cglow-'+sym+'"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><text x="100" y="45" fill="rgba(200,200,224,0.35)" font-family="Barlow Condensed,sans-serif" font-size="6.5" font-weight="600" text-anchor="middle" letter-spacing="2">'+(modo==='LONG'?'ACUMULACIÓN / SPRING':'AGOTAMIENTO / ABSORCIÓN')+'</text><path d="'+arcBg+'" fill="none" stroke="#16162a" stroke-width="11" stroke-linecap="round"/><path d="'+arcN1+'" fill="none" stroke="rgba(0,255,136,0.22)" stroke-width="11" stroke-linecap="round"/><path d="'+arcN2+'" fill="none" stroke="rgba(255,215,0,0.18)" stroke-width="11" stroke-linecap="round"/><path d="'+arcN3+'" fill="none" stroke="rgba(255,0,204,0.25)" stroke-width="11" stroke-linecap="round"/>'+(arcActive?'<path d="'+arcActive+'" fill="none" stroke="'+nc+'" stroke-width="11" stroke-linecap="round" filter="url(#cglow-'+sym+')"/>':'')+' <text x="'+lN1.x.toFixed(1)+'" y="'+(lN1.y+3).toFixed(1)+'" fill="rgba(0,255,136,0.7)" font-family="Barlow Condensed,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle">N1</text><text x="'+lN2.x.toFixed(1)+'" y="'+(lN2.y+3).toFixed(1)+'" fill="rgba(255,215,0,0.7)" font-family="Barlow Condensed,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle">N2</text><text x="'+lN3.x.toFixed(1)+'" y="'+(lN3.y+3).toFixed(1)+'" fill="rgba(255,0,204,0.85)" font-family="Barlow Condensed,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle">N3</text><line x1="'+cx+'" y1="'+cy+'" x2="'+needleX+'" y2="'+needleY+'" stroke="'+nc+'" stroke-width="2.5" stroke-linecap="round" filter="url(#cglow-'+sym+')"/><circle cx="'+cx+'" cy="'+cy+'" r="5.5" fill="#08080f" stroke="'+nc+'" stroke-width="1.5"/><circle cx="'+cx+'" cy="'+cy+'" r="2.5" fill="'+nc+'"/><text x="'+cx+'" y="'+(cy+14)+'" fill="rgba(180,180,200,0.4)" font-family="Barlow Condensed,sans-serif" font-size="5.5" text-anchor="middle" letter-spacing="1">MAX RECO. LEVERAGE:</text><text x="'+cx+'" y="'+(cy+24)+'" fill="'+nc+'" font-family="Barlow Condensed,sans-serif" font-size="9" font-weight="900" text-anchor="middle">['+maxLev+']</text></svg><div class="celu-gauge-label" style="color:'+nc+'">CONFIANZA: '+confianza+'% (N'+nivelNum+')</div><div class="celu-gauge-nivel" style="border:1px solid '+nc+';color:'+nc+'">'+(nivelNum===3?(modo==='LONG'?'N3 — LONG PREMIUM':'N3 — SHORT PREMIUM'):nivelNum===2?(modo==='LONG'?'N2 — LONG ESTÁNDAR':'N2 — TRADE ESTÁNDAR'):(modo==='LONG'?'N1 — LONG DÉBIL':'N1 — SEÑAL DÉBIL'))+'</div><div class="celu-estado-box celu-estado-n'+nivelNum+'">'+estado.map(l=>'<div>'+l+'</div>').join('')+'</div><div class="celu-lev"><span class="celu-lev-label">MAX RECO. LEVERAGE:</span><span class="celu-lev-val">['+maxLev+']</span></div></div><div class="celu-metrics"><div class="celu-metric-card"><div class="celu-metric-label">ADX</div><div class="celu-metric-row"><span class="celu-metric-val" style="color:'+fCol+'">'+Math.round(d.adx||20)+'</span><span class="celu-metric-tag" style="background:'+(adxTag==='CLÍMAX ABSOLUTO'?'rgba(255,0,204,0.12)':adxTag==='FUERTE Y MADURA'?'rgba(255,215,0,0.09)':'rgba(0,255,136,0.08)')+';border:1px solid '+(adxTag==='CLÍMAX ABSOLUTO'?'rgba(255,0,204,0.5)':adxTag==='FUERTE Y MADURA'?'rgba(255,215,0,0.4)':'rgba(0,255,136,0.35)')+';color:'+fCol+'">: '+adxTag+'</span></div><div class="celu-spark">'+sparkBars(d.adx||20,65,fCol)+'</div><div class="celu-bar-track"><div class="celu-bar-fill" style="width:'+adxPct+'%;background:'+fCol+'"></div></div></div><div class="celu-metric-card"><div class="celu-metric-label">FUNDING</div><div class="celu-metric-row"><span class="celu-metric-val" style="color:'+fundColor+'">'+fv+'</span><span class="celu-metric-tag" style="background:'+(fundingTag==='EUFORIA EXTREMA'?'rgba(255,215,0,0.09)':'rgba(255,107,0,0.09)')+';border:1px solid '+(fundingTag==='EUFORIA EXTREMA'?'rgba(255,215,0,0.4)':'rgba(255,107,0,0.3)')+';color:'+fundColor+'">: '+fundingTag+'</span></div><div class="celu-spark">'+sparkBars(Math.abs(fd||0)*1000,100,fundColor)+'</div><div class="celu-bar-track"><div class="celu-bar-fill" style="width:'+fundingPct+'%;background:'+fundColor+'"></div></div></div><div class="celu-metric-card"><div class="celu-metric-label">VOL WHALE ('+whaleTag+')</div><div class="celu-metric-row"><span class="celu-metric-val" style="color:'+whaleColor+'">'+(d.vRatio||1).toFixed(1)+'x</span><span class="celu-metric-tag" style="background:'+(d.whale==='buy'?'rgba(0,255,136,0.1)':d.whale==='sell'?'rgba(255,51,85,0.1)':'rgba(0,0,0,0.3)')+';border:1px solid '+(d.whale==='buy'?'var(--green2)':d.whale==='sell'?'var(--red2)':'var(--border2)')+';color:'+(d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text3)')+'">🐋 '+(d.whale==='buy'?'BUY':d.whale==='sell'?'SELL':'—')+(absorcion?' · ABSORCIÓN':'')+'</span></div><div class="celu-spark">'+sparkBars(d.vRatio||1,5,whaleColor)+'</div><div class="celu-bar-track"><div class="celu-bar-fill" style="width:'+whalePct+'%;background:'+whaleColor+'"></div></div></div><div class="celu-metric-card"><div class="celu-metric-label">WHALE DETECTOR'+(absorcion?': ABSORCIÓN':'')+'</div><div class="celu-metric-row" style="align-items:flex-start;flex-wrap:wrap;gap:4px"><span class="celu-metric-val" style="color:'+(d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text3)')+'">'+(d.whale==='buy'?'BUY':d.whale==='sell'?'SELL':'NEUTRAL')+'</span>'+(absorcion?'<span style="font-size:9px;color:var(--magenta);font-family:\'Barlow Condensed\',sans-serif;font-weight:700">(BLOQUES DE VENTA ABAJO)</span>':'')+'</div><div class="celu-score-row">'+[1,2,3,4,5].map(i=>'<div class="celu-score-dot" style="background:'+(i<=Math.max(1,Math.round(whalePct/20))?(d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text2)'):'var(--border2)')+'"></div>').join('')+'</div>'+(absorcion?'<div style="font-size:9px;color:var(--magenta);font-family:\'Barlow Condensed\',sans-serif;font-weight:700;margin-top:5px;letter-spacing:1px;animation:pulse 1.2s infinite">⚡ ABSORCIÓN CVD CONFIRMADA</div>':'')+(agotado?'<div style="font-size:9px;color:var(--orange);font-family:\'Barlow Condensed\',sans-serif;font-weight:700;margin-top:3px;letter-spacing:1px">⚠ AGOTAMIENTO SC4/SC5 DETECTADO</div>':'')+'</div></div></div><div class="celu-widget-footer"><span class="celu-widget-footer-l" style="color:'+nc+'">ESTADO: [N'+nivelNum+' — '+tipo+']</span><span class="celu-widget-footer-r" style="color:'+nc+'">['+confianza+'% CONFIRMED]</span></div></div>';}
 
-  wEl.innerHTML=`
-  <div class="celu-widget">
-    <div class="celu-widget-header">
-      <div>
-        <div class="celu-widget-title">⚡ CELU CONFIANZA — ${sym} <span style="font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:2px;padding:2px 8px;border:1px solid ${modo==='LONG'?'var(--cyan)':'var(--red)'};color:${modo==='LONG'?'var(--cyan)':'var(--red)'};background:${modo==='LONG'?'rgba(0,229,255,0.08)':'rgba(255,51,85,0.08)'};">${modo==='LONG'?'▲ LONG':'▼ SHORT'}</span></div>
-        <div class="celu-widget-sub">SHORT/LONG PREMIUM · 3 NIVELES · MANUSCRITO v1 · BINANCE FUTURES</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="text-align:right">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--text3);letter-spacing:2px">MODO ACTIVO</div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:${nc}">${tipo}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="celu-body">
-
-      <!-- GAUGE COL -->
-      <div class="celu-gauge-wrap">
-        <svg class="celu-gauge-svg" viewBox="18 25 165 95">
-          <defs>
-            <filter id="cglow-${sym}">
-              <feGaussianBlur stdDeviation="3" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <!-- Label arco superior -->
-          <text x="100" y="45" fill="rgba(200,200,224,0.35)" font-family="Barlow Condensed,sans-serif" font-size="6.5" font-weight="600" text-anchor="middle" letter-spacing="2">${modo==='LONG'?'ACUMULACIÓN / SPRING':'AGOTAMIENTO / ABSORCIÓN'}</text>
-          <!-- Track total -->
-          <path d="${arcBg}" fill="none" stroke="#16162a" stroke-width="11" stroke-linecap="round"/>
-          <!-- Zonas de color por nivel -->
-          <path d="${arcN1}" fill="none" stroke="rgba(0,255,136,0.22)" stroke-width="11" stroke-linecap="round"/>
-          <path d="${arcN2}" fill="none" stroke="rgba(255,215,0,0.18)" stroke-width="11" stroke-linecap="round"/>
-          <path d="${arcN3}" fill="none" stroke="rgba(255,0,204,0.25)" stroke-width="11" stroke-linecap="round"/>
-          <!-- Arco activo -->
-          ${arcActive?`<path d="${arcActive}" fill="none" stroke="${nc}" stroke-width="11" stroke-linecap="round" filter="url(#cglow-${sym})"/>`:''}
-          <!-- Labels N1/N2/N3 -->
-          <text x="${lN1.x.toFixed(1)}" y="${(lN1.y+3).toFixed(1)}" fill="rgba(0,255,136,0.7)" font-family="Barlow Condensed,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle">N1</text>
-          <text x="${lN2.x.toFixed(1)}" y="${(lN2.y+3).toFixed(1)}" fill="rgba(255,215,0,0.7)" font-family="Barlow Condensed,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle">N2</text>
-          <text x="${lN3.x.toFixed(1)}" y="${(lN3.y+3).toFixed(1)}" fill="rgba(255,0,204,0.85)" font-family="Barlow Condensed,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle">N3</text>
-          <!-- Aguja -->
-          <line x1="${cx}" y1="${cy}" x2="${needleX}" y2="${needleY}" stroke="${nc}" stroke-width="2.5" stroke-linecap="round" filter="url(#cglow-${sym})"/>
-          <!-- Centro pivot -->
-          <circle cx="${cx}" cy="${cy}" r="5.5" fill="#08080f" stroke="${nc}" stroke-width="1.5"/>
-          <circle cx="${cx}" cy="${cy}" r="2.5" fill="${nc}"/>
-          <!-- MAX LEVERAGE label -->
-          <text x="${cx}" y="${cy+14}" fill="rgba(180,180,200,0.4)" font-family="Barlow Condensed,sans-serif" font-size="5.5" text-anchor="middle" letter-spacing="1">MAX RECO. LEVERAGE:</text>
-          <text x="${cx}" y="${cy+24}" fill="${nc}" font-family="Barlow Condensed,sans-serif" font-size="9" font-weight="900" text-anchor="middle">[${maxLev}]</text>
-        </svg>
-
-        <!-- Confianza label -->
-        <div class="celu-gauge-label" style="color:${nc}">CONFIANZA: ${confianza}% (N${nivelNum})</div>
-        <div class="celu-gauge-nivel" style="border:1px solid ${nc};color:${nc}">
-          ${nivelNum===3?(modo==='LONG'?'N3 — LONG PREMIUM':'N3 — SHORT PREMIUM'):nivelNum===2?(modo==='LONG'?'N2 — LONG ESTÁNDAR':'N2 — TRADE ESTÁNDAR'):(modo==='LONG'?'N1 — LONG DÉBIL':'N1 — SEÑAL DÉBIL')}
-        </div>
-
-        <!-- Estado descriptivo -->
-        <div class="celu-estado-box celu-estado-n${nivelNum}">
-          ${estado.map(l=>`<div>${l}</div>`).join('')}
-        </div>
-
-        <!-- Leverage box -->
-        <div class="celu-lev">
-          <span class="celu-lev-label">MAX RECO. LEVERAGE:</span>
-          <span class="celu-lev-val">[${maxLev}]</span>
-        </div>
-      </div>
-
-      <!-- MÉTRICAS COL -->
-      <div class="celu-metrics">
-
-        <!-- ADX -->
-        <div class="celu-metric-card">
-          <div class="celu-metric-label">ADX</div>
-          <div class="celu-metric-row">
-            <span class="celu-metric-val" style="color:${fCol}">${Math.round(d.adx||20)}</span>
-            <span class="celu-metric-tag" style="background:${adxTag==='CLÍMAX ABSOLUTO'?'rgba(255,0,204,0.12)':adxTag==='FUERTE Y MADURA'?'rgba(255,215,0,0.09)':'rgba(0,255,136,0.08)'};border:1px solid ${adxTag==='CLÍMAX ABSOLUTO'?'rgba(255,0,204,0.5)':adxTag==='FUERTE Y MADURA'?'rgba(255,215,0,0.4)':'rgba(0,255,136,0.35)'};color:${fCol}">: ${adxTag}</span>
-          </div>
-          <div class="celu-spark">${sparkBars(d.adx||20,65,fCol)}</div>
-          <div class="celu-bar-track"><div class="celu-bar-fill" style="width:${adxPct}%;background:${fCol}"></div></div>
-        </div>
-
-        <!-- FUNDING -->
-        <div class="celu-metric-card">
-          <div class="celu-metric-label">FUNDING</div>
-          <div class="celu-metric-row">
-            <span class="celu-metric-val" style="color:${fundColor}">${fv}</span>
-            <span class="celu-metric-tag" style="background:${fundingTag==='EUFORIA EXTREMA'?'rgba(255,215,0,0.09)':'rgba(255,107,0,0.09)'};border:1px solid ${fundingTag==='EUFORIA EXTREMA'?'rgba(255,215,0,0.4)':'rgba(255,107,0,0.3)'};color:${fundColor}">: ${fundingTag}</span>
-          </div>
-          <div class="celu-spark">${sparkBars(Math.abs(fd||0)*1000,100,fundColor)}</div>
-          <div class="celu-bar-track"><div class="celu-bar-fill" style="width:${fundingPct}%;background:${fundColor}"></div></div>
-        </div>
-
-        <!-- VOL WHALE -->
-        <div class="celu-metric-card">
-          <div class="celu-metric-label">VOL WHALE (${whaleTag})</div>
-          <div class="celu-metric-row">
-            <span class="celu-metric-val" style="color:${whaleColor}">${(d.vRatio||1).toFixed(1)}x</span>
-            <span class="celu-metric-tag" style="background:${d.whale==='buy'?'rgba(0,255,136,0.1)':d.whale==='sell'?'rgba(255,51,85,0.1)':'rgba(0,0,0,0.3)'};border:1px solid ${d.whale==='buy'?'var(--green2)':d.whale==='sell'?'var(--red2)':'var(--border2)'};color:${d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text3)'}">
-              🐋 ${d.whale==='buy'?'BUY':d.whale==='sell'?'SELL':'—'}${absorcion?' · ABSORCIÓN':''}
-            </span>
-          </div>
-          <div class="celu-spark">${sparkBars(d.vRatio||1,5,whaleColor)}</div>
-          <div class="celu-bar-track"><div class="celu-bar-fill" style="width:${whalePct}%;background:${whaleColor}"></div></div>
-        </div>
-
-        <!-- WHALE DETECTOR -->
-        <div class="celu-metric-card">
-          <div class="celu-metric-label">WHALE DETECTOR${absorcion?': ABSORCIÓN':''}</div>
-          <div class="celu-metric-row" style="align-items:flex-start;flex-wrap:wrap;gap:4px">
-            <span class="celu-metric-val" style="color:${d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text3)'}">
-              ${d.whale==='buy'?'BUY':d.whale==='sell'?'SELL':'NEUTRAL'}
-            </span>
-            ${absorcion?`<span style="font-size:9px;color:var(--magenta);font-family:'Barlow Condensed',sans-serif;font-weight:700">(BLOQUES DE VENTA ABAJO)</span>`:''}
-          </div>
-          <div class="celu-score-row">
-            ${[1,2,3,4,5].map(i=>`<div class="celu-score-dot" style="background:${i<=Math.max(1,Math.round(whalePct/20))?(d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text2)'):'var(--border2)'}"></div>`).join('')}
-          </div>
-          ${absorcion?`<div style="font-size:9px;color:var(--magenta);font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-top:5px;letter-spacing:1px;animation:pulse 1.2s infinite">⚡ ABSORCIÓN CVD CONFIRMADA</div>`:''}
-          ${agotado?`<div style="font-size:9px;color:var(--orange);font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-top:3px;letter-spacing:1px">⚠ AGOTAMIENTO SC4/SC5 DETECTADO</div>`:''}
-        </div>
-
-      </div><!-- /metrics -->
-    </div><!-- /body -->
-
-    <!-- FOOTER STATUS BAR -->
-    <div class="celu-widget-footer">
-      <span class="celu-widget-footer-l" style="color:${nc}">
-        ESTADO: [N${nivelNum} — ${tipo}]
-      </span>
-      <span class="celu-widget-footer-r" style="color:${nc}">
-        [${confianza}% CONFIRMED]
-      </span>
-    </div>
-  </div>`;
-}
-
-// TOGGLE HEATMAP + CELU WIDGET
-// tokenDataCache almacena datos del último scan para usarlos en el widget
 const tokenDataCache={};
-
-async function toggleHeatmap(sym){
-  const cId='hm-c-'+sym,btnId='hm-btn-'+sym;
-  const c=document.getElementById(cId),btn=document.getElementById(btnId);
-  if(!c)return;
-  if(c.classList.contains('open')){
-    c.classList.remove('open');
-    if(btn){btn.textContent='🔥 HEATMAP';btn.classList.remove('active');}
-    // Ocultar widget CELU
-    const wEl=document.getElementById('celu-w-'+sym);
-    if(wEl)wEl.style.display='none';
-    return;
-  }
-  c.classList.add('open');
-  if(btn){btn.textContent='▲ CERRAR';btn.classList.add('active');}
-  c.innerHTML='<div class="heatmap-loading"><span class="spinner"></span> Cargando heatmap...</div>';
-  renderHM(sym,await fetchHM(sym),cId);
-
-  // Renderizar CELU widget con datos del cache si existen
-  const wEl=document.getElementById('celu-w-'+sym);
-  if(wEl)wEl.style.display='';
-  const cached=tokenDataCache[sym];
-  if(cached){renderCeluWidget(sym,cached,c);}
-  else{
-    // Cargar datos si no hay en cache
-    const td=await getTokenData(sym);
-    tokenDataCache[sym]=td;
-    renderCeluWidget(sym,td,c);
-  }
-}
+async function toggleHeatmap(sym){const cId='hm-c-'+sym,btnId='hm-btn-'+sym;const c=document.getElementById(cId),btn=document.getElementById(btnId);if(!c)return;if(c.classList.contains('open')){c.classList.remove('open');if(btn){btn.textContent='🔥 HEATMAP';btn.classList.remove('active');}const wEl=document.getElementById('celu-w-'+sym);if(wEl)wEl.style.display='none';return;}c.classList.add('open');if(btn){btn.textContent='▲ CERRAR';btn.classList.add('active');}c.innerHTML='<div class="heatmap-loading"><span class="spinner"></span> Cargando heatmap...</div>';renderHM(sym,await fetchHM(sym),cId);const wEl=document.getElementById('celu-w-'+sym);if(wEl)wEl.style.display='';const cached=tokenDataCache[sym];if(cached){renderCeluWidget(sym,cached,c);}else{const td=await getTokenData(sym);tokenDataCache[sym]=td;renderCeluWidget(sym,td,c);}}
 
 // SCANNER DATA
 async function getTokenData(symbol){const pair=symbol+'USDT';try{const[tk,fr,oi,wd,oiH,liq]=await Promise.allSettled([fwr('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol='+pair),fwr('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=1'),fwr('https://fapi.binance.com/fapi/v1/openInterest?symbol='+pair),fetchWhaleData(symbol),fetchOIHist(symbol),fetchLiqs(symbol),]);const t=tk.status==='fulfilled'?tk.value:null;if(!t)return{symbol,error:'No data'};const w=wd.status==='fulfilled'?wd.value:defW();const oiHv=oiH.status==='fulfilled'?oiH.value:null;const lv=liq.status==='fulfilled'?liq.value:{sL:0,lL:0,climax:false};const price=parseFloat(t.lastPrice),ch24=parseFloat(t.priceChangePercent);const mec=detectMecanico(oiHv,ch24);const result={symbol,price,change24:ch24,funding:fr.status==='fulfilled'&&fr.value[0]?parseFloat(fr.value[0].fundingRate)*100:null,openInterest:oi.status==='fulfilled'&&oi.value?parseFloat(oi.value.openInterest)*price:null,whale:w.whale,wBR:w.wBR,wSR:w.wSR,cvd:w.cvd,cvdDir:w.cvdDir,cvdPct:w.cvdPct,vRatio:w.vRatio,stochK:w.stochK,stochKP:w.stochKP,stochD:w.stochD,vwap:w.vwap,adx:w.adx,absorcion:w.absorcion,absorcionPct:w.absorcionPct,mecanico:mec.mecanico,oiCaida:mec.oiCaida,climax:lv.climax,shortLiqs:lv.sL,longLiqs:lv.lL};tokenDataCache[symbol]=result;return result;}catch(e){return{symbol,error:e.message};}}
@@ -897,6 +605,139 @@ function renderRow(d,idx){if(d.error)return'<tr style="animation-delay:'+idx*0.0
 
 async function runScan(){if(scanning)return;if(selectedTokens.size===0){showToast('Seleccioná al menos un token');return;}scanning=true;const btn=document.getElementById('scan-btn');btn.disabled=true;btn.textContent='⟳ SCANNING...';const tbody=document.getElementById('table-body');tbody.innerHTML='<tr><td colspan="13" style="padding:40px;text-align:center;color:var(--text2);font-size:11px"><span class="spinner"></span>CELU v4: Whale+StochRSI+VWAP+ADX+Absorción+OI+Climax+Confianza...</td></tr>';const tokens=Array.from(selectedTokens);const data=await Promise.all(tokens.map(t=>getTokenData(t)));data.sort((a,b)=>{const sa=calcSetup(a),sb=calcSetup(b);const rk=t=>t==='climax'?5:t==='absorcion'?4:t==='wlong'||t==='wshort'?3:t==='squeeze'?2:t==='mecanico'?2:t==='long'?1:0;if(rk(sa.type)!==rk(sb.type))return rk(sb.type)-rk(sa.type);return(sb.sL+sb.sS)-(sa.sL+sa.sS);});tbody.innerHTML=data.map((d,i)=>renderRow(d,i)).join('');const v=data.filter(d=>!d.error);document.getElementById('s-total').textContent=v.length;document.getElementById('s-wlong').textContent=v.filter(d=>calcSetup(d).sigL).length;document.getElementById('s-wshort').textContent=v.filter(d=>calcSetup(d).sigS).length;document.getElementById('s-absorcion').textContent=v.filter(d=>d.absorcion).length;document.getElementById('s-mecanico').textContent=v.filter(d=>d.mecanico).length;document.getElementById('s-climax').textContent=v.filter(d=>d.climax).length;const af=v.reduce((a,d)=>a+(d.funding||0),0)/(v.length||1);const sf=document.getElementById('s-funding');sf.textContent=(af>=0?'+':'')+af.toFixed(4)+'%';sf.style.color=af<0?'var(--green)':'var(--red)';document.getElementById('summary').style.display='flex';const now=new Date(),ts=now.toLocaleTimeString('es-AR');document.getElementById('last-update').textContent='Última actualización: '+ts+' — CELU v4 + CONFIANZA';document.getElementById('last-update-header').textContent=ts;btn.disabled=false;btn.textContent='▶ SCAN';scanning=false;checkScanAlerts(data);}
 function setRefresh(){const v=parseInt(document.getElementById('refresh-select').value);clearInterval(refreshInterval);refreshInterval=null;if(v>0)refreshInterval=setInterval(()=>runScan(),v*1000);}
+
+// ============================================================
+// CELU PRE-CARRERA — Lógica manuscrito 3 niveles LONG
+// N1=30% (Gris) / N2=65% (Amarillo) / N3=90% (Verde/Magenta)
+// Variables: FUNDING · ADX · WHALE MULT · ABSORCIÓN CVD · SQZMOM
+// Todos los datos ya vienen de fetchPRData() via fetchWhaleData()
+// ============================================================
+function calcCeluPrecarrera(d){
+  const funding=d.avgFunding!==null&&d.avgFunding!==undefined?d.avgFunding:0.01;
+  const adx=d.adx||20;
+  const vRatio=d.volRatio||1;
+  const cvdDir=d.cvdDir||'flat';
+  const whale=d.whale||'neutral';
+  const wBR=d.wBR||false;
+  const absorcion=d.absorcion||false;
+  const sq=d.sqzmom||{};
+  const stochK=d.stochK||50;
+
+  // ── FUNDING (variable clave #1) ──────────────────────────────
+  // N1: +0.0100%+ (retail cómodo, sin presión shorts atrapados)
+  // N2: zona neutral a negativa (+0.0010% a -0.0050%)
+  // N3: negativo o cayendo rápido (nafta pura para short squeeze)
+  let fS=0;
+  if(funding<-0.01)fS=3;           // Negativo fuerte → N3
+  else if(funding<-0.005)fS=2;     // Negativo moderado → N3 parcial
+  else if(funding<0)fS=2;           // Leve negativo → N2/N3
+  else if(funding<=0.001)fS=1;     // Neutral → N2 parcial
+  else if(funding<=0.003)fS=1;     // Leve positivo → borde N1/N2
+  else fS=0;                        // >0.01% → N1
+
+  // ── ADX (variable clave #2) ──────────────────────────────────
+  // N1: <15 (totalmente apagado, EEG plano)
+  // N2: 15-18 (quiere curvarse hacia arriba despacio)
+  // N3: rompe 18 y apunta directo a 30 (fuerza vertical arrancó)
+  let aS=0;
+  if(adx>=20)aS=3;       // Arrancó el movimiento → N3
+  else if(adx>=18)aS=2;  // Rompiendo umbral → N2/N3
+  else if(adx>=15)aS=1;  // Curvándose → N2
+  else aS=0;              // <15 → N1
+
+  // ── WHALE MULT (variable clave #3) ───────────────────────────
+  // N1: <1.2x (sin rastro institucional, solo bots minoristas)
+  // N2: 1.5-2.5x (precio plano pero volumen oculto subió de golpe)
+  // N3: >2.5x o 3.0x o whale=buy directo (inyección masiva)
+  let wS=0;
+  if(whale==='buy'||wBR)wS=3;    // Señal directa ballena compradora
+  else if(vRatio>=2.5)wS=3;       // Inyección masiva
+  else if(vRatio>=1.5)wS=2;       // Institucional activo
+  else if(vRatio>=1.2)wS=1;       // Leve actividad
+  else wS=0;                       // Apagado → N1
+
+  // ── FILTROS ABSORCIÓN / AGOTAMIENTO (variable clave #4) ──────
+  // N1: CVD lateral, precio sin anomalías
+  // N2: absorción CVD = SÍ (venden pero precio no cae = órdenes límite inst.)
+  // N3: absorción + SQZMOM virando a verde + agotamiento de shorts
+  let fltS=0;
+  if(absorcion)fltS+=2;          // Absorción CVD confirmada → clave N2/N3
+  if(sq.virando)fltS+=2;         // SQZMOM virando a verde → señal N3 fuerte
+  else if(sq.subiendo)fltS+=1;   // SQZMOM subiendo → N2 parcial
+  if(cvdDir==='up')fltS+=1;      // CVD alcista complementario
+  if(stochK<30)fltS+=1;          // StochRSI oversold → rebote probable
+
+  let nivelNum,confianza,color,accion,desc;
+
+  // NIVEL 3 — LONG PREMIUM 90%: El Resorte
+  // "Las ballenas se cansaron de acumular pasivo y empiezan a barrer"
+  if(fS>=2&&aS>=2&&wS>=2&&fltS>=2){
+    nivelNum=3;confianza=90;color='#ff00cc';
+    accion='🚀 GATILLO INMEDIATO';
+    desc='Resorte soltado · Ballenas barriendo órdenes · Entrar 1ª vela retroceso 5m';
+  }
+  else if(fS>=2&&aS>=2&&(wS>=2||fltS>=3)){
+    nivelNum=3;confianza=85;color='#ff00cc';
+    accion='⚡ GATILLO CASI LISTO';
+    desc='Spring institucional · Confirmar absorción CVD para 90%';
+  }
+  // NIVEL 2 — LONG ESTÁNDAR 65%: El Nido de la Ballena
+  // "El precio sigue plano, ballena con la canasta juntando lo que retail tira"
+  else if(fS>=1&&aS>=1&&wS>=1&&fltS>=1){
+    nivelNum=2;confianza=65;color='#ffd700';
+    accion='⚠ ENTRADA PASIVA — POC VP';
+    desc='Nido de ballena · Retail cansado tira, inst. acumula · SL cortito bajo rango';
+  }
+  else if(fS>=1&&(aS>=1||wS>=1)&&fltS>=1){
+    nivelNum=2;confianza=55;color='#ffd700';
+    accion='👀 MONITOREAR';
+    desc='En desarrollo · Funding + absorción OK · Esperar ADX ≥15 y whale mult ≥1.5x';
+  }
+  // NIVEL 1 — ACUMULACIÓN FRÍA 30%: En el fondo del mar
+  // "No hay ningún apuro por comprar. Se monitoriza pero NO SE TOCA"
+  else{
+    nivelNum=1;confianza=30;color='#888888';
+    accion='🛑 NO TOCAR — MONITORIZAR';
+    desc='Acumulación fría · Sin señales de vida reales · ADX plano · Vol apagado';
+  }
+  return{nivelNum,confianza,color,accion,desc,fS,aS,wS,fltS};
+}
+
+function renderCeluPR(d){
+  const n=calcCeluPrecarrera(d);
+  const{nivelNum,confianza,color,accion,desc,fS,aS,wS,fltS}=n;
+  const nc=nivelNum===3?'celu-pr-n3':nivelNum===2?'celu-pr-n2':'celu-pr-n1';
+
+  // 4 variables del manuscrito con sus puntajes
+  const vars=[
+    {label:'FUNDING',score:fS,max:3,hint:fS===3?'NEGATIVO FUERTE':fS===2?'NEUTRO/NEG':fS===1?'NEUTRAL':'RETAIL CÓMODO'},
+    {label:'ADX',score:aS,max:3,hint:aS===3?'ROMPE 18→30':aS===2?'ROMPIENDO':aS===1?'CURVÁNDOSE':'APAGADO'},
+    {label:'WHALE',score:wS,max:3,hint:wS===3?'>2.5x / BUY':wS===2?'1.5-2.5x':wS===1?'1.2x LEVE':'<1.2x NEUTRO'},
+    {label:'CVD/ABS',score:fltS,max:5,hint:fltS>=4?'ABSORCIÓN+SQZ':fltS>=2?'ABSORCIÓN OK':fltS>=1?'CVD ALCISTA':'LATERAL'},
+  ];
+
+  // Mini barras proporcionales al score/max
+  const bars=vars.map(v=>{
+    const pct=Math.min(1,v.score/v.max);
+    const h=Math.max(4,Math.round(pct*30));
+    const c=pct>=0.66?color:pct>=0.33?'#ffd700':'#1a1a30';
+    return '<div class="celu-pr-bar" style="height:'+h+'px;background:'+c+'" title="'+v.label+': '+v.score+'/'+v.max+' — '+v.hint+'"></div>';
+  }).join('');
+
+  // Cuadrícula de variables con barra interna
+  const varDots=vars.map(v=>{
+    const pct=Math.min(1,v.score/v.max);
+    const c=pct>=0.66?color:pct>=0.33?'#ffd700':'#333355';
+    const fillW=Math.round(pct*100);
+    return '<div class="celu-pr-var" title="'+v.hint+'"><div class="celu-pr-var-dot" style="background:'+c+'"></div><span class="celu-pr-var-label">'+v.label+'</span><div class="celu-pr-var-bar"><div class="celu-pr-var-fill" style="width:'+fillW+'%;background:'+c+'"></div></div><span class="celu-pr-var-val" style="color:'+c+'">'+v.score+'/'+v.max+'</span></div>';
+  }).join('');
+
+  return '<div class="celu-pr-wrap">'
+    +'<div class="celu-pr-header">⚡ CELU CONFIANZA LONG</div>'
+    +'<div class="celu-pr-badge '+nc+'"><div class="celu-pr-conf">'+confianza+'<span style="font-size:12px">%</span></div><div class="celu-pr-body"><div class="celu-pr-nivel">N'+nivelNum+' — LONG PRE-CARRERA · MANUSCRITO v4</div><div class="celu-pr-accion">'+accion+'</div><div class="celu-pr-desc">'+desc+'</div></div><div class="celu-pr-bars">'+bars+'</div></div>'
+    +'<div class="celu-pr-vars">'+varDots+'</div>'
+    +'</div>';
+}
 
 // CARRERA
 async function fetchAllTickers(){const r=await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr');if(!r.ok)throw new Error('No tickers');const d=await r.json();return d.filter(t=>t.symbol.endsWith('USDT')&&!t.symbol.includes('_')).map(t=>({symbol:t.symbol.replace('USDT',''),price:parseFloat(t.lastPrice),change24:parseFloat(t.priceChangePercent),volume:parseFloat(t.quoteVolume)})).sort((a,b)=>b.change24-a.change24);}
@@ -910,10 +751,58 @@ function setRaceMode(m){raceMode=m;document.getElementById('race-mode-all').clas
 
 // PRE-CARRERA
 async function fetchAllTickersPR(){const r=await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr');if(!r.ok)throw new Error('No tickers');const d=await r.json();const mv=parseInt(document.getElementById('pr-minvol').value);return d.filter(t=>t.symbol.endsWith('USDT')&&!t.symbol.includes('_')&&parseFloat(t.quoteVolume)>=mv&&parseFloat(t.lastPrice)>=0.0001).map(t=>({symbol:t.symbol.replace('USDT',''),price:parseFloat(t.lastPrice),change24:parseFloat(t.priceChangePercent),volume24h:parseFloat(t.quoteVolume)}));}
-async function fetchPRData(symbol){const pair=symbol+'USDT';try{const r=await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=1d&limit=30');if(!r.ok)return null;const k=await r.json();if(!Array.isArray(k)||k.length<5)return null;const price=parseFloat(k[k.length-1][4]);if(!price||price<=0)return null;const maxPct=parseFloat(document.getElementById('pr-pct').value);const dm=k.map(c=>{const h=parseFloat(c[2]),l=parseFloat(c[3]),o=parseFloat(c[1]);return o>0?(h-l)/o*100:0;});let dF=0;for(let i=dm.length-1;i>=0;i--){if(dm[i]<=maxPct)dF++;else break;}const vs=k.map(c=>parseFloat(c[5]));const av=vs.slice(0,-1).reduce((a,b)=>a+b,0)/Math.max(vs.slice(0,-1).length,1);const rv=vs.slice(-5).reduce((a,b)=>a+b,0)/5;const vR=av>0?rv/av:1;const cls=k.map(c=>parseFloat(c[4]));const r5=cls.slice(-5).reduce((a,b)=>a+b,0)/5;const p10=cls.length>=15?cls.slice(-15,-5).reduce((a,b)=>a+b,0)/10:r5;const pT=p10>0?(r5-p10)/p10*100:0;let aF=null,oiV=0,whale='neutral',cvdD='flat',cvdP=0,wBR=false,wSR=false,sk=50,skP=50,sd=50,adx=20,vwap=price;try{const[fR,oR]=await Promise.allSettled([fetch('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=3').then(r=>r.json()),fetch('https://fapi.binance.com/fapi/v1/openInterest?symbol='+pair).then(r=>r.json())]);if(fR.status==='fulfilled'&&Array.isArray(fR.value)&&fR.value.length>0)aF=fR.value.reduce((a,f)=>a+parseFloat(f.fundingRate)*100,0)/fR.value.length;if(oR.status==='fulfilled'&&oR.value.openInterest)oiV=parseFloat(oR.value.openInterest)*price;}catch(e){}try{const wd=await fetchWhaleData(symbol);if(wd){whale=wd.whale;cvdD=wd.cvdDir;cvdP=wd.cvdPct||0;wBR=wd.wBR;wSR=wd.wSR;sk=wd.stochK;skP=wd.stochKP;sd=wd.stochD;adx=wd.adx;vwap=wd.vwap;}}catch(e){}let sq={val:0,prev:0,virando:false,diasNeg:0,positivo:false,subiendo:false};try{const hs=k.map(c=>parseFloat(c[2])),ls=k.map(c=>parseFloat(c[3])),n=20;function sm(arr,nn,end){const sl=arr.slice(Math.max(0,end-nn+1),end+1);return sl.reduce((a,b)=>a+b,0)/sl.length;}function cM(i){if(i<n)return 0;const hh=Math.max(...hs.slice(i-n,i)),ll=Math.min(...ls.slice(i-n,i));return cls[i]-((hh+ll)/2+sm(cls,n,i))/2;}const ma=cls.map((_,i)=>cM(i));const li=ma.length-1;sq.val=ma[li];sq.prev=ma[li-1]||0;sq.positivo=sq.val>0;sq.virando=sq.val>0&&sq.prev<=0;let dn=0;for(let i=li-1;i>=0;i--){if(ma[i]<=0)dn++;else break;}sq.diasNeg=dn;sq.subiendo=sq.val>sq.prev&&sq.val<0&&dn>=5;}catch(e){}return{symbol,price,diasFlat:dF,volRatio:vR,oiVal:oiV,priceTrend:pT,avgFunding:aF,avgVol:av,recentVol:rv,whale,wBR,wSR,cvdDir:cvdD,cvdPct:cvdP,stochK:sk,stochKP:skP,stochD:sd,adx,vwap,sqzmom:sq};}catch(e){return null;}}
+
+async function fetchPRData(symbol){const pair=symbol+'USDT';try{const r=await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=1d&limit=30');if(!r.ok)return null;const k=await r.json();if(!Array.isArray(k)||k.length<5)return null;const price=parseFloat(k[k.length-1][4]);if(!price||price<=0)return null;const maxPct=parseFloat(document.getElementById('pr-pct').value);const dm=k.map(c=>{const h=parseFloat(c[2]),l=parseFloat(c[3]),o=parseFloat(c[1]);return o>0?(h-l)/o*100:0;});let dF=0;for(let i=dm.length-1;i>=0;i--){if(dm[i]<=maxPct)dF++;else break;}const vs=k.map(c=>parseFloat(c[5]));const av=vs.slice(0,-1).reduce((a,b)=>a+b,0)/Math.max(vs.slice(0,-1).length,1);const rv=vs.slice(-5).reduce((a,b)=>a+b,0)/5;const vR=av>0?rv/av:1;const cls=k.map(c=>parseFloat(c[4]));const r5=cls.slice(-5).reduce((a,b)=>a+b,0)/5;const p10=cls.length>=15?cls.slice(-15,-5).reduce((a,b)=>a+b,0)/10:r5;const pT=p10>0?(r5-p10)/p10*100:0;let aF=null,oiV=0,whale='neutral',cvdD='flat',cvdP=0,wBR=false,wSR=false,sk=50,skP=50,sd=50,adx=20,vwap=price,absorcion=false,absorcionPct=0;try{const[fR,oR]=await Promise.allSettled([fetch('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=3').then(r=>r.json()),fetch('https://fapi.binance.com/fapi/v1/openInterest?symbol='+pair).then(r=>r.json())]);if(fR.status==='fulfilled'&&Array.isArray(fR.value)&&fR.value.length>0)aF=fR.value.reduce((a,f)=>a+parseFloat(f.fundingRate)*100,0)/fR.value.length;if(oR.status==='fulfilled'&&oR.value.openInterest)oiV=parseFloat(oR.value.openInterest)*price;}catch(e){}try{const wd=await fetchWhaleData(symbol);if(wd){whale=wd.whale;cvdD=wd.cvdDir;cvdP=wd.cvdPct||0;wBR=wd.wBR;wSR=wd.wSR;sk=wd.stochK;skP=wd.stochKP;sd=wd.stochD;adx=wd.adx;vwap=wd.vwap;absorcion=wd.absorcion;absorcionPct=wd.absorcionPct||0;}}catch(e){}let sq={val:0,prev:0,virando:false,diasNeg:0,positivo:false,subiendo:false};try{const hs=k.map(c=>parseFloat(c[2])),ls=k.map(c=>parseFloat(c[3])),n=20;function sm(arr,nn,end){const sl=arr.slice(Math.max(0,end-nn+1),end+1);return sl.reduce((a,b)=>a+b,0)/sl.length;}function cM(i){if(i<n)return 0;const hh=Math.max(...hs.slice(i-n,i)),ll=Math.min(...ls.slice(i-n,i));return cls[i]-((hh+ll)/2+sm(cls,n,i))/2;}const ma=cls.map((_,i)=>cM(i));const li=ma.length-1;sq.val=ma[li];sq.prev=ma[li-1]||0;sq.positivo=sq.val>0;sq.virando=sq.val>0&&sq.prev<=0;let dn=0;for(let i=li-1;i>=0;i--){if(ma[i]<=0)dn++;else break;}sq.diasNeg=dn;sq.subiendo=sq.val>sq.prev&&sq.val<0&&dn>=5;}catch(e){}return{symbol,price,diasFlat:dF,volRatio:vR,oiVal:oiV,priceTrend:pT,avgFunding:aF,avgVol:av,recentVol:rv,whale,wBR,wSR,cvdDir:cvdD,cvdPct:cvdP,stochK:sk,stochKP:skP,stochD:sd,adx,vwap,absorcion,absorcionPct,sqzmom:sq};}catch(e){return null;}}
+
 function calcPRScore(d){const minD=parseInt(document.getElementById('pr-dias').value);const maxV=parseFloat(document.getElementById('pr-vol').value);if(!d)return{score:0,tier:0};let sc=0;if(d.diasFlat>=minD*2)sc+=30;else if(d.diasFlat>=minD*1.5)sc+=22;else if(d.diasFlat>=minD)sc+=15;else return{score:0,tier:0};if(d.volRatio<=maxV*0.4)sc+=25;else if(d.volRatio<=maxV*0.6)sc+=18;else if(d.volRatio<=maxV)sc+=10;else return{score:0,tier:0};if(d.avgFunding!==null){if(d.avgFunding<-0.01)sc+=20;else if(d.avgFunding<0)sc+=14;else if(d.avgFunding<0.005)sc+=8;else sc+=2;}else sc+=8;if(d.priceTrend<-15)sc+=15;else if(d.priceTrend<-8)sc+=10;else if(d.priceTrend<-3)sc+=6;else if(d.priceTrend<5)sc+=3;if(d.sqzmom){if(d.sqzmom.virando&&d.sqzmom.diasNeg>=10)sc+=20;else if(d.sqzmom.virando&&d.sqzmom.diasNeg>=5)sc+=15;else if(d.sqzmom.virando)sc+=10;else if(d.sqzmom.subiendo&&d.sqzmom.diasNeg>=10)sc+=12;else if(d.sqzmom.subiendo)sc+=7;else if(d.sqzmom.positivo)sc+=3;}if(d.stochK!==undefined){if(d.stochK<25)sc+=6;else if(d.stochK<40)sc+=3;}if(d.whale==='buy'||d.wBR)sc+=8;else if(d.cvdDir==='up')sc+=4;if(d.change24>15)return{score:0,tier:0};if(Math.abs(d.change24)<2)sc+=7;else if(Math.abs(d.change24)<5)sc+=4;else if(Math.abs(d.change24)<10)sc+=1;const pct=Math.round(sc);const sqV=d.sqzmom&&(d.sqzmom.virando||d.sqzmom.subiendo);const isSal=d.change24>=1.5&&d.change24<=12&&(sqV||d.whale==='buy'||d.wBR||d.cvdDir==='up'||d.volRatio>=(maxV*0.8))&&d.diasFlat>=minD;let tier=0;if(isSal)tier=4;else if(pct>=65)tier=1;else if(pct>=45)tier=2;else if(pct>=28)tier=3;return{score:pct,tier,isSal};}
-function renderPRCard(d,sd,tk,idx){const{score,tier}=sd;if(tier===0)return'';const cfg={1:{cls:'tier-1',bc:'prerace-badge-1',bt:'🔥 PUMP INMINENTE',sc:'prerace-signal-hot',st:'⚡ Alta probabilidad',fc:'f1'},2:{cls:'tier-2',bc:'prerace-badge-2',bt:'👀 EN COCCIÓN',sc:'prerace-signal-warm',st:'→ Monitorear',fc:'f2'},3:{cls:'tier-3',bc:'prerace-badge-3',bt:'💧 ACUMULANDO',sc:'prerace-signal-watch',st:'· Acumulación temprana',fc:'f3'},4:{cls:'tier-4',bc:'prerace-badge-4',bt:'🚀 SALIENDO',sc:'prerace-signal-saliendo',st:'🚀 Empieza a moverse',fc:'f4'}};const c=cfg[tier];const vC=d.volRatio<=0.3?'var(--green)':d.volRatio<=0.5?'var(--yellow)':'var(--orange)';const fC=d.avgFunding!==null?(d.avgFunding<0?'var(--green)':d.avgFunding<0.005?'var(--yellow)':'var(--red)'):'var(--text2)';const tC=d.priceTrend<-5?'var(--green)':d.priceTrend<3?'var(--yellow)':'var(--red)';const fF=d.avgFunding!==null?(d.avgFunding>=0?'+':'')+d.avgFunding.toFixed(4)+'%':'—';const tF=(d.priceTrend>=0?'+':'')+d.priceTrend.toFixed(1)+'%';const pS=d.price>=1000?d.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):d.price>=1?d.price.toFixed(4):d.price.toFixed(6);const v24=tk.volume24h>=1e9?(tk.volume24h/1e9).toFixed(1)+'B':tk.volume24h>=1e6?(tk.volume24h/1e6).toFixed(1)+'M':(tk.volume24h/1e3).toFixed(0)+'K';const oiF=d.oiVal>=1e9?(d.oiVal/1e9).toFixed(1)+'B':d.oiVal>=1e6?(d.oiVal/1e6).toFixed(1)+'M':(d.oiVal/1e3).toFixed(0)+'K';const dots=Array.from({length:5},(_,i)=>'<div class="prerace-score-dot '+(i<Math.round(score/20)?c.fc:'')+'"></div>').join('');const oiB=Math.min(100,(d.oiVal/50e6)*100);const wC=d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text3)';const wT=d.whale==='buy'?'🐋 BUY':d.whale==='sell'?'🐋 SELL':d.wBR?'~ bull':d.wSR?'~ bear':'—';const cC2=d.cvdDir==='up'?'var(--green)':d.cvdDir==='down'?'var(--red)':'var(--text3)';const cA=d.cvdDir==='up'?'▲':d.cvdDir==='down'?'▼':'—';const sk=Math.round(d.stochK||50),skC=sk<25?'var(--green)':sk>75?'var(--red)':'var(--text2)';let sqH='';if(d.sqzmom){const sq=d.sqzmom;const sqC=sq.virando?'var(--green)':sq.subiendo?'var(--yellow)':sq.positivo?'var(--cyan)':'var(--text3)';const sqT=sq.virando?'SQZMOM VIRANDO ▲':sq.subiendo?'SQZMOM SUBIENDO ↗':sq.positivo?'SQZMOM POSITIVO':'SQZMOM NEGATIVO';const sqD=sq.virando?'desde '+sq.diasNeg+'d':sq.subiendo?sq.diasNeg+'d neg subiendo':'';sqH='<div style="margin-top:6px;padding:4px 8px;font-family:Barlow Condensed,sans-serif;font-size:10px;font-weight:700;border-radius:2px;background:rgba(0,0,0,0.3);border:1px solid '+sqC+';color:'+sqC+';display:flex;align-items:center;justify-content:space-between"><span>'+sqT+'</span><span style="font-size:9px;opacity:0.7">'+sqD+'</span></div>';}return'<div class="prerace-card '+c.cls+'" style="animation-delay:'+idx*0.04+'s"><div class="prerace-card-header"><div><div class="prerace-symbol">'+d.symbol+'</div><div class="prerace-price">$'+pS+' · Vol '+v24+'</div></div><span class="prerace-badge '+c.bc+'">'+c.bt+'</span></div><div class="prerace-metrics"><div class="prerace-metric"><span class="prerace-metric-label">Días flat</span><span class="prerace-metric-val" style="color:'+(tier===1||tier===4?'var(--orange)':'var(--cyan)')+'">'+d.diasFlat+'d</span></div><div class="prerace-metric"><span class="prerace-metric-label">Vol relativo</span><span class="prerace-metric-val" style="color:'+vC+'">'+d.volRatio.toFixed(2)+'x</span></div><div class="prerace-metric"><span class="prerace-metric-label">Funding avg</span><span class="prerace-metric-val" style="color:'+fC+'">'+fF+'</span></div><div class="prerace-metric"><span class="prerace-metric-label">Tendencia</span><span class="prerace-metric-val" style="color:'+tC+'">'+tF+'</span></div><div class="prerace-metric"><span class="prerace-metric-label">OI total</span><span class="prerace-metric-val" style="color:var(--cyan)">'+oiF+'</span></div><div class="prerace-metric"><span class="prerace-metric-label">StochRSI K</span><span class="prerace-metric-val" style="color:'+skC+'">'+sk+'</span></div></div><div class="prerace-score-bar"><span class="prerace-score-label">SCORE:</span>'+dots+'<span style="font-size:9px;color:var(--text2);margin-left:6px">'+score+'/100</span></div><div class="prerace-oi-bar"><div class="prerace-oi-fill" style="width:'+oiB+'%"></div></div>'+sqH+'<div class="whale-signal"><span style="color:'+wC+';font-family:Barlow Condensed,sans-serif;font-size:11px;font-weight:700">'+wT+'</span><span style="color:var(--text3)">CVD:</span><div class="cvd-bar"><div class="cvd-fill" style="width:'+Math.min(100,d.cvdPct||0)+'%;background:'+cC2+'"></div></div><span style="color:'+cC2+';font-family:Barlow Condensed,sans-serif;font-size:11px;font-weight:700">'+cA+'</span></div><div class="prerace-signal '+c.sc+'">'+c.st+'</div></div>';}
-async function runPrerace(){if(preraceRunning)return;preraceRunning=true;const btn=document.getElementById('prerace-scan-btn');btn.disabled=true;btn.textContent='⟳ ESCANEANDO...';const grid=document.getElementById('prerace-grid');grid.innerHTML='<div class="prerace-empty"><span class="spinner"></span> Paso 1/3 — Obteniendo pares...</div>';try{const tks=await fetchAllTickersPR();grid.innerHTML='<div class="prerace-empty"><span class="spinner"></span> Paso 2/3 — Filtrando '+tks.length+' tokens...</div>';const cands=tks.filter(t=>Math.abs(t.change24)<15);document.getElementById('pr-scanned').textContent=tks.length;grid.innerHTML='<div class="prerace-empty"><span class="spinner"></span> Paso 3/3 — Analizando CELU v4 en '+Math.min(cands.length,120)+' candidatos...</div>';const bs=15,res=[];for(let i=0;i<Math.min(cands.length,120);i+=bs){const b=cands.slice(i,i+bs);const br=await Promise.all(b.map(t=>fetchPRData(t.symbol)));res.push(...br.map((d,j)=>({data:d,ticker:b[j]})));if(i+bs<cands.length)await new Promise(r=>setTimeout(r,300));}const minD=parseInt(document.getElementById('pr-dias').value);const scored=res.filter(r=>r.data!==null&&r.data.diasFlat>=minD).map(r=>({...r,sd:calcPRScore(r.data)})).filter(r=>r.sd.tier>0).sort((a,b)=>{if(a.sd.tier===4&&b.sd.tier!==4)return-1;if(b.sd.tier===4&&a.sd.tier!==4)return 1;return b.sd.score-a.sd.score;});const hot=scored.filter(r=>r.sd.tier===1).length,warm=scored.filter(r=>r.sd.tier===2).length,watch=scored.filter(r=>r.sd.tier===3).length,sal=scored.filter(r=>r.sd.tier===4).length;document.getElementById('pr-relevant').textContent=scored.length;document.getElementById('pr-hot').textContent=hot;document.getElementById('pr-warm').textContent=warm;document.getElementById('pr-watch').textContent=watch;document.getElementById('pr-saliendo').textContent=sal;document.getElementById('prerace-stats').style.display='flex';if(scored.length===0)grid.innerHTML='<div class="prerace-empty">No se encontraron tokens. Reducí los días mínimos.</div>';else{grid.innerHTML=scored.slice(0,30).map((r,i)=>renderPRCard(r.data,r.sd,r.ticker,i)).join('');showToast('🚀 '+scored.length+' tokens · '+sal+' SALIENDO · '+hot+' HOT');}document.getElementById('prerace-last-update').textContent='Actualizado: '+new Date().toLocaleTimeString('es-AR')+' · CELU v4';}catch(e){grid.innerHTML='<div class="prerace-empty">Error: '+e.message+'</div>';}btn.disabled=false;btn.textContent='▶ ESCANEAR';preraceRunning=false;}
+
+// ── renderPRCard MODIFICADO: agrega CELU confianza LONG al final de cada tarjeta ──
+function renderPRCard(d,sd,tk,idx){
+  const{score,tier}=sd;if(tier===0)return'';
+  const cfg={1:{cls:'tier-1',bc:'prerace-badge-1',bt:'🔥 PUMP INMINENTE',sc:'prerace-signal-hot',st:'⚡ Alta probabilidad',fc:'f1'},2:{cls:'tier-2',bc:'prerace-badge-2',bt:'👀 EN COCCIÓN',sc:'prerace-signal-warm',st:'→ Monitorear',fc:'f2'},3:{cls:'tier-3',bc:'prerace-badge-3',bt:'💧 ACUMULANDO',sc:'prerace-signal-watch',st:'· Acumulación temprana',fc:'f3'},4:{cls:'tier-4',bc:'prerace-badge-4',bt:'🚀 SALIENDO',sc:'prerace-signal-saliendo',st:'🚀 Empieza a moverse',fc:'f4'}};
+  const c=cfg[tier];
+  const vC=d.volRatio<=0.3?'var(--green)':d.volRatio<=0.5?'var(--yellow)':'var(--orange)';
+  const fC=d.avgFunding!==null?(d.avgFunding<0?'var(--green)':d.avgFunding<0.005?'var(--yellow)':'var(--red)'):'var(--text2)';
+  const tC=d.priceTrend<-5?'var(--green)':d.priceTrend<3?'var(--yellow)':'var(--red)';
+  const fF=d.avgFunding!==null?(d.avgFunding>=0?'+':'')+d.avgFunding.toFixed(4)+'%':'—';
+  const tF=(d.priceTrend>=0?'+':'')+d.priceTrend.toFixed(1)+'%';
+  const pS=d.price>=1000?d.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):d.price>=1?d.price.toFixed(4):d.price.toFixed(6);
+  const v24=tk.volume24h>=1e9?(tk.volume24h/1e9).toFixed(1)+'B':tk.volume24h>=1e6?(tk.volume24h/1e6).toFixed(1)+'M':(tk.volume24h/1e3).toFixed(0)+'K';
+  const oiF=d.oiVal>=1e9?(d.oiVal/1e9).toFixed(1)+'B':d.oiVal>=1e6?(d.oiVal/1e6).toFixed(1)+'M':(d.oiVal/1e3).toFixed(0)+'K';
+  const dots=Array.from({length:5},(_,i)=>'<div class="prerace-score-dot '+(i<Math.round(score/20)?c.fc:'')+'"></div>').join('');
+  const oiB=Math.min(100,(d.oiVal/50e6)*100);
+  const wC=d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text3)';
+  const wT=d.whale==='buy'?'🐋 BUY':d.whale==='sell'?'🐋 SELL':d.wBR?'~ bull':d.wSR?'~ bear':'—';
+  const cC2=d.cvdDir==='up'?'var(--green)':d.cvdDir==='down'?'var(--red)':'var(--text3)';
+  const cA=d.cvdDir==='up'?'▲':d.cvdDir==='down'?'▼':'—';
+  const sk=Math.round(d.stochK||50),skC=sk<25?'var(--green)':sk>75?'var(--red)':'var(--text2)';
+  let sqH='';
+  if(d.sqzmom){const sq=d.sqzmom;const sqC=sq.virando?'var(--green)':sq.subiendo?'var(--yellow)':sq.positivo?'var(--cyan)':'var(--text3)';const sqT=sq.virando?'SQZMOM VIRANDO ▲':sq.subiendo?'SQZMOM SUBIENDO ↗':sq.positivo?'SQZMOM POSITIVO':'SQZMOM NEGATIVO';const sqD=sq.virando?'desde '+sq.diasNeg+'d':sq.subiendo?sq.diasNeg+'d neg subiendo':'';sqH='<div style="margin-top:6px;padding:4px 8px;font-family:Barlow Condensed,sans-serif;font-size:10px;font-weight:700;border-radius:2px;background:rgba(0,0,0,0.3);border:1px solid '+sqC+';color:'+sqC+';display:flex;align-items:center;justify-content:space-between"><span>'+sqT+'</span><span style="font-size:9px;opacity:0.7">'+sqD+'</span></div>';}
+
+  // ── CELU CONFIANZA LONG (manuscrito) ──────────────────────────
+  // Calculado con los mismos datos que ya trae fetchPRData
+  const celuHTML = renderCeluPR(d);
+
+  return '<div class="prerace-card '+c.cls+'" style="animation-delay:'+idx*0.04+'s">'
+    +'<div class="prerace-card-header"><div><div class="prerace-symbol">'+d.symbol+'</div><div class="prerace-price">$'+pS+' · Vol '+v24+'</div></div><span class="prerace-badge '+c.bc+'">'+c.bt+'</span></div>'
+    +'<div class="prerace-metrics"><div class="prerace-metric"><span class="prerace-metric-label">Días flat</span><span class="prerace-metric-val" style="color:'+(tier===1||tier===4?'var(--orange)':'var(--cyan)')+'">'+d.diasFlat+'d</span></div><div class="prerace-metric"><span class="prerace-metric-label">Vol relativo</span><span class="prerace-metric-val" style="color:'+vC+'">'+d.volRatio.toFixed(2)+'x</span></div><div class="prerace-metric"><span class="prerace-metric-label">Funding avg</span><span class="prerace-metric-val" style="color:'+fC+'">'+fF+'</span></div><div class="prerace-metric"><span class="prerace-metric-label">Tendencia</span><span class="prerace-metric-val" style="color:'+tC+'">'+tF+'</span></div><div class="prerace-metric"><span class="prerace-metric-label">OI total</span><span class="prerace-metric-val" style="color:var(--cyan)">'+oiF+'</span></div><div class="prerace-metric"><span class="prerace-metric-label">StochRSI K</span><span class="prerace-metric-val" style="color:'+skC+'">'+sk+'</span></div></div>'
+    +'<div class="prerace-score-bar"><span class="prerace-score-label">SCORE:</span>'+dots+'<span style="font-size:9px;color:var(--text2);margin-left:6px">'+score+'/100</span></div>'
+    +'<div class="prerace-oi-bar"><div class="prerace-oi-fill" style="width:'+oiB+'%"></div></div>'
+    +sqH
+    +'<div class="whale-signal"><span style="color:'+wC+';font-family:Barlow Condensed,sans-serif;font-size:11px;font-weight:700">'+wT+'</span><span style="color:var(--text3)">CVD:</span><div class="cvd-bar"><div class="cvd-fill" style="width:'+Math.min(100,d.cvdPct||0)+'%;background:'+cC2+'"></div></div><span style="color:'+cC2+';font-family:Barlow Condensed,sans-serif;font-size:11px;font-weight:700">'+cA+'</span></div>'
+    +'<div class="prerace-signal '+c.sc+'">'+c.st+'</div>'
+    // ── CELU CONFIANZA LONG integrado aquí ──
+    +celuHTML
+    +'</div>';
+}
+
+async function runPrerace(){if(preraceRunning)return;preraceRunning=true;const btn=document.getElementById('prerace-scan-btn');btn.disabled=true;btn.textContent='⟳ ESCANEANDO...';const grid=document.getElementById('prerace-grid');grid.innerHTML='<div class="prerace-empty"><span class="spinner"></span> Paso 1/3 — Obteniendo pares...</div>';try{const tks=await fetchAllTickersPR();grid.innerHTML='<div class="prerace-empty"><span class="spinner"></span> Paso 2/3 — Filtrando '+tks.length+' tokens...</div>';const cands=tks.filter(t=>Math.abs(t.change24)<15);document.getElementById('pr-scanned').textContent=tks.length;grid.innerHTML='<div class="prerace-empty"><span class="spinner"></span> Paso 3/3 — Analizando CELU v4 + Confianza en '+Math.min(cands.length,120)+' candidatos...</div>';const bs=15,res=[];for(let i=0;i<Math.min(cands.length,120);i+=bs){const b=cands.slice(i,i+bs);const br=await Promise.all(b.map(t=>fetchPRData(t.symbol)));res.push(...br.map((d,j)=>({data:d,ticker:b[j]})));if(i+bs<cands.length)await new Promise(r=>setTimeout(r,300));}const minD=parseInt(document.getElementById('pr-dias').value);const scored=res.filter(r=>r.data!==null&&r.data.diasFlat>=minD).map(r=>({...r,sd:calcPRScore(r.data)})).filter(r=>r.sd.tier>0).sort((a,b)=>{if(a.sd.tier===4&&b.sd.tier!==4)return-1;if(b.sd.tier===4&&a.sd.tier!==4)return 1;return b.sd.score-a.sd.score;});const hot=scored.filter(r=>r.sd.tier===1).length,warm=scored.filter(r=>r.sd.tier===2).length,watch=scored.filter(r=>r.sd.tier===3).length,sal=scored.filter(r=>r.sd.tier===4).length;
+  // Contar tokens por nivel CELU
+  const celuN3=scored.filter(r=>calcCeluPrecarrera(r.data).nivelNum===3).length;
+  const celuN2=scored.filter(r=>calcCeluPrecarrera(r.data).nivelNum===2).length;
+  document.getElementById('pr-relevant').textContent=scored.length;document.getElementById('pr-hot').textContent=hot;document.getElementById('pr-warm').textContent=warm;document.getElementById('pr-watch').textContent=watch;document.getElementById('pr-saliendo').textContent=sal;
+  const celuN3El=document.getElementById('pr-celu-n3');const celuN2El=document.getElementById('pr-celu-n2');if(celuN3El)celuN3El.textContent=celuN3;if(celuN2El)celuN2El.textContent=celuN2;
+  document.getElementById('prerace-stats').style.display='flex';if(scored.length===0)grid.innerHTML='<div class="prerace-empty">No se encontraron tokens. Reducí los días mínimos.</div>';else{grid.innerHTML=scored.slice(0,30).map((r,i)=>renderPRCard(r.data,r.sd,r.ticker,i)).join('');showToast('🚀 '+scored.length+' tokens · '+sal+' SALIENDO · '+hot+' HOT · '+celuN3+' CELU N3');}document.getElementById('prerace-last-update').textContent='Actualizado: '+new Date().toLocaleTimeString('es-AR')+' · CELU v4 + Confianza Long';}catch(e){grid.innerHTML='<div class="prerace-empty">Error: '+e.message+'</div>';}btn.disabled=false;btn.textContent='▶ ESCANEAR';preraceRunning=false;}
 
 // TABS
 function switchTab(tab){['scanner','race','prerace'].forEach(t=>{document.getElementById('panel-'+t).style.display=t===tab?'block':'none';const el=document.getElementById('tab-'+t);el.className='tab';if(t===tab)el.classList.add('active-'+t);});if(tab==='race'&&!raceInit){raceInit=true;runRace();setInterval(()=>runRace(),30000);}}
