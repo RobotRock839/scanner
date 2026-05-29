@@ -536,7 +536,7 @@ function calcCeluNivel(d){
     (cvdDir==='up'||absorcion||whale==='buy'||wBR||stochK<50)
   );
   const signosShort=(
-    funding>0.003||            // longs pagando tasa
+    funding>0.01||             // longs pagando tasa (>0.01% = real presión)
     (change24>=5&&stochK>=70)  // subió fuerte y está sobrecomprado
   );
   const modo=signosLong&&!signosShort?'LONG':'SHORT';
