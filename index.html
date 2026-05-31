@@ -574,6 +574,16 @@ td.right{text-align:right;}
 </div>
 
 <script>
+// ── TABS — va primero para que los onclick del HTML la encuentren ──
+function switchTab(tab){
+  ['scanner','race','prerace'].forEach(t=>{
+    const panel=document.getElementById('panel-'+t);
+    if(panel)panel.style.display=t===tab?'block':'none';
+    const el=document.getElementById('tab-'+t);
+    if(el){el.className='tab';if(t===tab)el.classList.add('active-'+t);}
+  });
+  if(tab==='race'&&!raceInit){raceInit=true;runRace();setInterval(()=>runRace(),30000);}
+}
 // ============================================================
 // STATE
 // ============================================================
@@ -666,12 +676,12 @@ function renderRegistro(){
       <td><span style="font-family:Barlow Condensed,sans-serif;font-size:10px;font-weight:700;padding:2px 6px;border:1px solid ${r.tipo==='PUMP NOW'?'var(--green)':'var(--cyan)'};color:${r.tipo==='PUMP NOW'?'var(--green)':'var(--cyan)'}">${r.tipo}</span></td>
       <td style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:var(--yellow)">#${r.pos}</td>
       <td style="color:var(--green);font-family:Barlow Condensed,sans-serif;font-weight:700">+${r.ch}%</td>
-      <td style="color:${parseFloat(r.vol15)>=3?'var(--green)':'var(--text2)';font-family:Barlow Condensed,sans-serif;font-weight:700}">${r.vol15}</td>
+      <td style="color:${parseFloat(r.vol15)>=3?'var(--green)':'var(--text2)'};font-family:'Barlow Condensed',sans-serif;font-weight:700">${r.vol15}</td>
       <td style="font-size:10px">${cvdDot(r.cvd)}</td>
       <td style="font-size:10px">${cvdDot(r.ema)}</td>
       <td style="font-size:10px;color:${r.funding&&r.funding.startsWith('-')?'var(--green)':'var(--text2)'}">${r.funding}</td>
       <td style="color:var(--text2);font-size:10px">${r.adx}</td>
-      <td style="color:${parseFloat(r.vol4h)>=2?'var(--orange)':'var(--text2)';font-size:10px}">${r.vol4h}</td>
+      <td style="color:${parseFloat(r.vol4h)>=2?'var(--orange)':'var(--text2)'};font-size:10px">${r.vol4h}</td>
       <td>${nivelBadgeR(r.nivel)}</td>
       <td>
         <select class="res-select" onchange="updateRegistroRes(${r.id},'resultado',this.value)">
@@ -990,8 +1000,7 @@ async function runPrerace(){if(preraceRunning)return;preraceRunning=true;const b
   const celuN3El=document.getElementById('pr-celu-n3');const celuN2El=document.getElementById('pr-celu-n2');if(celuN3El)celuN3El.textContent=celuN3;if(celuN2El)celuN2El.textContent=celuN2;
   document.getElementById('prerace-stats').style.display='flex';if(scored.length===0)grid.innerHTML='<div class="prerace-empty">No se encontraron tokens. Reducí los días mínimos.</div>';else{grid.innerHTML=scored.slice(0,30).map((r,i)=>renderPRCard(r.data,r.sd,r.ticker,i)).join('');showToast('🚀 '+scored.length+' tokens · '+sal+' SALIENDO · '+hot+' HOT · '+celuN3+' CELU N3');}document.getElementById('prerace-last-update').textContent='Actualizado: '+new Date().toLocaleTimeString('es-AR')+' · CELU v4 + Confianza Long';}catch(e){grid.innerHTML='<div class="prerace-empty">Error: '+e.message+'</div>';}btn.disabled=false;btn.textContent='▶ ESCANEAR';preraceRunning=false;}
 
-// TABS
-function switchTab(tab){['scanner','race','prerace'].forEach(t=>{document.getElementById('panel-'+t).style.display=t===tab?'block':'none';const el=document.getElementById('tab-'+t);el.className='tab';if(t===tab)el.classList.add('active-'+t);});if(tab==='race'&&!raceInit){raceInit=true;runRace();setInterval(()=>runRace(),30000);}}
+
 
 // ALERTAS
 let alertHist=[],prevSS={},prevAg=new Set(),prevCl=new Set(),alertOpen=false,unrL=0,unrS=0;
