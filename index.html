@@ -21,7 +21,7 @@ header{border-bottom:1px solid var(--border2);padding:16px 24px;display:flex;ali
 .tab{padding:10px 20px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;}
 .tab.active-scanner{color:var(--cyan);border-bottom-color:var(--cyan);}
 .tab.active-race{color:var(--yellow);border-bottom-color:var(--yellow);}
-.tab.active-prerace{color:var(--orange);border-bottom-color:var(--orange);}
+.tab.active-diario{color:var(--orange);border-bottom-color:var(--orange);}
 .btn{background:var(--green);color:#000;border:none;padding:8px 18px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;transition:all 0.15s;}
 .btn:hover{background:var(--green2);}
 .btn:disabled{background:var(--border2);color:var(--text3);cursor:not-allowed;}
@@ -143,7 +143,7 @@ td.right{text-align:right;}
 .race-change-pos{color:var(--green);}
 .race-change-neg{color:var(--red);}
 .race-price{width:110px;text-align:right;flex-shrink:0;font-size:11px;color:var(--text2);padding-right:4px;}
-.race-status-col{width:190px;text-align:right;flex-shrink:0;padding-right:6px;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.race-status-col{width:200px;text-align:right;flex-shrink:0;padding-right:6px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
 .race-cat-badge{display:inline-block;padding:2px 6px;font-family:"Barlow Condensed",sans-serif;font-size:9px;font-weight:700;border-radius:2px;}
 .cat-winner{background:rgba(0,255,136,0.1);border:1px solid var(--green2);color:var(--green);}
 .cat-loser{background:rgba(255,51,85,0.1);border:1px solid var(--red2);color:var(--red);}
@@ -155,6 +155,8 @@ td.right{text-align:right;}
 .race-row.pump-now{background:rgba(0,255,136,0.05)!important;}
 .race-row.pump-now::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--green);}
 .cat-pump-now{background:rgba(0,255,136,0.15);border:1px solid var(--green);color:var(--green);font-size:10px;padding:3px 8px;}
+.btn-registrar{display:inline-flex;align-items:center;gap:4px;background:rgba(255,215,0,0.1);border:1px solid var(--yellow);color:var(--yellow);padding:3px 10px;font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all 0.15s;}
+.btn-registrar:hover{background:rgba(255,215,0,0.2);}
 .race-divider{padding:8px 0;display:flex;align-items:center;gap:12px;font-size:9px;letter-spacing:2px;color:var(--text3);}
 .race-divider-line{flex:1;height:1px;background:var(--border);}
 .race-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;font-size:10px;color:var(--text3);border-top:1px solid var(--border);margin-top:8px;flex-wrap:wrap;gap:8px;}
@@ -162,53 +164,53 @@ td.right{text-align:right;}
 .race-empty{text-align:center;padding:60px 24px;color:var(--text2);font-size:11px;}
 .my-token-star{font-size:10px;color:var(--yellow);animation:pulse 2s infinite;}
 .agotado-alert{position:fixed;bottom:24px;left:24px;background:rgba(255,51,85,0.15);border:1px solid var(--red);color:var(--red);padding:12px 20px;font-size:12px;z-index:9999;animation:toastIn 0.3s ease,toastOut 0.4s ease 4s forwards;pointer-events:none;font-family:"Barlow Condensed",sans-serif;font-weight:700;max-width:320px;}
-.prerace-wrap{padding:0 24px 24px;}
-.prerace-header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 12px;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--border);}
-.prerace-title{font-family:"Barlow Condensed",sans-serif;font-size:16px;font-weight:700;color:var(--orange);letter-spacing:3px;text-transform:uppercase;}
-.prerace-desc{font-size:10px;color:var(--text2);letter-spacing:1px;margin-top:2px;}
-.prerace-filters{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;font-size:11px;color:var(--text2);}
-.prerace-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:4px 8px;font-family:"Share Tech Mono",monospace;font-size:11px;cursor:pointer;}
-.prerace-stats{display:flex;gap:20px;padding:8px 0;border-bottom:1px solid var(--border);font-size:10px;color:var(--text2);flex-wrap:wrap;}
-.prerace-stat-val{font-family:"Barlow Condensed",sans-serif;font-size:14px;font-weight:700;color:var(--orange);}
-.prerace-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:14px;}
-.prerace-card{background:var(--bg2);border:1px solid var(--border2);border-radius:4px;padding:14px 16px;position:relative;overflow:hidden;animation:fadeIn 0.3s ease forwards;opacity:0;}
-.prerace-card::before{content:"";position:absolute;top:0;left:0;width:3px;height:100%;}
-.prerace-card.tier-1::before{background:var(--orange);}
-.prerace-card.tier-2::before{background:var(--yellow);}
-.prerace-card.tier-3::before{background:var(--cyan);}
-.prerace-card.tier-4::before{background:var(--green);animation:sp 1.5s infinite;}
-@keyframes sp{0%,100%{opacity:1;}50%{opacity:0.4;}}
-.prerace-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
-.prerace-symbol{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px;color:#fff;}
-.prerace-price{font-size:11px;color:var(--text2);margin-top:2px;}
-.prerace-badge{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;padding:3px 8px;border-radius:2px;}
-.prerace-badge-1{background:rgba(255,107,0,0.2);border:1px solid var(--orange);color:var(--orange);}
-.prerace-badge-2{background:rgba(255,215,0,0.1);border:1px solid var(--yellow);color:var(--yellow);}
-.prerace-badge-3{background:rgba(0,229,255,0.1);border:1px solid var(--cyan);color:var(--cyan);}
-.prerace-badge-4{background:rgba(0,255,136,0.15);border:1px solid var(--green);color:var(--green);animation:sp 1.5s infinite;}
-.prerace-metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
-.prerace-metric{display:flex;flex-direction:column;gap:2px;}
-.prerace-metric-label{font-size:8px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
-.prerace-metric-val{font-size:12px;font-family:"Barlow Condensed",sans-serif;font-weight:700;}
-.prerace-score-bar{display:flex;gap:3px;margin-bottom:8px;align-items:center;}
-.prerace-score-label{font-size:9px;color:var(--text3);margin-right:4px;}
-.prerace-score-dot{width:20px;height:5px;border-radius:1px;background:var(--border2);}
-.prerace-score-dot.f1{background:var(--orange);}
-.prerace-score-dot.f2{background:var(--yellow);}
-.prerace-score-dot.f3{background:var(--cyan);}
-.prerace-score-dot.f4{background:var(--green);}
-.prerace-oi-bar{height:3px;background:var(--border2);border-radius:2px;margin-top:4px;overflow:hidden;}
-.prerace-oi-fill{height:100%;border-radius:2px;background:var(--orange);}
-.prerace-signal{margin-top:8px;padding:5px 8px;font-size:9px;letter-spacing:1px;font-family:"Barlow Condensed",sans-serif;font-weight:700;border-radius:2px;display:flex;align-items:center;gap:6px;}
-.prerace-signal-hot{background:rgba(255,107,0,0.12);color:var(--orange);border:1px solid rgba(255,107,0,0.4);}
-.prerace-signal-warm{background:rgba(255,215,0,0.08);color:var(--yellow);border:1px solid rgba(255,215,0,0.3);}
-.prerace-signal-watch{background:rgba(0,229,255,0.06);color:var(--cyan);border:1px solid rgba(0,229,255,0.2);}
-.prerace-signal-saliendo{background:rgba(0,255,136,0.1);color:var(--green);border:1px solid rgba(0,255,136,0.4);animation:sp 1.5s infinite;}
-.whale-signal{margin-top:6px;display:flex;align-items:center;gap:6px;font-size:9px;color:var(--text2);}
-.cvd-bar{flex:1;height:3px;background:var(--border2);border-radius:2px;overflow:hidden;}
-.cvd-fill{height:100%;border-radius:2px;}
-.prerace-update-dot{width:5px;height:5px;border-radius:50%;background:var(--orange);display:inline-block;margin-right:5px;animation:pulse 2s infinite;}
-.prerace-empty{text-align:center;padding:60px 24px;color:var(--text2);font-size:11px;grid-column:1/-1;}
+/* ── PANEL DIARIO ── */
+.diario-wrap{padding:0 24px 40px;}
+.diario-header{padding:14px 0 12px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.diario-title{font-family:"Barlow Condensed",sans-serif;font-size:16px;font-weight:700;color:var(--orange);letter-spacing:3px;text-transform:uppercase;}
+.diario-desc{font-size:10px;color:var(--text2);letter-spacing:1px;margin-top:3px;max-width:600px;line-height:1.6;}
+.diario-stats{display:flex;gap:12px;margin:14px 0;flex-wrap:wrap;}
+.dstat{background:var(--bg2);border:1px solid var(--border2);padding:10px 16px;display:flex;flex-direction:column;gap:3px;min-width:100px;}
+.dstat-label{font-size:8px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;font-family:"Barlow Condensed",sans-serif;}
+.dstat-val{font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:900;}
+/* formulario */
+.diario-form{background:var(--bg2);border:1px solid var(--border2);border-top:2px solid var(--orange);padding:18px 20px;margin-bottom:20px;}
+.diario-form-title{font-family:"Barlow Condensed",sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;color:var(--orange);margin-bottom:14px;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px;}
+.form-field{display:flex;flex-direction:column;gap:4px;}
+.form-label{font-size:8px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;font-family:"Barlow Condensed",sans-serif;}
+.form-input{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:6px 8px;font-family:"Share Tech Mono",monospace;font-size:11px;width:100%;}
+.form-input:focus{outline:none;border-color:var(--orange);}
+.form-input-wide{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:6px 8px;font-family:"Share Tech Mono",monospace;font-size:11px;width:100%;grid-column:1/-1;}
+.form-input-wide:focus{outline:none;border-color:var(--orange);}
+.form-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:6px 8px;font-family:"Share Tech Mono",monospace;font-size:11px;width:100%;cursor:pointer;}
+.form-select:focus{outline:none;border-color:var(--orange);}
+.form-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.btn-guardar{background:var(--orange);color:#000;border:none;padding:8px 20px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;cursor:pointer;}
+.btn-guardar:hover{opacity:0.85;}
+/* tabla */
+.diario-table-wrap{overflow-x:auto;border:1px solid var(--border2);}
+.diario-table{width:100%;border-collapse:collapse;font-size:11px;min-width:1100px;}
+.diario-table th{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:9px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;padding:9px 10px;text-align:left;border-bottom:1px solid var(--border2);background:var(--bg3);white-space:nowrap;}
+.diario-table td{padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle;}
+.diario-table tr:hover td{background:rgba(255,255,255,0.015);}
+.d-token{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:15px;color:#fff;}
+.d-date{font-size:10px;color:var(--text2);}
+.d-num{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:13px;}
+.d-badge{display:inline-block;padding:2px 7px;font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;}
+.d-badge-top1{background:rgba(255,215,0,0.15);border:1px solid var(--yellow);color:var(--yellow);}
+.d-badge-top3{background:rgba(0,229,255,0.12);border:1px solid var(--cyan);color:var(--cyan);}
+.d-badge-pump{background:rgba(0,255,136,0.12);border:1px solid var(--green2);color:var(--green);}
+.d-badge-none{background:transparent;border:1px solid var(--border2);color:var(--text3);}
+.d-edit{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:3px 6px;font-family:"Share Tech Mono",monospace;font-size:10px;}
+.d-edit:focus{outline:none;border-color:var(--cyan);}
+.d-edit-sel{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:3px 6px;font-family:"Share Tech Mono",monospace;font-size:10px;cursor:pointer;}
+.d-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 6px;}
+.d-del:hover{color:var(--red);}
+.patron-box{background:rgba(255,107,0,0.04);border:1px solid rgba(255,107,0,0.25);padding:12px 16px;margin-top:16px;font-size:10px;color:var(--orange);font-family:"Barlow Condensed",sans-serif;font-weight:700;letter-spacing:1px;line-height:1.8;}
+.patron-title{font-size:12px;color:var(--orange);letter-spacing:2px;margin-bottom:6px;}
+.hint-box{background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.15);padding:10px 14px;margin-bottom:16px;font-size:10px;color:var(--cyan);font-family:"Barlow Condensed",sans-serif;letter-spacing:0.5px;line-height:1.7;}
+/* alertas */
 #alert-panel{position:fixed;top:70px;right:0;width:300px;background:var(--bg2);border-left:1px solid var(--border2);z-index:500;transform:translateX(100%);transition:transform 0.3s ease;max-height:calc(100vh - 70px);display:flex;flex-direction:column;}
 #alert-panel.open{transform:translateX(0);}
 #alert-toggle{position:fixed;top:150px;right:0;z-index:501;background:var(--bg2);border:1px solid var(--border2);border-right:none;padding:10px 6px;cursor:pointer;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:11px;color:var(--text2);transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:4px;border-radius:4px 0 0 4px;}
@@ -244,31 +246,8 @@ td.right{text-align:right;}
 .v4-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;}
 .v4-toggle input{accent-color:var(--magenta);width:14px;height:14px;cursor:pointer;}
 .v4-badge{font-family:"Barlow Condensed",sans-serif;font-size:11px;font-weight:700;}
+/* celu widget (igual que antes) */
 .celu-pr-wrap{margin-top:10px;border-top:1px solid var(--border2);padding-top:10px;}
-.celu-pr-header{font-family:"Barlow Condensed",sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--magenta);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
-.celu-pr-header::after{content:"";flex:1;height:1px;background:rgba(255,0,204,0.2);}
-.celu-pr-badge{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:3px;font-family:"Barlow Condensed",sans-serif;font-weight:700;border:1px solid;position:relative;overflow:hidden;}
-.celu-pr-badge::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;}
-.celu-pr-n1{background:rgba(136,136,136,0.07);border-color:rgba(136,136,136,0.3);color:#888;}
-.celu-pr-n1::before{background:#888;}
-.celu-pr-n2{background:rgba(255,215,0,0.07);border-color:rgba(255,215,0,0.35);color:var(--yellow);}
-.celu-pr-n2::before{background:var(--yellow);}
-.celu-pr-n3{background:rgba(255,0,204,0.1);border-color:rgba(255,0,204,0.5);color:var(--magenta);animation:pulse 1.2s infinite;}
-.celu-pr-n3::before{background:var(--magenta);}
-.celu-pr-conf{font-size:26px;font-weight:900;line-height:1;min-width:50px;}
-.celu-pr-body{flex:1;display:flex;flex-direction:column;gap:2px;}
-.celu-pr-nivel{font-size:8px;letter-spacing:2px;opacity:0.75;}
-.celu-pr-accion{font-size:11px;letter-spacing:0.5px;}
-.celu-pr-desc{font-size:9px;opacity:0.65;font-weight:400;font-family:"Share Tech Mono",monospace;line-height:1.4;margin-top:2px;}
-.celu-pr-bars{display:flex;gap:3px;align-items:flex-end;flex-shrink:0;padding-left:4px;}
-.celu-pr-bar{width:6px;border-radius:1px 1px 0 0;min-height:4px;transition:height 0.5s ease;}
-.celu-pr-vars{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:6px;}
-.celu-pr-var{display:flex;align-items:center;gap:4px;font-family:"Barlow Condensed",sans-serif;font-size:9px;padding:3px 6px;background:rgba(0,0,0,0.25);border-radius:2px;border:1px solid rgba(255,255,255,0.03);}
-.celu-pr-var-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
-.celu-pr-var-label{color:var(--text3);margin-right:1px;letter-spacing:1px;}
-.celu-pr-var-val{font-weight:700;margin-left:auto;}
-.celu-pr-var-bar{flex:1;height:2px;background:var(--border2);border-radius:1px;overflow:hidden;margin:0 4px;}
-.celu-pr-var-fill{height:100%;border-radius:1px;transition:width 0.4s ease;}
 .celu-widget{background:#07070d;border:1px solid var(--border2);border-top:2px solid var(--magenta);margin-top:8px;padding:0;overflow:hidden;animation:fadeIn 0.4s ease forwards;}
 .celu-widget-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;border-bottom:1px solid var(--border);}
 .celu-widget-title{font-family:"Barlow Condensed",sans-serif;font-weight:900;font-size:13px;letter-spacing:3px;color:var(--magenta);text-transform:uppercase;}
@@ -300,44 +279,6 @@ td.right{text-align:right;}
 .celu-widget-footer{padding:6px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);}
 .celu-widget-footer-l{font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;}
 .celu-widget-footer-r{font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;}
-.celu-btn{display:inline-flex;align-items:center;gap:4px;background:transparent;border:1px solid rgba(255,0,204,0.4);color:var(--magenta);padding:3px 10px;font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:1.5px;transition:all 0.15s;}
-.celu-btn:hover{border-color:var(--magenta);background:rgba(255,0,204,0.08);}
-
-/* ── TABLA REGISTRO EARLY ENTRY ── */
-.registro-section{margin-top:20px;border-top:2px solid var(--cyan);padding-top:16px;}
-.registro-title{font-family:"Barlow Condensed",sans-serif;font-weight:900;font-size:14px;letter-spacing:3px;color:var(--cyan);margin-bottom:4px;}
-.registro-desc{font-size:9px;color:var(--text2);letter-spacing:1px;margin-bottom:12px;}
-.registro-stats{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;}
-.rstat{background:var(--bg3);border:1px solid var(--border2);padding:8px 14px;display:flex;flex-direction:column;gap:2px;min-width:90px;}
-.rstat-label{font-size:8px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;font-family:"Barlow Condensed",sans-serif;}
-.rstat-val{font-family:"Barlow Condensed",sans-serif;font-size:20px;font-weight:900;}
-.registro-table-wrap{overflow-x:auto;background:var(--bg2);border:1px solid var(--border2);}
-.registro-table{width:100%;border-collapse:collapse;font-size:11px;min-width:900px;}
-.registro-table th{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:9px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border2);background:var(--bg3);white-space:nowrap;}
-.registro-table td{padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle;}
-.registro-table tr:hover td{background:rgba(255,255,255,0.02);}
-.res-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:3px 6px;font-family:"Share Tech Mono",monospace;font-size:10px;cursor:pointer;width:120px;}
-.res-select:focus{outline:none;border-color:var(--cyan);}
-.pct-input{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:3px 6px;font-family:"Share Tech Mono",monospace;font-size:10px;width:60px;}
-.pct-input:focus{outline:none;border-color:var(--green);}
-.nota-input{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:3px 6px;font-family:"Share Tech Mono",monospace;font-size:10px;width:120px;}
-.nota-input:focus{outline:none;border-color:var(--yellow);}
-.rbadge{display:inline-block;padding:2px 7px;font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;}
-.rbadge-top1{background:rgba(0,255,136,0.2);border:1px solid var(--green);color:var(--green);}
-.rbadge-top3{background:rgba(0,229,255,0.15);border:1px solid var(--cyan);color:var(--cyan);}
-.rbadge-top10{background:rgba(255,215,0,0.1);border:1px solid var(--yellow);color:var(--yellow);}
-.rbadge-no{background:rgba(255,51,85,0.1);border:1px solid var(--red2);color:var(--red);}
-.rbadge-pend{background:transparent;border:1px solid var(--border2);color:var(--text3);}
-.nbadge-n1{background:rgba(136,136,136,0.1);border:1px solid #555;color:#888;font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:700;padding:2px 6px;}
-.nbadge-n2{background:rgba(255,215,0,0.1);border:1px solid var(--yellow);color:var(--yellow);font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:700;padding:2px 6px;}
-.nbadge-n3{background:rgba(255,0,204,0.15);border:1px solid var(--magenta);color:var(--magenta);font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:700;padding:2px 6px;}
-.cdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:2px;}
-.del-r{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px;}
-.del-r:hover{color:var(--red);}
-.patron-box{background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.25);padding:10px 14px;margin-top:12px;font-size:10px;color:var(--cyan);font-family:"Barlow Condensed",sans-serif;font-weight:700;letter-spacing:1px;line-height:1.7;}
-.patron-title{font-size:11px;color:var(--cyan);letter-spacing:2px;margin-bottom:4px;}
-.new-row-flash{animation:rowFlash 2s ease;}
-@keyframes rowFlash{0%{background:rgba(0,229,255,0.15);}100%{background:transparent;}}
 </style>
 </head>
 <body>
@@ -348,7 +289,7 @@ td.right{text-align:right;}
     <span class="alert-panel-clear" onclick="clearAlerts()">LIMPIAR</span>
   </div>
   <div class="alert-list" id="alert-list">
-    <div class="alert-empty">Sin alertas aún · CELU v4: Absorción CVD + OI Mecánico + Climax Short Trap</div>
+    <div class="alert-empty">Sin alertas aún</div>
   </div>
 </div>
 <div id="alert-toggle" onclick="toggleAlertPanel()">
@@ -368,7 +309,7 @@ td.right{text-align:right;}
 <div class="tabs">
   <div class="tab active-scanner" id="tab-scanner" onclick="switchTab('scanner')">▶ SCANNER</div>
   <div class="tab" id="tab-race" onclick="switchTab('race')">🏁 CARRERA</div>
-  <div class="tab" id="tab-prerace" onclick="switchTab('prerace')">🚀 PRE-CARRERA</div>
+  <div class="tab" id="tab-diario" onclick="switchTab('diario')">📓 DIARIO PUMPS</div>
 </div>
 
 <!-- SCANNER -->
@@ -431,7 +372,7 @@ td.right{text-align:right;}
   <div class="race-wrap">
     <div class="race-header">
       <div><div class="race-title">🏁 CARRERA DE TOKENS</div>
-      <div class="race-desc">Ranking real · Binance Futures · Agotamiento + Climax CELU v4</div></div>
+      <div class="race-desc">Ranking real · Binance Futures · Agotamiento + Climax CELU v4 · Botón 📌 para guardar en Diario</div></div>
       <div class="race-controls">
         <div class="race-mode-btns">
           <button class="race-mode-btn active" id="race-mode-all" onclick="setRaceMode('all')">TODOS</button>
@@ -447,8 +388,6 @@ td.right{text-align:right;}
       <div class="race-stat"><span>PEOR:</span><span class="race-stat-val" style="color:var(--red)" id="rs-worst">—</span></div>
       <div class="race-stat"><span>⚠️ AGOTADOS:</span><span class="race-stat-val" style="color:var(--red)" id="rs-agotados">—</span></div>
       <div class="race-stat"><span>💀 CLIMAX:</span><span class="race-stat-val" style="color:var(--magenta)" id="rs-climax">—</span></div>
-      <div class="race-stat"><span>⚡ EARLY:</span><span class="race-stat-val" style="color:var(--cyan)" id="rs-early">—</span></div>
-      <div class="race-stat"><span>🚀 PUMP NOW:</span><span class="race-stat-val" style="color:var(--green)" id="rs-pump">—</span></div>
       <div class="race-stat" style="margin-left:auto">
         <div class="race-countdown">
           <div class="race-cd-bar-track"><div class="race-cd-bar-fill" id="race-cd-bar" style="width:100%"></div></div>
@@ -464,119 +403,147 @@ td.right{text-align:right;}
   </div>
 </div>
 
-<!-- PRE-CARRERA -->
-<div id="panel-prerace" style="display:none">
-  <div class="prerace-wrap">
-    <div class="prerace-header">
+<!-- DIARIO PUMPS -->
+<div id="panel-diario" style="display:none">
+  <div class="diario-wrap">
+    <div class="diario-header">
       <div>
-        <div class="prerace-title">🚀 PRE-CARRERA</div>
-        <div class="prerace-desc">Tokens acumulando · CELU v4 · SQZMOM + Whale CVD + StochRSI · <span style="color:var(--magenta);font-weight:700">Confianza LONG N1/N2/N3 integrada</span></div>
+        <div class="diario-title">📓 DIARIO DE PUMPS</div>
+        <div class="diario-desc">Registro manual de tokens que llegaron al Top 1-3 · Cargás los datos que ves en TradingView (valores del inicio del pump) · Con el tiempo vas a ver el patrón</div>
       </div>
-      <button class="btn" id="prerace-scan-btn" style="background:var(--orange);color:#000">▶ ESCANEAR</button>
-    </div>
-    <div class="prerace-filters">
-      <div style="display:flex;align-items:center;gap:6px"><span>Días flat mín:</span>
-        <select class="prerace-select" id="pr-dias"><option value="5">5+</option><option value="10" selected>10+</option><option value="15">15+</option><option value="20">20+</option></select>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px"><span>Vol máx/día:</span>
-        <select class="prerace-select" id="pr-pct"><option value="5">5%</option><option value="8" selected>8%</option><option value="12">12%</option></select>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px"><span>Vol rel máx:</span>
-        <select class="prerace-select" id="pr-vol"><option value="0.4">0.4x</option><option value="0.6" selected>0.6x</option><option value="0.8">0.8x</option></select>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px"><span>Vol mín 24h:</span>
-        <select class="prerace-select" id="pr-minvol"><option value="5000000" selected>5M</option><option value="10000000">10M</option><option value="20000000">20M</option></select>
-      </div>
-    </div>
-    <div class="prerace-stats" id="prerace-stats" style="display:none">
-      <div style="display:flex;align-items:center;gap:6px"><span>Escaneados:</span><span class="prerace-stat-val" id="pr-scanned">—</span></div>
-      <div style="display:flex;align-items:center;gap:6px"><span>Relevantes:</span><span class="prerace-stat-val" id="pr-relevant">—</span></div>
-      <div style="display:flex;align-items:center;gap:6px"><span>🔥 HOT:</span><span class="prerace-stat-val" style="color:var(--orange)" id="pr-hot">—</span></div>
-      <div style="display:flex;align-items:center;gap:6px"><span>👀 WARM:</span><span class="prerace-stat-val" style="color:var(--yellow)" id="pr-warm">—</span></div>
-      <div style="display:flex;align-items:center;gap:6px"><span>🚀 SALIENDO:</span><span class="prerace-stat-val" style="color:var(--green)" id="pr-saliendo">—</span></div>
-      <div style="display:flex;align-items:center;gap:6px"><span>💧 WATCH:</span><span class="prerace-stat-val" style="color:var(--cyan)" id="pr-watch">—</span></div>
-      <div style="display:flex;align-items:center;gap:6px"><span style="color:var(--magenta)">⚡ N3 CELU:</span><span class="prerace-stat-val" style="color:var(--magenta)" id="pr-celu-n3">—</span></div>
-      <div style="display:flex;align-items:center;gap:6px"><span style="color:var(--yellow)">N2 CELU:</span><span class="prerace-stat-val" style="color:var(--yellow)" id="pr-celu-n2">—</span></div>
-    </div>
-    <div class="prerace-grid" id="prerace-grid">
-      <div class="prerace-empty">Presioná ESCANEAR para detectar los próximos corredores</div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════
-         TABLA REGISTRO EARLY ENTRY — auto-guardado desde carrera
-         ══════════════════════════════════════════════════════ -->
-    <div class="registro-section">
-      <div class="registro-title">⚡ REGISTRO EARLY ENTRY — LONG</div>
-      <div class="registro-desc">Auto-guardado desde Carrera · Solo editás Resultado / % / Nota · Manuscrito v1</div>
-
-      <div class="registro-stats">
-        <div class="rstat">
-          <div class="rstat-label">Registros</div>
-          <div class="rstat-val" id="reg-total" style="color:var(--cyan)">0</div>
-        </div>
-        <div class="rstat">
-          <div class="rstat-label">Top 1-3</div>
-          <div class="rstat-val" id="reg-top3" style="color:var(--green)">0</div>
-        </div>
-        <div class="rstat">
-          <div class="rstat-label">N3 → top3</div>
-          <div class="rstat-val" id="reg-n3" style="color:var(--magenta)">—</div>
-        </div>
-        <div class="rstat">
-          <div class="rstat-label">Tasa éxito</div>
-          <div class="rstat-val" id="reg-tasa" style="color:var(--yellow)">—</div>
-        </div>
-        <div class="rstat">
-          <div class="rstat-label">Pump NOW</div>
-          <div class="rstat-val" id="reg-pump" style="color:var(--green)">0</div>
-        </div>
-      </div>
-
-      <div class="registro-table-wrap">
-        <table class="registro-table">
-          <thead>
-            <tr>
-              <th>HORA</th>
-              <th>TOKEN</th>
-              <th>TIPO</th>
-              <th>POS</th>
-              <th>CH%</th>
-              <th>VOL15m</th>
-              <th>CVD</th>
-              <th>EMA</th>
-              <th>FUNDING</th>
-              <th>ADX</th>
-              <th>VOL4h</th>
-              <th>NIVEL</th>
-              <th>RESULTADO</th>
-              <th>%PUMP</th>
-              <th>NOTA</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="registro-body">
-            <tr><td colspan="16" style="padding:24px;text-align:center;color:var(--text3);font-size:11px">Sin registros · Se auto-guardan cuando la Carrera detecta Early Entry o Pump Now</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="patron-box" id="patron-box" style="display:none">
-        <div class="patron-title">⚡ PATRÓN DETECTADO — MANUSCRITO LONG</div>
-        <div id="patron-text"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-sm" onclick="exportDiario()">⬇ CSV</button>
+        <button class="btn-sm" onclick="limpiarDiario()">⚠ LIMPIAR TODO</button>
       </div>
     </div>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;font-size:10px;color:var(--text3);border-top:1px solid var(--border);margin-top:8px;flex-wrap:wrap;gap:8px">
-      <span><span class="prerace-update-dot"></span>FUENTE: BINANCE FUTURES · CELU v4 · CONFIANZA LONG MANUSCRITO</span>
-      <span id="prerace-last-update">—</span>
+    <div class="hint-box">
+      💡 <strong>Cómo usarlo:</strong> Cuando ves un token en Top 1-3, abrís TradingView en 4h, vas a la vela donde empezó el pump (precio flat → primer verde gordo) y anotás los valores de ESE momento. Funding lo buscás en binance.com/futures/funding-history. Con 10-15 registros vas a ver qué tienen en común.
+    </div>
+
+    <div class="diario-stats">
+      <div class="dstat"><div class="dstat-label">Registros</div><div class="dstat-val" id="d-total" style="color:var(--cyan)">0</div></div>
+      <div class="dstat"><div class="dstat-label">Llegaron Top 1</div><div class="dstat-val" id="d-top1" style="color:var(--yellow)">0</div></div>
+      <div class="dstat"><div class="dstat-label">Pump promedio</div><div class="dstat-val" id="d-avg-pump" style="color:var(--green)">—</div></div>
+      <div class="dstat"><div class="dstat-label">Días flat prom.</div><div class="dstat-val" id="d-avg-flat" style="color:var(--orange)">—</div></div>
+      <div class="dstat"><div class="dstat-label">Funding prom.</div><div class="dstat-val" id="d-avg-fund" style="color:var(--text2)">—</div></div>
+    </div>
+
+    <!-- Formulario de carga -->
+    <div class="diario-form">
+      <div class="diario-form-title">➕ CARGAR NUEVO PUMP</div>
+      <div class="form-grid">
+        <div class="form-field">
+          <div class="form-label">Token</div>
+          <input class="form-input" id="f-token" placeholder="PORTAL" style="text-transform:uppercase">
+        </div>
+        <div class="form-field">
+          <div class="form-label">Fecha inicio pump</div>
+          <input class="form-input" id="f-fecha" type="date">
+        </div>
+        <div class="form-field">
+          <div class="form-label">Precio base (inicio)</div>
+          <input class="form-input" id="f-precio-base" placeholder="0.00795" type="number" step="any">
+        </div>
+        <div class="form-field">
+          <div class="form-label">Precio máximo</div>
+          <input class="form-input" id="f-precio-max" placeholder="0.03754" type="number" step="any">
+        </div>
+        <div class="form-field">
+          <div class="form-label">% pump total</div>
+          <input class="form-input" id="f-pct-pump" placeholder="166" type="number" step="any">
+        </div>
+        <div class="form-field">
+          <div class="form-label">Días flat antes</div>
+          <input class="form-input" id="f-dias-flat" placeholder="15" type="number">
+        </div>
+        <div class="form-field">
+          <div class="form-label">Funding al inicio</div>
+          <input class="form-input" id="f-funding" placeholder="-0.0050" type="number" step="any">
+        </div>
+        <div class="form-field">
+          <div class="form-label">ADX al inicio</div>
+          <input class="form-input" id="f-adx" placeholder="12" type="number">
+        </div>
+        <div class="form-field">
+          <div class="form-label">Vol relativo (4h)</div>
+          <input class="form-input" id="f-vol" placeholder="0.3" type="number" step="any">
+        </div>
+        <div class="form-field">
+          <div class="form-label">Posición pico</div>
+          <select class="form-select" id="f-pos">
+            <option value="1">Top 1</option>
+            <option value="2">Top 2</option>
+            <option value="3">Top 3</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <div class="form-label">Whale / CVD</div>
+          <select class="form-select" id="f-whale">
+            <option value="buy">🐋 BUY</option>
+            <option value="neutral">NEUTRAL</option>
+            <option value="sell">SELL</option>
+            <option value="nr">No registrado</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <div class="form-label">Scanner lo detectó?</div>
+          <select class="form-select" id="f-scanner">
+            <option value="no">NO lo detectó</option>
+            <option value="earlyentry">Sí — Early Entry</option>
+            <option value="pumpnow">Sí — Pump Now</option>
+            <option value="nr">No miré</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field" style="margin-bottom:12px">
+        <div class="form-label">Notas (lo que viste, contexto de mercado, señales)</div>
+        <input class="form-input-wide" id="f-nota" placeholder="Ej: Estaba flat 15 días, primer verde gordo en 4h, funding negativo, ADX 12 plano, vol 0.3x">
+      </div>
+      <div class="form-actions">
+        <button class="btn-guardar" onclick="guardarPump()">💾 GUARDAR</button>
+        <button class="btn-sm" onclick="limpiarForm()">LIMPIAR FORM</button>
+        <span style="font-size:10px;color:var(--text3)">Los datos se guardan en el navegador</span>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="diario-table-wrap">
+      <table class="diario-table">
+        <thead>
+          <tr>
+            <th>FECHA</th>
+            <th>TOKEN</th>
+            <th>POS</th>
+            <th>PRECIO BASE</th>
+            <th>PRECIO MAX</th>
+            <th>% PUMP</th>
+            <th>DÍAS FLAT</th>
+            <th>FUNDING</th>
+            <th>ADX</th>
+            <th>VOL 4h</th>
+            <th>WHALE</th>
+            <th>SCANNER</th>
+            <th>NOTA</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="diario-body">
+          <tr><td colspan="14" style="padding:30px;text-align:center;color:var(--text3);font-size:11px">Sin registros todavía · Cargá PORTAL para empezar</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="patron-box" id="patron-diario" style="display:none">
+      <div class="patron-title">⚡ PATRÓN DETECTADO</div>
+      <div id="patron-diario-text"></div>
     </div>
   </div>
 </div>
-
 <script>
-// ── TABS — va primero para que los onclick del HTML la encuentren ──
+// ── TABS ──
 function switchTab(tab){
-  ['scanner','race','prerace'].forEach(t=>{
+  ['scanner','race','diario'].forEach(t=>{
     const panel=document.getElementById('panel-'+t);
     if(panel)panel.style.display=t===tab?'block':'none';
     const el=document.getElementById('tab-'+t);
@@ -584,157 +551,190 @@ function switchTab(tab){
   });
   if(tab==='race'&&!raceInit){raceInit=true;runRace();setInterval(()=>runRace(),30000);}
 }
-// ============================================================
-// STATE
-// ============================================================
+
+// ── STATE ──
 const DEFAULT_TOKENS=['BTC','ETH','BNB','SOL','XRP','DOGE','ADA','AVAX','LINK','MATIC','PLAY','BAND','FET','ASTER','EDEN'];
-const ST='liqscan_v4_tokens',SS='liqscan_v4_sel',SR='liqscan_v4_registro';
+const ST='liqscan_v4_tokens',SS='liqscan_v4_sel',SD='liqscan_diario_v1';
 function loadTokens(){try{const s=localStorage.getItem(ST);return s?JSON.parse(s):[...DEFAULT_TOKENS];}catch(e){return[...DEFAULT_TOKENS];}}
 function loadSel(tl){try{const s=localStorage.getItem(SS);if(s){const p=JSON.parse(s);return new Set(p.filter(t=>tl.includes(t)));}}catch(e){}return new Set(['BTC','ETH','SOL','PLAY','FET','ASTER','EDEN']);}
 function saveSt(){try{localStorage.setItem(ST,JSON.stringify(tokenList));localStorage.setItem(SS,JSON.stringify([...selectedTokens]));}catch(e){}}
 let tokenList=loadTokens(),selectedTokens=loadSel(tokenList);
 let scanning=false,refreshInterval=null,raceMode='all',raceData=[],prevRacePos={};
-let raceCdTimer=null,raceCdSecs=30,raceRunning=false,preraceRunning=false,raceInit=false,raceExtraMap={};
+let raceCdTimer=null,raceCdSecs=30,raceRunning=false,raceInit=false,raceExtraMap={};
 const hmCache={},raCache={};
 
-// ── REGISTRO EARLY ENTRY ──────────────────────────────────────
-let registroRows=[];
-const registroTracked={};// evita duplicados en misma sesión
+// ── DIARIO ──
+let diarioRows=[];
+function loadDiario(){try{const s=localStorage.getItem(SD);return s?JSON.parse(s):[];}catch(e){return[];}}
+function saveDiario(){try{localStorage.setItem(SD,JSON.stringify(diarioRows));}catch(e){}}
 
-function loadRegistro(){try{const s=localStorage.getItem(SR);return s?JSON.parse(s):[];}catch(e){return[];}}
-function saveRegistro(){try{localStorage.setItem(SR,JSON.stringify(registroRows));}catch(e){}}
-
-function autoRegistrar(tok,tipo,pos,ex,tk){
-  const key=tok+'_'+new Date().toDateString();
-  if(registroTracked[key])return;
-  registroTracked[key]=true;
-  const now=new Date();
-  const hora=now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
-  const fecha=now.toISOString().split('T')[0];
-  const row={
-    id:Date.now(),hora,fecha,tok,tipo,
-    pos:pos||'—',
-    ch:tk?tk.change24.toFixed(2):'—',
-    vol15:ex&&ex.vol15Ratio?ex.vol15Ratio.toFixed(1)+'x':'—',
-    cvd:ex&&ex.cvdGiro?'SÍ':'NO',
-    ema:ex&&ex.sobreEMA?'SÍ':'NO',
-    funding:ex&&ex.funding!=null?(ex.funding>=0?'+':'')+ex.funding.toFixed(4)+'%':'—',
-    adx:'—',
-    vol4h:ex&&ex.vR?ex.vR.toFixed(1)+'x':'—',
-    nivel:'—',
-    resultado:'',pct:'',nota:''
-  };
-  registroRows.unshift(row);
-  saveRegistro();
-  renderRegistro();
-  updateRegistroStats();
-  showToast('⚡ '+tok+' registrado automáticamente');
+function guardarPump(){
+  const token=document.getElementById('f-token').value.trim().toUpperCase().replace(/USDT$/,'');
+  if(!token){showToast('Ingresá el token');return;}
+  const fecha=document.getElementById('f-fecha').value||new Date().toISOString().split('T')[0];
+  const precioBase=parseFloat(document.getElementById('f-precio-base').value)||null;
+  const precioMax=parseFloat(document.getElementById('f-precio-max').value)||null;
+  let pctPump=parseFloat(document.getElementById('f-pct-pump').value)||null;
+  if(!pctPump&&precioBase&&precioMax)pctPump=Math.round((precioMax-precioBase)/precioBase*100);
+  const diasFlat=parseInt(document.getElementById('f-dias-flat').value)||null;
+  const funding=parseFloat(document.getElementById('f-funding').value);
+  const adx=parseInt(document.getElementById('f-adx').value)||null;
+  const vol=parseFloat(document.getElementById('f-vol').value)||null;
+  const pos=parseInt(document.getElementById('f-pos').value)||1;
+  const whale=document.getElementById('f-whale').value;
+  const scanner=document.getElementById('f-scanner').value;
+  const nota=document.getElementById('f-nota').value.trim();
+  const row={id:Date.now(),fecha,token,pos,precioBase,precioMax,pctPump,diasFlat,funding:isNaN(funding)?null:funding,adx,vol,whale,scanner,nota};
+  diarioRows.unshift(row);
+  saveDiario();
+  renderDiario();
+  updateDiarioStats();
+  limpiarForm();
+  showToast('✅ '+token+' guardado en el diario');
 }
 
-function updateRegistroRes(id,field,val){
-  const r=registroRows.find(r=>r.id===id);
-  if(r){r[field]=val;saveRegistro();updateRegistroStats();}
+function limpiarForm(){
+  ['f-token','f-fecha','f-precio-base','f-precio-max','f-pct-pump','f-dias-flat','f-funding','f-adx','f-vol','f-nota'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('f-fecha').value=today;
 }
 
-function delRegistro(id){
-  registroRows=registroRows.filter(r=>r.id!==id);
-  saveRegistro();
-  renderRegistro();
-  updateRegistroStats();
+function delDiario(id){
+  if(!confirm('¿Eliminar este registro?'))return;
+  diarioRows=diarioRows.filter(r=>r.id!==id);
+  saveDiario();renderDiario();updateDiarioStats();
 }
 
-function nivelBadgeR(n){
-  if(!n||n==='—')return'<span style="color:var(--text3);font-size:10px">—</span>';
-  const m={N1:'nbadge-n1',N2:'nbadge-n2',N3:'nbadge-n3'};
-  return'<span class="'+(m[n]||'nbadge-n1')+'">'+n+'</span>';
+function updateDiarioCampo(id,campo,val){
+  const r=diarioRows.find(r=>r.id===id);
+  if(r){
+    if(campo==='nota')r[campo]=val;
+    else if(['pctPump','diasFlat','adx','funding','vol','precioBase','precioMax'].includes(campo))r[campo]=parseFloat(val)||null;
+    else r[campo]=val;
+    saveDiario();updateDiarioStats();
+  }
 }
 
-function resBadgeR(res){
-  if(!res)return'<span class="rbadge rbadge-pend">pendiente</span>';
-  const m={top1:'rbadge-top1 TOP 1',top3:'rbadge-top3 TOP 2-3',top10:'rbadge-top10 TOP 4-10',no:'rbadge-no NO PUMP'};
-  const v=m[res];if(!v)return'—';
-  const[cls,lbl]=v.split(' ');
-  return'<span class="rbadge '+cls+'">'+lbl+'</span>';
+function whaleBadge(w){
+  if(w==='buy')return'<span style="color:var(--green);font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:11px">🐋 BUY</span>';
+  if(w==='sell')return'<span style="color:var(--red);font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:11px">🐋 SELL</span>';
+  if(w==='nr')return'<span style="color:var(--text3);font-size:10px">—</span>';
+  return'<span style="color:var(--text2);font-size:10px">NEUTRO</span>';
 }
 
-function cvdDot(v){
-  const ok=v==='SÍ';
-  return'<span class="cdot" style="background:'+(ok?'var(--green)':'var(--red)')+'"></span>'+v;
+function scannerBadge(s){
+  if(s==='earlyentry')return'<span style="color:var(--cyan);font-family:Barlow Condensed,sans-serif;font-size:10px;font-weight:700">⚡ EARLY</span>';
+  if(s==='pumpnow')return'<span style="color:var(--green);font-family:Barlow Condensed,sans-serif;font-size:10px;font-weight:700">🚀 PUMP</span>';
+  if(s==='no')return'<span style="color:var(--red);font-size:10px">NO</span>';
+  return'<span style="color:var(--text3);font-size:10px">—</span>';
 }
 
-function renderRegistro(){
-  const body=document.getElementById('registro-body');
+function posBadge(p){
+  if(p===1)return'<span class="d-badge d-badge-top1">🥇 TOP 1</span>';
+  if(p<=3)return'<span class="d-badge d-badge-top3">TOP '+p+'</span>';
+  return'<span class="d-badge d-badge-pump">TOP '+p+'</span>';
+}
+
+function renderDiario(){
+  const body=document.getElementById('diario-body');
   if(!body)return;
-  if(registroRows.length===0){
-    body.innerHTML='<tr><td colspan="16" style="padding:24px;text-align:center;color:var(--text3);font-size:11px">Sin registros · Se auto-guardan cuando la Carrera detecta Early Entry o Pump Now</td></tr>';
+  if(diarioRows.length===0){
+    body.innerHTML='<tr><td colspan="14" style="padding:30px;text-align:center;color:var(--text3);font-size:11px">Sin registros todavía · Cargá PORTAL para empezar</td></tr>';
     return;
   }
-  body.innerHTML=registroRows.map(r=>`
-    <tr id="rrow-${r.id}" class="${r.id===registroRows[0].id?'new-row-flash':''}">
-      <td style="color:var(--text2);font-size:10px">${r.hora}<br><span style="font-size:9px;color:var(--text3)">${r.fecha.slice(5)}</span></td>
-      <td style="font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:14px;color:#fff">${r.tok}</td>
-      <td><span style="font-family:Barlow Condensed,sans-serif;font-size:10px;font-weight:700;padding:2px 6px;border:1px solid ${r.tipo==='PUMP NOW'?'var(--green)':'var(--cyan)'};color:${r.tipo==='PUMP NOW'?'var(--green)':'var(--cyan)'}">${r.tipo}</span></td>
-      <td style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:var(--yellow)">#${r.pos}</td>
-      <td style="color:var(--green);font-family:Barlow Condensed,sans-serif;font-weight:700">+${r.ch}%</td>
-      <td style="color:${parseFloat(r.vol15)>=3?'var(--green)':'var(--text2)'};font-family:'Barlow Condensed',sans-serif;font-weight:700">${r.vol15}</td>
-      <td style="font-size:10px">${cvdDot(r.cvd)}</td>
-      <td style="font-size:10px">${cvdDot(r.ema)}</td>
-      <td style="font-size:10px;color:${r.funding&&r.funding.startsWith('-')?'var(--green)':'var(--text2)'}">${r.funding}</td>
-      <td style="color:var(--text2);font-size:10px">${r.adx}</td>
-      <td style="color:${parseFloat(r.vol4h)>=2?'var(--orange)':'var(--text2)'};font-size:10px">${r.vol4h}</td>
-      <td>${nivelBadgeR(r.nivel)}</td>
-      <td>
-        <select class="res-select" onchange="updateRegistroRes(${r.id},'resultado',this.value)">
-          <option value="" ${!r.resultado?'selected':''}>— pendiente —</option>
-          <option value="top1" ${r.resultado==='top1'?'selected':''}>Top 1</option>
-          <option value="top3" ${r.resultado==='top3'?'selected':''}>Top 2-3</option>
-          <option value="top10" ${r.resultado==='top10'?'selected':''}>Top 4-10</option>
-          <option value="no" ${r.resultado==='no'?'selected':''}>No pump</option>
-        </select>
-      </td>
-      <td><input class="pct-input" type="text" placeholder="+%" value="${r.pct}" onchange="updateRegistroRes(${r.id},'pct',this.value)"></td>
-      <td><input class="nota-input" type="text" placeholder="nota..." value="${r.nota}" onchange="updateRegistroRes(${r.id},'nota',this.value)"></td>
-      <td><button class="del-r" onclick="delRegistro(${r.id})" title="Eliminar">✕</button></td>
-    </tr>
-  `).join('');
+  body.innerHTML=diarioRows.map(r=>{
+    const pct=r.pctPump!=null?'+'+r.pctPump.toFixed(0)+'%':'—';
+    const pctColor=r.pctPump>100?'var(--green)':r.pctPump>50?'var(--yellow)':'var(--text2)';
+    const fundColor=r.funding!=null?(r.funding<0?'var(--green)':r.funding>0.05?'var(--red)':'var(--text2)'):'var(--text3)';
+    const adxColor=r.adx!=null?(r.adx<15?'var(--cyan)':r.adx<25?'var(--green)':r.adx>50?'var(--red)':'var(--text2)'):'var(--text3)';
+    const volColor=r.vol!=null?(r.vol<0.3?'var(--cyan)':r.vol<0.6?'var(--green)':'var(--text2)'):'var(--text3)';
+    return`<tr>
+      <td class="d-date">${r.fecha}</td>
+      <td><span class="d-token">${r.token}</span></td>
+      <td>${posBadge(r.pos)}</td>
+      <td style="color:var(--text2);font-size:11px">${r.precioBase!=null?fmtP(r.precioBase):'—'}</td>
+      <td style="color:var(--text2);font-size:11px">${r.precioMax!=null?fmtP(r.precioMax):'—'}</td>
+      <td><span class="d-num" style="color:${pctColor}">${pct}</span></td>
+      <td><span class="d-num" style="color:var(--orange)">${r.diasFlat!=null?r.diasFlat+'d':'—'}</span></td>
+      <td><span class="d-num" style="color:${fundColor}">${r.funding!=null?(r.funding>=0?'+':'')+r.funding.toFixed(4)+'%':'—'}</span></td>
+      <td><span class="d-num" style="color:${adxColor}">${r.adx!=null?r.adx:'—'}</span></td>
+      <td><span class="d-num" style="color:${volColor}">${r.vol!=null?r.vol.toFixed(2)+'x':'—'}</span></td>
+      <td>${whaleBadge(r.whale)}</td>
+      <td>${scannerBadge(r.scanner)}</td>
+      <td><input class="d-edit" style="width:180px" value="${r.nota||''}" onblur="updateDiarioCampo(${r.id},'nota',this.value)" placeholder="nota..."></td>
+      <td><button class="d-del" onclick="delDiario(${r.id})" title="Eliminar">✕</button></td>
+    </tr>`;
+  }).join('');
 }
 
-function updateRegistroStats(){
-  const total=registroRows.length;
-  const top3=registroRows.filter(r=>r.resultado==='top1'||r.resultado==='top3').length;
-  const n3=registroRows.filter(r=>r.nivel==='N3');
-  const n3top=n3.filter(r=>r.resultado==='top1'||r.resultado==='top3').length;
-  const pump=registroRows.filter(r=>r.tipo==='PUMP NOW').length;
-  const tasa=total>0?Math.round(top3/total*100):null;
-  const el=id=>document.getElementById(id);
-  if(el('reg-total'))el('reg-total').textContent=total;
-  if(el('reg-top3'))el('reg-top3').textContent=top3;
-  if(el('reg-n3'))el('reg-n3').textContent=n3.length>0?n3top+'/'+n3.length:'—';
-  if(el('reg-tasa'))el('reg-tasa').textContent=tasa!==null?tasa+'%':'—';
-  if(el('reg-pump'))el('reg-pump').textContent=pump;
-  updatePatron();
+function updateDiarioStats(){
+  const total=diarioRows.length;
+  const top1=diarioRows.filter(r=>r.pos===1).length;
+  const pumps=diarioRows.filter(r=>r.pctPump!=null);
+  const avgPump=pumps.length>0?pumps.reduce((a,b)=>a+(b.pctPump||0),0)/pumps.length:null;
+  const flats=diarioRows.filter(r=>r.diasFlat!=null);
+  const avgFlat=flats.length>0?flats.reduce((a,b)=>a+(b.diasFlat||0),0)/flats.length:null;
+  const funds=diarioRows.filter(r=>r.funding!=null);
+  const avgFund=funds.length>0?funds.reduce((a,b)=>a+(b.funding||0),0)/funds.length:null;
+  document.getElementById('d-total').textContent=total;
+  document.getElementById('d-top1').textContent=top1;
+  document.getElementById('d-avg-pump').textContent=avgPump!=null?'+'+Math.round(avgPump)+'%':'—';
+  document.getElementById('d-avg-flat').textContent=avgFlat!=null?Math.round(avgFlat)+'d':'—';
+  document.getElementById('d-avg-fund').textContent=avgFund!=null?(avgFund>=0?'+':'')+avgFund.toFixed(4)+'%':'—';
+  detectPatronDiario();
 }
 
-function updatePatron(){
-  const pb=document.getElementById('patron-box');
-  const pt=document.getElementById('patron-text');
+function detectPatronDiario(){
+  const pb=document.getElementById('patron-diario');
+  const pt=document.getElementById('patron-diario-text');
   if(!pb||!pt)return;
-  const winners=registroRows.filter(r=>r.resultado==='top1'||r.resultado==='top3');
-  if(winners.length<3){pb.style.display='none';return;}
-  const cvdOk=winners.filter(r=>r.cvd==='SÍ').length;
-  const emaOk=winners.filter(r=>r.ema==='SÍ').length;
-  const vol3x=winners.filter(r=>parseFloat(r.vol15)>=3).length;
-  const n3w=winners.filter(r=>r.nivel==='N3').length;
+  if(diarioRows.length<3){pb.style.display='none';return;}
+  const rows=diarioRows.filter(r=>r.pctPump!=null);
+  if(rows.length<3){pb.style.display='none';return;}
   const lines=[];
-  if(cvdOk>=winners.length*0.7)lines.push('CVD giró presente en '+cvdOk+'/'+winners.length+' ganadores → OBLIGATORIO');
-  if(emaOk>=winners.length*0.7)lines.push('Sobre EMA20 en '+emaOk+'/'+winners.length+' ganadores → OBLIGATORIO');
-  if(vol3x>=winners.length*0.6)lines.push('Vol 15m ≥3x en '+vol3x+'/'+winners.length+' ganadores → CLAVE');
-  if(n3w>0)lines.push('N3 CELU → top3: '+n3w+' de '+winners.length+' casos');
+  const flatOk=rows.filter(r=>r.diasFlat!=null&&r.diasFlat>=10);
+  if(flatOk.length>=rows.length*0.7)lines.push('📌 DÍAS FLAT ≥10 presentes en '+flatOk.length+'/'+rows.length+' pumps → acumulación previa OBLIGATORIA');
+  const fundNeg=rows.filter(r=>r.funding!=null&&r.funding<0);
+  if(fundNeg.length>=rows.length*0.6)lines.push('📌 FUNDING NEGATIVO en '+fundNeg.length+'/'+rows.length+' pumps → shorts financiando el rebote');
+  const adxBajo=rows.filter(r=>r.adx!=null&&r.adx<20);
+  if(adxBajo.length>=rows.length*0.6)lines.push('📌 ADX <20 (compresión) en '+adxBajo.length+'/'+rows.length+' pumps → sin tendencia = spring listo');
+  const volSeco=rows.filter(r=>r.vol!=null&&r.vol<0.5);
+  if(volSeco.length>=rows.length*0.6)lines.push('📌 VOL SECO <0.5x en '+volSeco.length+'/'+rows.length+' pumps → institucional acumulando en silencio');
+  const whaleBuy=rows.filter(r=>r.whale==='buy');
+  if(whaleBuy.length>=rows.length*0.5)lines.push('📌 WHALE BUY en '+whaleBuy.length+'/'+rows.length+' pumps → presencia institucional clave');
+  const scannerFail=rows.filter(r=>r.scanner==='no');
+  if(scannerFail.length>=rows.length*0.5)lines.push('⚠ Scanner NO detectó '+scannerFail.length+'/'+rows.length+' → revisar parámetros o carga manual');
   if(lines.length>0){pb.style.display='block';pt.innerHTML=lines.join('<br>');}
   else pb.style.display='none';
 }
 
-// ── HELPERS ──────────────────────────────────────────────────
+function exportDiario(){
+  if(diarioRows.length===0){showToast('Sin datos para exportar');return;}
+  const headers=['Fecha','Token','Posición','Precio Base','Precio Máx','% Pump','Días Flat','Funding','ADX','Vol 4h','Whale','Scanner','Nota'];
+  const rows=diarioRows.map(r=>[r.fecha,r.token,r.pos,r.precioBase||'',r.precioMax||'',r.pctPump||'',r.diasFlat||'',r.funding!=null?r.funding:'',r.adx||'',r.vol||'',r.whale,r.scanner,r.nota||'']);
+  const csv=[headers,...rows].map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='diario_pumps_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+  showToast('CSV exportado ✓');
+}
+
+function limpiarDiario(){
+  if(!confirm('¿Eliminar TODOS los registros? No se puede deshacer.'))return;
+  diarioRows=[];saveDiario();renderDiario();updateDiarioStats();showToast('Diario limpiado');
+}
+
+// botón desde carrera
+function registrarDesdeCarrera(symbol,change,price,pos){
+  diarioRows.unshift({id:Date.now(),fecha:new Date().toISOString().split('T')[0],token:symbol,pos,precioBase:null,precioMax:price,pctPump:Math.round(change),diasFlat:null,funding:null,adx:null,vol:null,whale:'nr',scanner:'nr',nota:'Registrado desde Carrera. Completar datos históricos en TradingView.'});
+  saveDiario();renderDiario();updateDiarioStats();
+  showToast('📌 '+symbol+' guardado · Ir a Diario para completar');
+}
+
+// ── HELPERS ──
 function showToast(msg){const e=document.querySelector('.toast');if(e)e.remove();const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2100);}
 function showAlert2(msg){const e=document.querySelector('.agotado-alert');if(e)e.remove();const t=document.createElement('div');t.className='agotado-alert';t.innerHTML=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),4500);}
 function fmtBig(n){if(n===null||n===undefined||isNaN(n))return'—';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n.toFixed(0);}
@@ -762,12 +762,8 @@ function detectMecanico(oiHist,pChange){if(!oiHist||oiHist.length<4)return{mecan
 const LIQ_WINDOW_MS=5*60*1000,LIQ_CLIMAX_THRESHOLD=200000;
 const liqBuffer={};let liqWS=null,liqWSStatus='disconnected',liqWSRetries=0;
 function getLiqStats(symbol){const now=Date.now();const buf=liqBuffer[symbol]||[];const recent=buf.filter(e=>now-e.time<LIQ_WINDOW_MS);liqBuffer[symbol]=recent;let shortLiqs=0,longLiqs=0;recent.forEach(e=>{if(e.side==='short')shortLiqs+=e.usdValue;else longLiqs+=e.usdValue;});const climax=shortLiqs>LIQ_CLIMAX_THRESHOLD;return{shortLiqs,longLiqs,climax};}
-function connectLiqWS(){if(liqWS&&liqWS.readyState===WebSocket.OPEN)return;try{liqWS=new WebSocket('wss://fstream.binance.com/ws/!forceOrder@arr');liqWSStatus='connecting';updateLiqWSIndicator();liqWS.onopen=()=>{liqWSStatus='connected';liqWSRetries=0;updateLiqWSIndicator();};liqWS.onmessage=(event)=>{try{const msg=JSON.parse(event.data);const order=msg.o||msg;if(!order||!order.s)return;const symbol=order.s.replace('USDT','');const side=order.S==='BUY'?'short':'long';const usdValue=parseFloat(order.q||0)*parseFloat(order.p||0);if(!liqBuffer[symbol])liqBuffer[symbol]=[];liqBuffer[symbol].push({side,usdValue,time:Date.now()});if(liqBuffer[symbol].length>500)liqBuffer[symbol]=liqBuffer[symbol].slice(-500);const stats=getLiqStats(symbol);if(stats.climax)onClimaxDetected(symbol,stats);}catch(e){}};liqWS.onerror=()=>{liqWSStatus='error';updateLiqWSIndicator();};liqWS.onclose=()=>{liqWSStatus='disconnected';updateLiqWSIndicator();liqWSRetries++;const delay=Math.min(1000*Math.pow(2,liqWSRetries),30000);setTimeout(connectLiqWS,delay);};}catch(e){liqWSStatus='error';updateLiqWSIndicator();setTimeout(connectLiqWS,5000);}}
+function connectLiqWS(){if(liqWS&&liqWS.readyState===WebSocket.OPEN)return;try{liqWS=new WebSocket('wss://fstream.binance.com/ws/!forceOrder@arr');liqWSStatus='connecting';updateLiqWSIndicator();liqWS.onopen=()=>{liqWSStatus='connected';liqWSRetries=0;updateLiqWSIndicator();};liqWS.onmessage=(event)=>{try{const msg=JSON.parse(event.data);const order=msg.o||msg;if(!order||!order.s)return;const symbol=order.s.replace('USDT','');const side=order.S==='BUY'?'short':'long';const usdValue=parseFloat(order.q||0)*parseFloat(order.p||0);if(!liqBuffer[symbol])liqBuffer[symbol]=[];liqBuffer[symbol].push({side,usdValue,time:Date.now()});if(liqBuffer[symbol].length>500)liqBuffer[symbol]=liqBuffer[symbol].slice(-500);}catch(e){}};liqWS.onerror=()=>{liqWSStatus='error';updateLiqWSIndicator();};liqWS.onclose=()=>{liqWSStatus='disconnected';updateLiqWSIndicator();liqWSRetries++;const delay=Math.min(1000*Math.pow(2,liqWSRetries),30000);setTimeout(connectLiqWS,delay);};}catch(e){liqWSStatus='error';updateLiqWSIndicator();setTimeout(connectLiqWS,5000);}}
 function updateLiqWSIndicator(){const el=document.getElementById('liq-ws-status');if(!el)return;const colors={connected:'#00ff88',connecting:'#ffd700',disconnected:'#ff3355',error:'#ff3355'};const labels={connected:'LIQ WS ●',connecting:'LIQ WS ◌',disconnected:'LIQ WS ○',error:'LIQ WS ✗'};el.style.color=colors[liqWSStatus]||'#666';el.textContent=labels[liqWSStatus]||'LIQ WS ○';}
-let lastClimaxAlert={};
-function onClimaxDetected(symbol,stats){const now=Date.now();if(lastClimaxAlert[symbol]&&now-lastClimaxAlert[symbol]<120000)return;lastClimaxAlert[symbol]=now;flashSc('magenta');addAlert('climax',symbol,'💀 WS TIEMPO REAL · Liq shorts $'+fmtBig(stats.shortLiqs)+' en 5min — agotamiento de vendedores',null);if(Notification.permission==='granted'){new Notification('💀 CLIMAX SHORT TRAP: '+symbol,{body:'Liquidaciones shorts: $'+fmtBig(stats.shortLiqs)+'\nPosible reversa — SHORT potencial',icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💀</text></svg>'});}updateClimaxBadge(symbol,stats);}
-function updateClimaxBadge(symbol,stats){const rows=document.querySelectorAll('#table-body tr:not(.heatmap-row)');rows.forEach(row=>{const nameEl=row.querySelector('.token-name');if(nameEl&&nameEl.textContent.trim()===symbol){const sigCell=row.querySelector('td:last-child');if(sigCell&&!sigCell.querySelector('.badge-climax')){const existing=sigCell.querySelector('.badge');if(existing){const climaxBadge=document.createElement('span');climaxBadge.className='badge badge-climax';climaxBadge.textContent='💀 CLIMAX WS';climaxBadge.style.marginLeft='4px';sigCell.appendChild(document.createElement('br'));sigCell.appendChild(climaxBadge);}}}});}
-function requestNotificationPermission(){if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();}
 
 async function fetchLiqs(symbol){
   if(liqWS&&liqWS.readyState===WebSocket.OPEN){const stats=getLiqStats(symbol);return{sL:stats.shortLiqs,lL:stats.longLiqs,climax:stats.climax};}
@@ -784,86 +780,30 @@ async function fetchHM(symbol){if(hmCache[symbol]&&Date.now()-hmCache[symbol].ts
 function renderHM(sym,data,cId){const c=document.getElementById(cId);if(!c)return;if(!data){c.innerHTML='<div class="heatmap-loading">⚠ No se pudo cargar heatmap</div>';return;}const{price,levels,pMin,pMax,ws,wl}=data;const pPct=((price-pMin)/(pMax-pMin)*100).toFixed(1);let bars='';levels.forEach(lvl=>{const h=Math.max(3,lvl.n*100),a=0.25+lvl.n*0.75,col=lvl.side==='short'?'rgba(255,51,85,'+a+')':'rgba(0,255,136,'+a+')';bars+='<div class="hm-bar-wrap"><div class="hm-tooltip"><span style="color:#fff;font-size:11px">'+fmtP(lvl.price)+'</span><span style="font-size:9px;color:'+(lvl.side==='short'?'#ff6688':'#00ff88')+'">Vol: '+fmtBig(lvl.vol)+'</span><span style="font-size:9px;color:var(--text2)">'+(lvl.d>=0?'+':'')+lvl.d.toFixed(2)+'%</span></div><div class="hm-bar" style="height:'+h+'%;background:'+col+'"></div></div>';});const ll=Math.min(Math.max(parseFloat(pPct),5),80);c.innerHTML='<div style="font-size:9px;color:var(--text2);margin-bottom:6px;letter-spacing:1px">🔥 HEATMAP — '+sym+'</div><div class="heatmap-chart">'+bars+'<div style="position:absolute;left:'+pPct+'%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.7);z-index:10;pointer-events:none"><div style="position:absolute;top:-20px;left:'+ll+'%;font-size:9px;color:#fff;background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.3);padding:2px 5px;transform:translateX(-50%);font-family:Barlow Condensed,sans-serif;font-weight:700">'+fmtP(price)+'</div></div></div><div style="display:flex;justify-content:space-between;font-size:8px;color:var(--text3);margin-top:3px"><span>'+fmtP(pMin)+'</span><span>← '+Math.round(parseFloat(pPct))+'% →</span><span>'+fmtP(pMax)+'</span></div><div class="heatmap-walls"><div class="heatmap-wall wall-short"><span class="heatmap-wall-label" style="color:var(--red)">Pared SHORT</span><span class="heatmap-wall-price" style="color:var(--red)">'+(ws?fmtP(ws.price):'—')+'</span><span class="heatmap-wall-vol" style="color:#ff6688">Vol: '+(ws?fmtBig(ws.vol):'—')+'</span></div><div class="heatmap-wall wall-long"><span class="heatmap-wall-label" style="color:var(--green)">Soporte LONG</span><span class="heatmap-wall-price" style="color:var(--green)">'+(wl?fmtP(wl.price):'—')+'</span><span class="heatmap-wall-vol" style="color:#00ff88">Vol: '+(wl?fmtBig(wl.vol):'—')+'</span></div></div>';}
 
 const tokenDataCache={};
-async function toggleHeatmap(sym){const cId='hm-c-'+sym,btnId='hm-btn-'+sym;const c=document.getElementById(cId),btn=document.getElementById(btnId);if(!c)return;if(c.classList.contains('open')){c.classList.remove('open');if(btn){btn.textContent='🔥 HEATMAP';btn.classList.remove('active');}const wEl=document.getElementById('celu-w-'+sym);if(wEl)wEl.style.display='none';return;}c.classList.add('open');if(btn){btn.textContent='▲ CERRAR';btn.classList.add('active');}c.innerHTML='<div class="heatmap-loading"><span class="spinner"></span> Cargando heatmap...</div>';renderHM(sym,await fetchHM(sym),cId);const wEl=document.getElementById('celu-w-'+sym);if(wEl)wEl.style.display='';const cached=tokenDataCache[sym];if(cached){renderCeluWidget(sym,cached,c);}else{const td=await getTokenData(sym);tokenDataCache[sym]=td;renderCeluWidget(sym,td,c);}}
+async function toggleHeatmap(sym){const cId='hm-c-'+sym,btnId='hm-btn-'+sym;const c=document.getElementById(cId),btn=document.getElementById(btnId);if(!c)return;if(c.classList.contains('open')){c.classList.remove('open');if(btn){btn.textContent='🔥 HEATMAP';btn.classList.remove('active');}return;}c.classList.add('open');if(btn){btn.textContent='▲ CERRAR';btn.classList.add('active');}c.innerHTML='<div class="heatmap-loading"><span class="spinner"></span> Cargando heatmap...</div>';renderHM(sym,await fetchHM(sym),cId);const cached=tokenDataCache[sym];if(cached){renderCeluWidget(sym,cached,c);}else{const td=await getTokenData(sym);tokenDataCache[sym]=td;renderCeluWidget(sym,td,c);}}
 
-async function getTokenData(symbol){const pair=symbol+'USDT';try{const[tk,fr,oi,wd,oiH,liq]=await Promise.allSettled([fwr('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol='+pair),fwr('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=1'),fwr('https://fapi.binance.com/fapi/v1/openInterest?symbol='+pair),fetchWhaleData(symbol),fetchOIHist(symbol),fetchLiqs(symbol),]);const t=tk.status==='fulfilled'?tk.value:null;if(!t)return{symbol,error:'No data'};const w=wd.status==='fulfilled'?wd.value:defW();const oiHv=oiH.status==='fulfilled'?oiH.value:null;const lv=liq.status==='fulfilled'?liq.value:{sL:0,lL:0,climax:false};const price=parseFloat(t.lastPrice),ch24=parseFloat(t.priceChangePercent);const mec=detectMecanico(oiHv,ch24);const result={symbol,price,change24:ch24,funding:fr.status==='fulfilled'&&fr.value[0]?parseFloat(fr.value[0].fundingRate)*100:null,openInterest:oi.status==='fulfilled'&&oi.value?parseFloat(oi.value.openInterest)*price:null,whale:w.whale,wBR:w.wBR,wSR:w.wSR,cvd:w.cvd,cvdDir:w.cvdDir,cvdPct:w.cvdPct,vRatio:w.vRatio,stochK:w.stochK,stochKP:w.stochKP,stochD:w.stochD,vwap:w.vwap,adx:w.adx,absorcion:w.absorcion,absorcionPct:w.absorcionPct,mecanico:mec.mecanico,oiCaida:mec.oiCaida,climax:lv.climax,shortLiqs:lv.sL,longLiqs:lv.lL};tokenDataCache[symbol]=result;return result;}catch(e){return{symbol,error:e.message};}}
+async function getTokenData(symbol){const pair=symbol+'USDT';try{const[tk,fr,oi,wd,oiH,liq]=await Promise.allSettled([fwr('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol='+pair),fwr('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=1'),fwr('https://fapi.binance.com/fapi/v1/openInterest?symbol='+pair),fetchWhaleData(symbol),fetchOIHist(symbol),fetchLiqs(symbol)]);const t=tk.status==='fulfilled'?tk.value:null;if(!t)return{symbol,error:'No data'};const w=wd.status==='fulfilled'?wd.value:defW();const oiHv=oiH.status==='fulfilled'?oiH.value:null;const lv=liq.status==='fulfilled'?liq.value:{sL:0,lL:0,climax:false};const price=parseFloat(t.lastPrice),ch24=parseFloat(t.priceChangePercent);const mec=detectMecanico(oiHv,ch24);const result={symbol,price,change24:ch24,funding:fr.status==='fulfilled'&&fr.value[0]?parseFloat(fr.value[0].fundingRate)*100:null,openInterest:oi.status==='fulfilled'&&oi.value?parseFloat(oi.value.openInterest)*price:null,whale:w.whale,wBR:w.wBR,wSR:w.wSR,cvd:w.cvd,cvdDir:w.cvdDir,cvdPct:w.cvdPct,vRatio:w.vRatio,stochK:w.stochK,stochKP:w.stochKP,stochD:w.stochD,vwap:w.vwap,adx:w.adx,absorcion:w.absorcion,absorcionPct:w.absorcionPct,mecanico:mec.mecanico,oiCaida:mec.oiCaida,climax:lv.climax,shortLiqs:lv.sL,longLiqs:lv.lL};tokenDataCache[symbol]=result;return result;}catch(e){return{symbol,error:e.message};}}
 
 function calcSetup(d){if(!d||d.error)return{type:'neutral',sL:0,sS:0,sigL:false,sigS:false};const wd={whale:d.whale,wBR:d.wBR,wSR:d.wSR,stochK:d.stochK,stochKP:d.stochKP,stochD:d.stochD,adx:d.adx,vwap:d.vwap,price:d.price};const c=calcCelu(d,wd);let type='neutral';if(c.sigL&&c.sigS)type='squeeze';else if(c.sigL)type='wlong';else if(c.sigS)type='wshort';else if(c.sL>=3)type='long';else if(c.sS>=3)type='short';const chkA=document.getElementById('chk-absorcion')?.checked;const chkM=document.getElementById('chk-mecanico')?.checked;const chkC=document.getElementById('chk-climax')?.checked;if(chkC&&d.climax)type='climax';else if(chkA&&d.absorcion&&!c.sigL)type='absorcion';else if(chkM&&d.mecanico&&type==='neutral')type='mecanico';return{...c,type,scoreL:c.sL,scoreS:c.sS,sigLong:c.sigL,sigShort:c.sigS};}
 
 function renderRow(d,idx){if(d.error)return'<tr style="animation-delay:'+idx*0.05+'s"><td><div class="token-name">'+d.symbol+'</div><div class="token-sub">ERROR</div></td><td colspan="12" style="color:var(--text3);font-size:10px">'+d.error+'</td></tr><tr class="heatmap-row"><td colspan="13"><div class="heatmap-container" id="hm-c-'+d.symbol+'"></div></td></tr>';const s=calcSetup(d);const{sL,sS,sigL,sigS,soV,adxOk,type}=s;let sigH='';if(type==='climax')sigH='<span class="badge badge-climax">💀 CLIMAX SHORT TRAP</span>';else if(type==='absorcion')sigH='<span class="badge badge-absorcion">🔄 ABSORCIÓN CVD</span>';else if(type==='mecanico')sigH='<span class="badge badge-mecanico">⚡ OI MECÁNICO</span>';else if(sigL&&sigS)sigH='<span class="badge badge-squeeze">⚡ SQUEEZE</span>';else if(sigL)sigH='<span class="badge badge-wlong">W▲ LONG</span>';else if(sigS)sigH='<span class="badge badge-wshort">W▼ SHORT</span>';else if(type==='long')sigH='<span class="badge badge-long">▲ LONG</span>';else if(type==='short')sigH='<span class="badge badge-short">▼ SHORT</span>';else sigH='<span class="badge badge-neutral">— NEUTRAL</span>';let sub='';if(d.absorcion&&type!=='absorcion')sub+='<br><span style="font-size:8px;color:var(--magenta);font-weight:700">⚠ ABSORCIÓN CVD</span>';if(d.mecanico&&type!=='mecanico')sub+='<br><span style="font-size:8px;color:#c4b5fd;font-weight:700">⚡ OI MECO:'+d.oiCaida.toFixed(1)+'%</span>';if(d.climax&&type!=='climax')sub+='<br><span style="font-size:8px;color:var(--magenta);font-weight:700">💀 LIQ:$'+fmtBig(d.shortLiqs)+'</span>';const fc=d.funding===null?'':d.funding<-0.005?'funding-neg':d.funding>0.005?'funding-pos':'';const fs=d.funding!==null?(d.funding>=0?'+':'')+d.funding.toFixed(4)+'%':'—';const wH=d.whale==='buy'?'<span class="whale-buy">🐋 BUY</span>':d.whale==='sell'?'<span class="whale-sell">🐋 SELL</span>':d.wBR?'<span class="whale-buy" style="opacity:0.6">~ bull</span>':d.wSR?'<span class="whale-sell" style="opacity:0.6">~ bear</span>':'<span class="whale-neu">—</span>';const cC=d.cvdDir==='up'?'var(--green)':d.cvdDir==='down'?'var(--red)':'var(--text3)';const cA=d.cvdDir==='up'?'▲':d.cvdDir==='down'?'▼':'—';const vC=d.vRatio>=2?'var(--red)':d.vRatio>=1?'var(--yellow)':'var(--green)';const sk=Math.round(d.stochK||50);const skC=sk<25?'var(--green)':sk>75?'var(--red)':'var(--text2)';const vwH=soV?'<span style="color:var(--green);font-size:10px;font-family:Barlow Condensed,sans-serif;font-weight:700">SOBRE</span>':'<span style="color:var(--red);font-size:10px;font-family:Barlow Condensed,sans-serif;font-weight:700">BAJO</span>';const adC=adxOk?'var(--cyan)':'var(--text3)';const slC=sL>=3?'var(--green)':'var(--text3)',ssC=sS>=3?'var(--red)':'var(--text3)';let rs='animation-delay:'+idx*0.06+'s';if(type==='climax')rs+=';background:rgba(255,0,204,0.06)';else if(type==='absorcion')rs+=';background:rgba(255,0,204,0.03)';else if(type==='mecanico')rs+=';background:rgba(124,58,237,0.04)';const tc='<div class="token-name" onclick="toggleHeatmap(\''+d.symbol+'\')">'+d.symbol+'</div><div class="token-sub">PERP · BINANCE</div><button class="heatmap-btn" id="hm-btn-'+d.symbol+'" onclick="toggleHeatmap(\''+d.symbol+'\')">🔥 HEATMAP + CELU</button>';return'<tr style="'+rs+'"><td>'+tc+'</td><td class="right"><div style="font-size:13px">'+fmtP(d.price)+'</div></td><td class="right '+(d.change24>=0?'change-pos':'change-neg')+'">'+(d.change24>=0?'+':'')+d.change24.toFixed(2)+'%</td><td class="right '+fc+'">'+fs+'</td><td class="right" style="color:var(--cyan);font-size:11px">'+fmtBig(d.openInterest)+'</td><td>'+wH+'</td><td><span style="color:'+cC+';font-family:Barlow Condensed,sans-serif;font-size:12px;font-weight:700">'+cA+' '+fmtBig(Math.abs(d.cvd))+'</span></td><td><span style="color:'+vC+';font-family:Barlow Condensed,sans-serif;font-size:12px;font-weight:700">'+((d.vRatio||1).toFixed(2))+'x</span></td><td><span style="color:'+skC+';font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700">'+sk+'</span></td><td>'+vwH+'</td><td><span style="color:'+adC+';font-family:Barlow Condensed,sans-serif;font-size:12px;font-weight:700">'+Math.round(d.adx||20)+'</span></td><td><span style="color:'+slC+';font-family:Barlow Condensed,sans-serif;font-size:12px;font-weight:700">L:'+sL+'</span><span style="color:var(--text3)"> / </span><span style="color:'+ssC+';font-family:Barlow Condensed,sans-serif;font-size:12px;font-weight:700">S:'+sS+'</span></td><td>'+sigH+sub+'</td></tr><tr class="heatmap-row"><td colspan="13"><div class="heatmap-container" id="hm-c-'+d.symbol+'"></div></td></tr>';}
 
-async function runScan(){if(scanning)return;if(selectedTokens.size===0){showToast('Seleccioná al menos un token');return;}scanning=true;const btn=document.getElementById('scan-btn');btn.disabled=true;btn.textContent='⟳ SCANNING...';const tbody=document.getElementById('table-body');tbody.innerHTML='<tr><td colspan="13" style="padding:40px;text-align:center;color:var(--text2);font-size:11px"><span class="spinner"></span>CELU v4: Whale+StochRSI+VWAP+ADX+Absorción+OI+Climax+Confianza...</td></tr>';const tokens=Array.from(selectedTokens);const data=await Promise.all(tokens.map(t=>getTokenData(t)));data.sort((a,b)=>{const sa=calcSetup(a),sb=calcSetup(b);const rk=t=>t==='climax'?5:t==='absorcion'?4:t==='wlong'||t==='wshort'?3:t==='squeeze'?2:t==='mecanico'?2:t==='long'?1:0;if(rk(sa.type)!==rk(sb.type))return rk(sb.type)-rk(sa.type);return(sb.sL+sb.sS)-(sa.sL+sa.sS);});tbody.innerHTML=data.map((d,i)=>renderRow(d,i)).join('');const v=data.filter(d=>!d.error);document.getElementById('s-total').textContent=v.length;document.getElementById('s-wlong').textContent=v.filter(d=>calcSetup(d).sigL).length;document.getElementById('s-wshort').textContent=v.filter(d=>calcSetup(d).sigS).length;document.getElementById('s-absorcion').textContent=v.filter(d=>d.absorcion).length;document.getElementById('s-mecanico').textContent=v.filter(d=>d.mecanico).length;document.getElementById('s-climax').textContent=v.filter(d=>d.climax).length;const af=v.reduce((a,d)=>a+(d.funding||0),0)/(v.length||1);const sf=document.getElementById('s-funding');sf.textContent=(af>=0?'+':'')+af.toFixed(4)+'%';sf.style.color=af<0?'var(--green)':'var(--red)';document.getElementById('summary').style.display='flex';const now=new Date(),ts=now.toLocaleTimeString('es-AR');document.getElementById('last-update').textContent='Última actualización: '+ts+' — CELU v4 + CONFIANZA';document.getElementById('last-update-header').textContent=ts;btn.disabled=false;btn.textContent='▶ SCAN';scanning=false;checkScanAlerts(data);}
+async function runScan(){if(scanning)return;if(selectedTokens.size===0){showToast('Seleccioná al menos un token');return;}scanning=true;const btn=document.getElementById('scan-btn');btn.disabled=true;btn.textContent='⟳ SCANNING...';const tbody=document.getElementById('table-body');tbody.innerHTML='<tr><td colspan="13" style="padding:40px;text-align:center;color:var(--text2);font-size:11px"><span class="spinner"></span>CELU v4: Whale+StochRSI+VWAP+ADX+Absorción+OI+Climax...</td></tr>';const tokens=Array.from(selectedTokens);const data=await Promise.all(tokens.map(t=>getTokenData(t)));data.sort((a,b)=>{const sa=calcSetup(a),sb=calcSetup(b);const rk=t=>t==='climax'?5:t==='absorcion'?4:t==='wlong'||t==='wshort'?3:t==='squeeze'?2:t==='mecanico'?2:t==='long'?1:0;if(rk(sa.type)!==rk(sb.type))return rk(sb.type)-rk(sa.type);return(sb.sL+sb.sS)-(sa.sL+sa.sS);});tbody.innerHTML=data.map((d,i)=>renderRow(d,i)).join('');const v=data.filter(d=>!d.error);document.getElementById('s-total').textContent=v.length;document.getElementById('s-wlong').textContent=v.filter(d=>calcSetup(d).sigL).length;document.getElementById('s-wshort').textContent=v.filter(d=>calcSetup(d).sigS).length;document.getElementById('s-absorcion').textContent=v.filter(d=>d.absorcion).length;document.getElementById('s-mecanico').textContent=v.filter(d=>d.mecanico).length;document.getElementById('s-climax').textContent=v.filter(d=>d.climax).length;const af=v.reduce((a,d)=>a+(d.funding||0),0)/(v.length||1);const sf=document.getElementById('s-funding');sf.textContent=(af>=0?'+':'')+af.toFixed(4)+'%';sf.style.color=af<0?'var(--green)':'var(--red)';document.getElementById('summary').style.display='flex';const now=new Date(),ts=now.toLocaleTimeString('es-AR');document.getElementById('last-update').textContent='Última actualización: '+ts+' — CELU v4';document.getElementById('last-update-header').textContent=ts;btn.disabled=false;btn.textContent='▶ SCAN';scanning=false;checkScanAlerts(data);}
 function setRefresh(){const v=parseInt(document.getElementById('refresh-select').value);clearInterval(refreshInterval);refreshInterval=null;if(v>0)refreshInterval=setInterval(()=>runScan(),v*1000);}
 
 // CELU NIVEL
-function calcCeluNivel(d){
-  if(!d||d.error)return{nivelNum:1,confianza:0,estado:['SIN DATOS'],tipo:'N/A',modo:'SHORT',adxTag:'—',fundingTag:'—',whaleTag:'—',adxPct:0,fundingPct:0,whalePct:0,absorcion:false,agotado:false};
-  const funding=d.funding!==null?d.funding:0;const adx=d.adx||20;const vRatio=d.vRatio||1;const absorcion=d.absorcion||false;const stochK=d.stochK||50;const change24=d.change24||0;const cvdDir=d.cvdDir||'flat';const whale=d.whale||'neutral';const wBR=d.wBR||false;
-  const signosLong=(funding<=0.01&&change24<3&&(cvdDir==='up'||absorcion||whale==='buy'||wBR||stochK<50));const signosShort=(funding>0.01||(change24>=5&&stochK>=70));const modo=signosLong&&!signosShort?'LONG':'SHORT';const agotado=stochK>=75&&change24>=5;
-  let fundingTag,fundingPct;if(modo==='SHORT'){if(funding>0.05){fundingTag='EUFORIA EXTREMA';fundingPct=100;}else if(funding>0.01){fundingTag='RETAIL ATRAPADO ARRIBA';fundingPct=65;}else if(funding>0.001){fundingTag='NEUTRAL + RETAIL ARRIBA';fundingPct=40;}else{fundingTag='NEGATIVO / NORMAL';fundingPct=15;}}else{if(funding<-0.01){fundingTag='SHORTS PAGANDO · SPRING';fundingPct=100;}else if(funding<0){fundingTag='FUNDING NEGATIVO · BUENO';fundingPct=70;}else if(funding<=0.003){fundingTag='NEUTRAL · SIN PRESIÓN';fundingPct=45;}else{fundingTag='LEVE RETAIL ARRIBA';fundingPct=20;}}
-  let adxTag,adxPct;if(modo==='SHORT'){if(adx>=50){adxTag='CLÍMAX ABSOLUTO';adxPct=100;}else if(adx>=30){adxTag='FUERTE Y MADURA';adxPct=65;}else{adxTag='TENDENCIA DESARROLLO';adxPct=Math.min(60,Math.max(15,adx/30*60));}}else{if(adx<=15){adxTag='COMPRESIÓN MÁXIMA';adxPct=100;}else if(adx<=25){adxTag='ACUMULACIÓN SILENCIOSA';adxPct=70;}else if(adx<=35){adxTag='INICIO MOVIMIENTO';adxPct=40;}else{adxTag='YA EN MOVIMIENTO';adxPct=20;}}
-  let whaleTag,whalePct;if(modo==='SHORT'){if(vRatio>=3){whaleTag='INYECCIÓN MASIVA';whalePct=100;}else if(vRatio>=1.5){whaleTag='INSTITUCIONAL';whalePct=Math.min(90,(vRatio-1.5)/(3-1.5)*60+40);}else{whaleTag='APAGADO';whalePct=Math.min(30,vRatio/1.5*30);}}else{if(whale==='buy'||wBR){whaleTag='ABSORCIÓN INSTITUCIONAL';whalePct=100;}else if(cvdDir==='up'&&vRatio<=0.4){whaleTag='ACUMULANDO SILENCIOSO';whalePct=80;}else if(cvdDir==='up'){whaleTag='CVD ALCISTA';whalePct=55;}else if(vRatio<=0.3){whaleTag='VOLUMEN SECO · SPRING';whalePct=45;}else{whaleTag='NEUTRO';whalePct=15;}}
-  let nivelNum,confianza,tipo,estado=[];
-  if(modo==='SHORT'){if(funding>0.05&&adx>=50&&vRatio>=3&&absorcion){nivelNum=3;confianza=90;tipo='SHORT PREMIUM';estado=['[ESTADO: CLÍMAX ABSOLUTO]','DIVERGENCIA INSTITUCIONAL DETECTADA','BALLENA ABSORBIENDO FOMO RETAIL UPSTREAM','ALTA PROBABILIDAD DE REVERSIÓN VIOLENTA'];}else if(funding>0.05&&adx>=50&&(agotado||vRatio>=3)){nivelNum=3;confianza=85;tipo='SHORT PREMIUM';estado=['[ESTADO: CLÍMAX ABSOLUTO PARCIAL]','FUNDING EUFORIA + ADX CLÍMAX','CONFIRMAR ABSORCIÓN CVD PARA 90%','ALTA PROBABILIDAD REVERSIÓN'];}else if(funding>0.05&&adx>=45){nivelNum=3;confianza=80;tipo='SHORT PREMIUM';estado=['[ESTADO: CLÍMAX — CONFIRMAR]','LONG PAGA TASA CARÍSIMA · POSIBLE SQUEEZE','BUSCAR ABSORCIÓN CVD PARA CONFIRMAR','RIESGO ALTO'];}else if(funding>0.001&&funding<=0.05&&adx>=30&&vRatio>=1.5){nivelNum=2;confianza=65;tipo='TRADE ESTÁNDAR';estado=['[ESTADO: TRADE MADURO POR AGOTAMIENTO]','TENDENCIA FUERTE Y MADURA · BUSCAR REVERSIÓN','FILTRO AGOTAMIENTO SC4/SC5 ACTIVO','BUEN R:R AL POCTP'];if(agotado)estado.push('⚠ AGOTAMIENTO CONFIRMADO');}else if(adx>=30&&(vRatio>=1.5||funding>0.001)){nivelNum=2;confianza=55;tipo='TRADE ESTÁNDAR';estado=['[ESTADO: SEÑAL MEDIA EN DESARROLLO]','CONFIANZA MEDIA · TRADE ESTÁNDAR','CONFIRMAR VOLUMEN INSTITUCIONAL (1.5-3x)','MONITOREAR FUNDING Y ADX'];}else{nivelNum=1;confianza=30;tipo='SEÑAL DÉBIL — PELIGRO';estado=['[ESTADO: SEÑAL DÉBIL]','FUNDING: NORMAL · SIN EUFORIA CONFIRMADA','ADX: TENDENCIA EN DESARROLLO','WHALE MULT <1.5x: SIN RASTRO INSTITUCIONAL','SIN ABSORCIÓN CVD · SIN AGOTAMIENTO · ESPERAR'];}}else{const stochBajo=stochK<30;const stochSubiendo=stochK>=(d.stochKP||stochK)&&stochK<55;const cvdAlcista=cvdDir==='up';const whaleCompra=whale==='buy'||wBR;if(absorcion&&funding<=0&&adx<=25&&whaleCompra){nivelNum=3;confianza=90;tipo='LONG PREMIUM';estado=['[ESTADO: SPRING INSTITUCIONAL]','ABSORCIÓN CVD CONFIRMADA · BALLENA COMPRANDO','FUNDING NEGATIVO · SHORTS FINANCIANDO REBOTE','ALTA PROBABILIDAD PUMP VIOLENTO'];}else if(absorcion&&funding<=0.001&&(cvdAlcista||stochBajo)&&adx<=30){nivelNum=3;confianza=85;tipo='LONG PREMIUM';estado=['[ESTADO: ACUMULACIÓN INSTITUCIONAL]','ABSORCIÓN CVD + FUNDING NEUTRAL/NEGATIVO','ADX BAJO · COMPRESIÓN MÁXIMA DETECTADA','CONFIRMAR WHALE BUY PARA 90%'];}else if(funding<-0.005&&cvdAlcista&&adx<=35){nivelNum=3;confianza=80;tipo='LONG PREMIUM';estado=['[ESTADO: SPRING EN DESARROLLO]','SHORTS PAGANDO CARO · PRESIÓN AL ALZA','CVD ALCISTA · ACUMULACIÓN ACTIVA','BUSCAR ABSORCIÓN CVD PARA CONFIRMAR'];}else if(funding<=0.003&&adx<=30&&(cvdAlcista||stochBajo||whaleCompra)){nivelNum=2;confianza=65;tipo='LONG ESTÁNDAR';estado=['[ESTADO: ACUMULACIÓN EN DESARROLLO]','FUNDING NEUTRAL · SIN PRESIÓN VENDEDORA','ADX BAJO · PRECIO EN COMPRESIÓN','BUEN R:R SI CONFIRMA CVD O WHALE BUY'];if(stochBajo)estado.push('✅ STOCH RSI OVERSOLD · REBOTE PROBABLE');}else if(funding<=0.003&&(cvdAlcista||stochSubiendo)){nivelNum=2;confianza=55;tipo='LONG ESTÁNDAR';estado=['[ESTADO: SEÑAL MEDIA EN DESARROLLO]','FUNDING OK · MONITOREAR CVD Y WHALE','STOCH RSI SUBIENDO · MOMENTUM INCIPIENTE','ESPERAR CONFIRMACIÓN ANTES DE ENTRAR'];}else{nivelNum=1;confianza=30;tipo='LONG DÉBIL — ESPERAR';estado=['[ESTADO: SEÑAL LONG DÉBIL]','FUNDING NEUTRAL PERO SIN CATALIZADORES','CVD PLANO · SIN ABSORCIÓN CONFIRMADA','WHALE NEUTRO · ESPERAR SETUP COMPLETO','MONITOREAR SQZMOM Y ABSORCIÓN CVD'];}}
-  return{nivelNum,confianza,estado,tipo,modo,adxTag,fundingTag,whaleTag,adxPct,fundingPct,whalePct,absorcion,agotado};
-}
+function calcCeluNivel(d){if(!d||d.error)return{nivelNum:1,confianza:0,estado:['SIN DATOS'],tipo:'N/A',modo:'SHORT',adxTag:'—',fundingTag:'—',whaleTag:'—',adxPct:0,fundingPct:0,whalePct:0,absorcion:false,agotado:false};const funding=d.funding!==null?d.funding:0;const adx=d.adx||20;const vRatio=d.vRatio||1;const absorcion=d.absorcion||false;const stochK=d.stochK||50;const change24=d.change24||0;const cvdDir=d.cvdDir||'flat';const whale=d.whale||'neutral';const wBR=d.wBR||false;const signosLong=(funding<=0.01&&change24<3&&(cvdDir==='up'||absorcion||whale==='buy'||wBR||stochK<50));const signosShort=(funding>0.01||(change24>=5&&stochK>=70));const modo=signosLong&&!signosShort?'LONG':'SHORT';const agotado=stochK>=75&&change24>=5;let fundingTag,fundingPct;if(modo==='SHORT'){if(funding>0.05){fundingTag='EUFORIA EXTREMA';fundingPct=100;}else if(funding>0.01){fundingTag='RETAIL ATRAPADO ARRIBA';fundingPct=65;}else if(funding>0.001){fundingTag='NEUTRAL + RETAIL ARRIBA';fundingPct=40;}else{fundingTag='NEGATIVO / NORMAL';fundingPct=15;}}else{if(funding<-0.01){fundingTag='SHORTS PAGANDO · SPRING';fundingPct=100;}else if(funding<0){fundingTag='FUNDING NEGATIVO · BUENO';fundingPct=70;}else if(funding<=0.003){fundingTag='NEUTRAL · SIN PRESIÓN';fundingPct=45;}else{fundingTag='LEVE RETAIL ARRIBA';fundingPct=20;}}let adxTag,adxPct;if(modo==='SHORT'){if(adx>=50){adxTag='CLÍMAX ABSOLUTO';adxPct=100;}else if(adx>=30){adxTag='FUERTE Y MADURA';adxPct=65;}else{adxTag='TENDENCIA DESARROLLO';adxPct=Math.min(60,Math.max(15,adx/30*60));}}else{if(adx<=15){adxTag='COMPRESIÓN MÁXIMA';adxPct=100;}else if(adx<=25){adxTag='ACUMULACIÓN SILENCIOSA';adxPct=70;}else if(adx<=35){adxTag='INICIO MOVIMIENTO';adxPct=40;}else{adxTag='YA EN MOVIMIENTO';adxPct=20;}}let whaleTag,whalePct;if(modo==='SHORT'){if(vRatio>=3){whaleTag='INYECCIÓN MASIVA';whalePct=100;}else if(vRatio>=1.5){whaleTag='INSTITUCIONAL';whalePct=Math.min(90,(vRatio-1.5)/(3-1.5)*60+40);}else{whaleTag='APAGADO';whalePct=Math.min(30,vRatio/1.5*30);}}else{if(whale==='buy'||wBR){whaleTag='ABSORCIÓN INSTITUCIONAL';whalePct=100;}else if(cvdDir==='up'&&vRatio<=0.4){whaleTag='ACUMULANDO SILENCIOSO';whalePct=80;}else if(cvdDir==='up'){whaleTag='CVD ALCISTA';whalePct=55;}else if(vRatio<=0.3){whaleTag='VOLUMEN SECO · SPRING';whalePct=45;}else{whaleTag='NEUTRO';whalePct=15;}}let nivelNum,confianza,tipo,estado=[];if(modo==='SHORT'){if(funding>0.05&&adx>=50&&vRatio>=3&&absorcion){nivelNum=3;confianza=90;tipo='SHORT PREMIUM';estado=['[ESTADO: CLÍMAX ABSOLUTO]','DIVERGENCIA INSTITUCIONAL DETECTADA','BALLENA ABSORBIENDO FOMO RETAIL UPSTREAM','ALTA PROBABILIDAD DE REVERSIÓN VIOLENTA'];}else if(funding>0.05&&adx>=50&&(agotado||vRatio>=3)){nivelNum=3;confianza=85;tipo='SHORT PREMIUM';estado=['[ESTADO: CLÍMAX ABSOLUTO PARCIAL]','FUNDING EUFORIA + ADX CLÍMAX','CONFIRMAR ABSORCIÓN CVD PARA 90%','ALTA PROBABILIDAD REVERSIÓN'];}else if(funding>0.05&&adx>=45){nivelNum=3;confianza=80;tipo='SHORT PREMIUM';estado=['[ESTADO: CLÍMAX — CONFIRMAR]','LONG PAGA TASA CARÍSIMA · POSIBLE SQUEEZE','BUSCAR ABSORCIÓN CVD PARA CONFIRMAR','RIESGO ALTO'];}else if(funding>0.001&&funding<=0.05&&adx>=30&&vRatio>=1.5){nivelNum=2;confianza=65;tipo='TRADE ESTÁNDAR';estado=['[ESTADO: TRADE MADURO POR AGOTAMIENTO]','TENDENCIA FUERTE Y MADURA · BUSCAR REVERSIÓN','FILTRO AGOTAMIENTO SC4/SC5 ACTIVO','BUEN R:R AL POCTP'];if(agotado)estado.push('⚠ AGOTAMIENTO CONFIRMADO');}else if(adx>=30&&(vRatio>=1.5||funding>0.001)){nivelNum=2;confianza=55;tipo='TRADE ESTÁNDAR';estado=['[ESTADO: SEÑAL MEDIA EN DESARROLLO]','CONFIANZA MEDIA · TRADE ESTÁNDAR','CONFIRMAR VOLUMEN INSTITUCIONAL (1.5-3x)','MONITOREAR FUNDING Y ADX'];}else{nivelNum=1;confianza=30;tipo='SEÑAL DÉBIL — PELIGRO';estado=['[ESTADO: SEÑAL DÉBIL]','FUNDING: NORMAL · SIN EUFORIA CONFIRMADA','ADX: TENDENCIA EN DESARROLLO','WHALE MULT <1.5x: SIN RASTRO INSTITUCIONAL','SIN ABSORCIÓN CVD · SIN AGOTAMIENTO · ESPERAR'];}}else{const stochBajo=stochK<30;const stochSubiendo=stochK>=(d.stochKP||stochK)&&stochK<55;const cvdAlcista=cvdDir==='up';const whaleCompra=whale==='buy'||wBR;if(absorcion&&funding<=0&&adx<=25&&whaleCompra){nivelNum=3;confianza=90;tipo='LONG PREMIUM';estado=['[ESTADO: SPRING INSTITUCIONAL]','ABSORCIÓN CVD CONFIRMADA · BALLENA COMPRANDO','FUNDING NEGATIVO · SHORTS FINANCIANDO REBOTE','ALTA PROBABILIDAD PUMP VIOLENTO'];}else if(absorcion&&funding<=0.001&&(cvdAlcista||stochBajo)&&adx<=30){nivelNum=3;confianza=85;tipo='LONG PREMIUM';estado=['[ESTADO: ACUMULACIÓN INSTITUCIONAL]','ABSORCIÓN CVD + FUNDING NEUTRAL/NEGATIVO','ADX BAJO · COMPRESIÓN MÁXIMA DETECTADA','CONFIRMAR WHALE BUY PARA 90%'];}else if(funding<-0.005&&cvdAlcista&&adx<=35){nivelNum=3;confianza=80;tipo='LONG PREMIUM';estado=['[ESTADO: SPRING EN DESARROLLO]','SHORTS PAGANDO CARO · PRESIÓN AL ALZA','CVD ALCISTA · ACUMULACIÓN ACTIVA','BUSCAR ABSORCIÓN CVD PARA CONFIRMAR'];}else if(funding<=0.003&&adx<=30&&(cvdAlcista||stochBajo||whaleCompra)){nivelNum=2;confianza=65;tipo='LONG ESTÁNDAR';estado=['[ESTADO: ACUMULACIÓN EN DESARROLLO]','FUNDING NEUTRAL · SIN PRESIÓN VENDEDORA','ADX BAJO · PRECIO EN COMPRESIÓN','BUEN R:R SI CONFIRMA CVD O WHALE BUY'];if(stochBajo)estado.push('✅ STOCH RSI OVERSOLD · REBOTE PROBABLE');}else if(funding<=0.003&&(cvdAlcista||stochSubiendo)){nivelNum=2;confianza=55;tipo='LONG ESTÁNDAR';estado=['[ESTADO: SEÑAL MEDIA EN DESARROLLO]','FUNDING OK · MONITOREAR CVD Y WHALE','STOCH RSI SUBIENDO · MOMENTUM INCIPIENTE','ESPERAR CONFIRMACIÓN ANTES DE ENTRAR'];}else{nivelNum=1;confianza=30;tipo='LONG DÉBIL — ESPERAR';estado=['[ESTADO: SEÑAL LONG DÉBIL]','FUNDING NEUTRAL PERO SIN CATALIZADORES','CVD PLANO · SIN ABSORCIÓN CONFIRMADA','WHALE NEUTRO · ESPERAR SETUP COMPLETO','MONITOREAR SQZMOM Y ABSORCIÓN CVD'];}}return{nivelNum,confianza,estado,tipo,modo,adxTag,fundingTag,whaleTag,adxPct,fundingPct,whalePct,absorcion,agotado};}
 
 function sparkBars(val,max,color,count=10){const bars=[];const pctFilled=Math.min(1,val/max);for(let i=0;i<count;i++){const filled=i/count<=pctFilled;const h=filled?Math.max(4,Math.round(6+Math.sin(i*0.8+val)*5)):Math.max(2,Math.round(2+Math.random()*2));const op=filled?1:0.18;bars.push('<div class="celu-spark-bar" style="height:'+h+'px;background:'+color+';opacity:'+op+'"></div>');}return bars.join('');}
 
-function renderCeluWidget(sym,d,hmContainer){let wEl=document.getElementById('celu-w-'+sym);if(!wEl){wEl=document.createElement('div');wEl.id='celu-w-'+sym;hmContainer.after(wEl);}
-  const n=calcCeluNivel(d);const{nivelNum,confianza,estado,tipo,modo,adxTag,fundingTag,whaleTag,adxPct,fundingPct,whalePct,absorcion,agotado}=n;
-  const nc=nivelNum===3?'var(--magenta)':nivelNum===2?'var(--yellow)':'var(--green)';const maxLev=nivelNum===3?'25x':nivelNum===2?'15x':'5x';
-  function deg2rad(d){return d*Math.PI/180;}function pol(deg,r,cx=100,cy=100){const rad=deg2rad(deg);return{x:cx+r*Math.cos(rad),y:cy+r*Math.sin(rad)};}
-  const R=80,cx=100,cy=100,startA=-135,endA=135,activeA=startA+(confianza/100)*(endA-startA),largeArc=activeA-startA>180?1:0;
-  const pStart=pol(startA,R),pEnd=pol(endA,R),pActive=pol(activeA,R);
-  const pN1e=pol(-45,R),pN2e=pol(45,R),pN1s=pol(-135,R),pN2s=pol(-45,R),pN3s=pol(45,R),pN3e=pol(135,R);
-  const arcBg='M '+pStart.x.toFixed(1)+' '+pStart.y.toFixed(1)+' A '+R+' '+R+' 0 1 1 '+pEnd.x.toFixed(1)+' '+pEnd.y.toFixed(1);
-  const arcN1='M '+pN1s.x.toFixed(1)+' '+pN1s.y.toFixed(1)+' A '+R+' '+R+' 0 0 1 '+pN1e.x.toFixed(1)+' '+pN1e.y.toFixed(1);
-  const arcN2='M '+pN2s.x.toFixed(1)+' '+pN2s.y.toFixed(1)+' A '+R+' '+R+' 0 0 1 '+pN2e.x.toFixed(1)+' '+pN2e.y.toFixed(1);
-  const arcN3='M '+pN3s.x.toFixed(1)+' '+pN3s.y.toFixed(1)+' A '+R+' '+R+' 0 0 1 '+pN3e.x.toFixed(1)+' '+pN3e.y.toFixed(1);
-  const arcActive=confianza>0?'M '+pStart.x.toFixed(1)+' '+pStart.y.toFixed(1)+' A '+R+' '+R+' 0 '+largeArc+' 1 '+pActive.x.toFixed(1)+' '+pActive.y.toFixed(1):'';
-  const needleX=(cx+70*Math.cos(deg2rad(activeA))).toFixed(1),needleY=(cy+70*Math.sin(deg2rad(activeA))).toFixed(1);
-  const lN1=pol(-135,R-18),lN2=pol(0,R-18),lN3=pol(135,R-18);
-  const fd=d.funding,fv=fd!==null?(fd>=0?'+':'')+fd.toFixed(4)+'%':'—';
-  const fCol=modo==='LONG'?(adxTag==='COMPRESIÓN MÁXIMA'?'var(--cyan)':adxTag==='ACUMULACIÓN SILENCIOSA'?'var(--green)':adxTag==='INICIO MOVIMIENTO'?'var(--yellow)':'var(--orange)'):(adxTag==='CLÍMAX ABSOLUTO'?'var(--magenta)':adxTag==='FUERTE Y MADURA'?'var(--yellow)':'var(--green)');
-  const fundColor=modo==='LONG'?(fundingTag.includes('SPRING')?'var(--cyan)':fundingTag.includes('NEGATIVO')?'var(--green)':fundingTag.includes('NEUTRAL')?'var(--yellow)':'var(--orange)'):(fundingTag==='EUFORIA EXTREMA'?'var(--yellow)':fundingTag.includes('RETAIL')?'var(--orange)':'var(--green)');
-  const whaleColor=modo==='LONG'?(whaleTag.includes('INSTITUCIONAL')||whaleTag.includes('ABSORCIÓN')?'var(--cyan)':whaleTag.includes('CVD')||whaleTag.includes('ACUMULANDO')?'var(--green)':whaleTag.includes('SPRING')?'var(--yellow)':'var(--text3)'):(whaleTag==='INYECCIÓN MASIVA'?'var(--orange)':whaleTag==='INSTITUCIONAL'?'var(--cyan)':'var(--text3)');
-  wEl.innerHTML='<div class="celu-widget"><div class="celu-widget-header"><div><div class="celu-widget-title">⚡ CELU CONFIANZA — '+sym+' <span style="font-size:10px;font-family:\'Barlow Condensed\',sans-serif;font-weight:700;letter-spacing:2px;padding:2px 8px;border:1px solid '+(modo==='LONG'?'var(--cyan)':'var(--red)')+';color:'+(modo==='LONG'?'var(--cyan)':'var(--red)')+';background:'+(modo==='LONG'?'rgba(0,229,255,0.08)':'rgba(255,51,85,0.08)')+'">'+(modo==='LONG'?'▲ LONG':'▼ SHORT')+'</span></div><div class="celu-widget-sub">SHORT/LONG PREMIUM · 3 NIVELES · MANUSCRITO v1 · BINANCE FUTURES</div></div><div style="text-align:right"><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:9px;color:var(--text3);letter-spacing:2px">MODO ACTIVO</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;color:'+nc+'">'+tipo+'</div></div></div><div class="celu-body"><div class="celu-gauge-wrap"><svg class="celu-gauge-svg" viewBox="18 25 165 95"><defs><filter id="cglow-'+sym+'"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><text x="100" y="45" fill="rgba(200,200,224,0.35)" font-family="Barlow Condensed,sans-serif" font-size="6.5" font-weight="600" text-anchor="middle" letter-spacing="2">'+(modo==='LONG'?'ACUMULACIÓN / SPRING':'AGOTAMIENTO / ABSORCIÓN')+'</text><path d="'+arcBg+'" fill="none" stroke="#16162a" stroke-width="11" stroke-linecap="round"/><path d="'+arcN1+'" fill="none" stroke="rgba(0,255,136,0.22)" stroke-width="11" stroke-linecap="round"/><path d="'+arcN2+'" fill="none" stroke="rgba(255,215,0,0.18)" stroke-width="11" stroke-linecap="round"/><path d="'+arcN3+'" fill="none" stroke="rgba(255,0,204,0.25)" stroke-width="11" stroke-linecap="round"/>'+(arcActive?'<path d="'+arcActive+'" fill="none" stroke="'+nc+'" stroke-width="11" stroke-linecap="round" filter="url(#cglow-'+sym+')"/>':'')+' <text x="'+lN1.x.toFixed(1)+'" y="'+(lN1.y+3).toFixed(1)+'" fill="rgba(0,255,136,0.7)" font-family="Barlow Condensed,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle">N1</text><text x="'+lN2.x.toFixed(1)+'" y="'+(lN2.y+3).toFixed(1)+'" fill="rgba(255,215,0,0.7)" font-family="Barlow Condensed,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle">N2</text><text x="'+lN3.x.toFixed(1)+'" y="'+(lN3.y+3).toFixed(1)+'" fill="rgba(255,0,204,0.85)" font-family="Barlow Condensed,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle">N3</text><line x1="'+cx+'" y1="'+cy+'" x2="'+needleX+'" y2="'+needleY+'" stroke="'+nc+'" stroke-width="2.5" stroke-linecap="round" filter="url(#cglow-'+sym+')"/><circle cx="'+cx+'" cy="'+cy+'" r="5.5" fill="#08080f" stroke="'+nc+'" stroke-width="1.5"/><circle cx="'+cx+'" cy="'+cy+'" r="2.5" fill="'+nc+'"/><text x="'+cx+'" y="'+(cy+14)+'" fill="rgba(180,180,200,0.4)" font-family="Barlow Condensed,sans-serif" font-size="5.5" text-anchor="middle" letter-spacing="1">MAX RECO. LEVERAGE:</text><text x="'+cx+'" y="'+(cy+24)+'" fill="'+nc+'" font-family="Barlow Condensed,sans-serif" font-size="9" font-weight="900" text-anchor="middle">['+maxLev+']</text></svg><div class="celu-gauge-label" style="color:'+nc+'">CONFIANZA: '+confianza+'% (N'+nivelNum+')</div><div class="celu-gauge-nivel" style="border:1px solid '+nc+';color:'+nc+'">'+(nivelNum===3?(modo==='LONG'?'N3 — LONG PREMIUM':'N3 — SHORT PREMIUM'):nivelNum===2?(modo==='LONG'?'N2 — LONG ESTÁNDAR':'N2 — TRADE ESTÁNDAR'):(modo==='LONG'?'N1 — LONG DÉBIL':'N1 — SEÑAL DÉBIL'))+'</div><div class="celu-estado-box celu-estado-n'+nivelNum+'">'+estado.map(l=>'<div>'+l+'</div>').join('')+'</div><div class="celu-lev"><span class="celu-lev-label">MAX RECO. LEVERAGE:</span><span class="celu-lev-val">['+maxLev+']</span></div></div><div class="celu-metrics"><div class="celu-metric-card"><div class="celu-metric-label">ADX</div><div class="celu-metric-row"><span class="celu-metric-val" style="color:'+fCol+'">'+Math.round(d.adx||20)+'</span><span class="celu-metric-tag" style="background:'+(adxTag==='CLÍMAX ABSOLUTO'?'rgba(255,0,204,0.12)':adxTag==='FUERTE Y MADURA'?'rgba(255,215,0,0.09)':'rgba(0,255,136,0.08)')+';border:1px solid '+(adxTag==='CLÍMAX ABSOLUTO'?'rgba(255,0,204,0.5)':adxTag==='FUERTE Y MADURA'?'rgba(255,215,0,0.4)':'rgba(0,255,136,0.35)')+';color:'+fCol+'">: '+adxTag+'</span></div><div class="celu-spark">'+sparkBars(d.adx||20,65,fCol)+'</div><div class="celu-bar-track"><div class="celu-bar-fill" style="width:'+adxPct+'%;background:'+fCol+'"></div></div></div><div class="celu-metric-card"><div class="celu-metric-label">FUNDING</div><div class="celu-metric-row"><span class="celu-metric-val" style="color:'+fundColor+'">'+fv+'</span><span class="celu-metric-tag" style="background:'+(fundingTag==='EUFORIA EXTREMA'?'rgba(255,215,0,0.09)':'rgba(255,107,0,0.09)')+';border:1px solid '+(fundingTag==='EUFORIA EXTREMA'?'rgba(255,215,0,0.4)':'rgba(255,107,0,0.3)')+';color:'+fundColor+'">: '+fundingTag+'</span></div><div class="celu-spark">'+sparkBars(Math.abs(fd||0)*1000,100,fundColor)+'</div><div class="celu-bar-track"><div class="celu-bar-fill" style="width:'+fundingPct+'%;background:'+fundColor+'"></div></div></div><div class="celu-metric-card"><div class="celu-metric-label">VOL WHALE ('+whaleTag+')</div><div class="celu-metric-row"><span class="celu-metric-val" style="color:'+whaleColor+'">'+(d.vRatio||1).toFixed(1)+'x</span><span class="celu-metric-tag" style="background:'+(d.whale==='buy'?'rgba(0,255,136,0.1)':d.whale==='sell'?'rgba(255,51,85,0.1)':'rgba(0,0,0,0.3)')+';border:1px solid '+(d.whale==='buy'?'var(--green2)':d.whale==='sell'?'var(--red2)':'var(--border2)')+';color:'+(d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text3)')+'">🐋 '+(d.whale==='buy'?'BUY':d.whale==='sell'?'SELL':'—')+(absorcion?' · ABSORCIÓN':'')+'</span></div><div class="celu-spark">'+sparkBars(d.vRatio||1,5,whaleColor)+'</div><div class="celu-bar-track"><div class="celu-bar-fill" style="width:'+whalePct+'%;background:'+whaleColor+'"></div></div></div><div class="celu-metric-card"><div class="celu-metric-label">WHALE DETECTOR'+(absorcion?': ABSORCIÓN':'')+'</div><div class="celu-metric-row" style="align-items:flex-start;flex-wrap:wrap;gap:4px"><span class="celu-metric-val" style="color:'+(d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text3)')+'">'+(d.whale==='buy'?'BUY':d.whale==='sell'?'SELL':'NEUTRAL')+'</span>'+(absorcion?'<span style="font-size:9px;color:var(--magenta);font-family:\'Barlow Condensed\',sans-serif;font-weight:700">(BLOQUES DE VENTA ABAJO)</span>':'')+'</div><div class="celu-score-row">'+[1,2,3,4,5].map(i=>'<div class="celu-score-dot" style="background:'+(i<=Math.max(1,Math.round(whalePct/20))?(d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text2)'):'var(--border2)')+'"></div>').join('')+'</div>'+(absorcion?'<div style="font-size:9px;color:var(--magenta);font-family:\'Barlow Condensed\',sans-serif;font-weight:700;margin-top:5px;letter-spacing:1px;animation:pulse 1.2s infinite">⚡ ABSORCIÓN CVD CONFIRMADA</div>':'')+(agotado?'<div style="font-size:9px;color:var(--orange);font-family:\'Barlow Condensed\',sans-serif;font-weight:700;margin-top:3px;letter-spacing:1px">⚠ AGOTAMIENTO SC4/SC5 DETECTADO</div>':'')+'</div></div></div><div class="celu-widget-footer"><span class="celu-widget-footer-l" style="color:'+nc+'">ESTADO: [N'+nivelNum+' — '+tipo+']</span><span class="celu-widget-footer-r" style="color:'+nc+'">['+confianza+'% CONFIRMED]</span></div></div>';}
+function renderCeluWidget(sym,d,hmContainer){let wEl=document.getElementById('celu-w-'+sym);if(!wEl){wEl=document.createElement('div');wEl.id='celu-w-'+sym;hmContainer.after(wEl);}const n=calcCeluNivel(d);const{nivelNum,confianza,estado,tipo,modo,adxTag,fundingTag,whaleTag,adxPct,fundingPct,whalePct,absorcion,agotado}=n;const nc=nivelNum===3?'var(--magenta)':nivelNum===2?'var(--yellow)':'var(--green)';const maxLev=nivelNum===3?'25x':nivelNum===2?'15x':'5x';function deg2rad(d){return d*Math.PI/180;}function pol(deg,r,cx=100,cy=100){const rad=deg2rad(deg);return{x:cx+r*Math.cos(rad),y:cy+r*Math.sin(rad)};}const R=80,cx=100,cy=100,startA=-135,endA=135,activeA=startA+(confianza/100)*(endA-startA),largeArc=activeA-startA>180?1:0;const pStart=pol(startA,R),pEnd=pol(endA,R),pActive=pol(activeA,R);const pN1e=pol(-45,R),pN2e=pol(45,R),pN1s=pol(-135,R),pN2s=pol(-45,R),pN3s=pol(45,R),pN3e=pol(135,R);const arcBg='M '+pStart.x.toFixed(1)+' '+pStart.y.toFixed(1)+' A '+R+' '+R+' 0 1 1 '+pEnd.x.toFixed(1)+' '+pEnd.y.toFixed(1);const arcN1='M '+pN1s.x.toFixed(1)+' '+pN1s.y.toFixed(1)+' A '+R+' '+R+' 0 0 1 '+pN1e.x.toFixed(1)+' '+pN1e.y.toFixed(1);const arcN2='M '+pN2s.x.toFixed(1)+' '+pN2s.y.toFixed(1)+' A '+R+' '+R+' 0 0 1 '+pN2e.x.toFixed(1)+' '+pN2e.y.toFixed(1);const arcN3='M '+pN3s.x.toFixed(1)+' '+pN3s.y.toFixed(1)+' A '+R+' '+R+' 0 0 1 '+pN3e.x.toFixed(1)+' '+pN3e.y.toFixed(1);const arcActive=confianza>0?'M '+pStart.x.toFixed(1)+' '+pStart.y.toFixed(1)+' A '+R+' '+R+' 0 '+largeArc+' 1 '+pActive.x.toFixed(1)+' '+pActive.y.toFixed(1):'';const needleX=(cx+70*Math.cos(deg2rad(activeA))).toFixed(1),needleY=(cy+70*Math.sin(deg2rad(activeA))).toFixed(1);const lN1=pol(-135,R-18),lN2=pol(0,R-18),lN3=pol(135,R-18);const fd=d.funding,fv=fd!==null?(fd>=0?'+':'')+fd.toFixed(4)+'%':'—';const fCol=modo==='LONG'?(adxTag==='COMPRESIÓN MÁXIMA'?'var(--cyan)':adxTag==='ACUMULACIÓN SILENCIOSA'?'var(--green)':adxTag==='INICIO MOVIMIENTO'?'var(--yellow)':'var(--orange)'):(adxTag==='CLÍMAX ABSOLUTO'?'var(--magenta)':adxTag==='FUERTE Y MADURA'?'var(--yellow)':'var(--green)');const fundColor=modo==='LONG'?(fundingTag.includes('SPRING')?'var(--cyan)':fundingTag.includes('NEGATIVO')?'var(--green)':fundingTag.includes('NEUTRAL')?'var(--yellow)':'var(--orange)'):(fundingTag==='EUFORIA EXTREMA'?'var(--yellow)':fundingTag.includes('RETAIL')?'var(--orange)':'var(--green)');const whaleColor=modo==='LONG'?(whaleTag.includes('INSTITUCIONAL')||whaleTag.includes('ABSORCIÓN')?'var(--cyan)':whaleTag.includes('CVD')||whaleTag.includes('ACUMULANDO')?'var(--green)':whaleTag.includes('SPRING')?'var(--yellow)':'var(--text3)'):(whaleTag==='INYECCIÓN MASIVA'?'var(--orange)':whaleTag==='INSTITUCIONAL'?'var(--cyan)':'var(--text3)');wEl.innerHTML='<div class="celu-widget"><div class="celu-widget-header"><div><div class="celu-widget-title">⚡ CELU CONFIANZA — '+sym+' <span style="font-size:10px;font-family:\'Barlow Condensed\',sans-serif;font-weight:700;letter-spacing:2px;padding:2px 8px;border:1px solid '+(modo==='LONG'?'var(--cyan)':'var(--red)')+';color:'+(modo==='LONG'?'var(--cyan)':'var(--red)')+';background:'+(modo==='LONG'?'rgba(0,229,255,0.08)':'rgba(255,51,85,0.08)')+'">'+(modo==='LONG'?'▲ LONG':'▼ SHORT')+'</span></div><div class="celu-widget-sub">SHORT/LONG PREMIUM · 3 NIVELES · MANUSCRITO v1 · BINANCE FUTURES</div></div><div style="text-align:right"><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:9px;color:var(--text3);letter-spacing:2px">MODO ACTIVO</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;color:'+nc+'">'+tipo+'</div></div></div><div class="celu-body"><div class="celu-gauge-wrap"><svg class="celu-gauge-svg" viewBox="18 25 165 95"><defs><filter id="cglow-'+sym+'"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><text x="100" y="45" fill="rgba(200,200,224,0.35)" font-family="Barlow Condensed,sans-serif" font-size="6.5" font-weight="600" text-anchor="middle" letter-spacing="2">'+(modo==='LONG'?'ACUMULACIÓN / SPRING':'AGOTAMIENTO / ABSORCIÓN')+'</text><path d="'+arcBg+'" fill="none" stroke="#16162a" stroke-width="11" stroke-linecap="round"/><path d="'+arcN1+'" fill="none" stroke="rgba(0,255,136,0.22)" stroke-width="11" stroke-linecap="round"/><path d="'+arcN2+'" fill="none" stroke="rgba(255,215,0,0.18)" stroke-width="11" stroke-linecap="round"/><path d="'+arcN3+'" fill="none" stroke="rgba(255,0,204,0.25)" stroke-width="11" stroke-linecap="round"/>'+(arcActive?'<path d="'+arcActive+'" fill="none" stroke="'+nc+'" stroke-width="11" stroke-linecap="round" filter="url(#cglow-'+sym+')"/>':'')+' <text x="'+lN1.x.toFixed(1)+'" y="'+(lN1.y+3).toFixed(1)+'" fill="rgba(0,255,136,0.7)" font-family="Barlow Condensed,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle">N1</text><text x="'+lN2.x.toFixed(1)+'" y="'+(lN2.y+3).toFixed(1)+'" fill="rgba(255,215,0,0.7)" font-family="Barlow Condensed,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle">N2</text><text x="'+lN3.x.toFixed(1)+'" y="'+(lN3.y+3).toFixed(1)+'" fill="rgba(255,0,204,0.85)" font-family="Barlow Condensed,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle">N3</text><line x1="'+cx+'" y1="'+cy+'" x2="'+needleX+'" y2="'+needleY+'" stroke="'+nc+'" stroke-width="2.5" stroke-linecap="round" filter="url(#cglow-'+sym+')"/><circle cx="'+cx+'" cy="'+cy+'" r="5.5" fill="#08080f" stroke="'+nc+'" stroke-width="1.5"/><circle cx="'+cx+'" cy="'+cy+'" r="2.5" fill="'+nc+'"/><text x="'+cx+'" y="'+(cy+14)+'" fill="rgba(180,180,200,0.4)" font-family="Barlow Condensed,sans-serif" font-size="5.5" text-anchor="middle" letter-spacing="1">MAX RECO. LEVERAGE:</text><text x="'+cx+'" y="'+(cy+24)+'" fill="'+nc+'" font-family="Barlow Condensed,sans-serif" font-size="9" font-weight="900" text-anchor="middle">['+maxLev+']</text></svg><div class="celu-gauge-label" style="color:'+nc+'">CONFIANZA: '+confianza+'% (N'+nivelNum+')</div><div class="celu-gauge-nivel" style="border:1px solid '+nc+';color:'+nc+'">'+(nivelNum===3?(modo==='LONG'?'N3 — LONG PREMIUM':'N3 — SHORT PREMIUM'):nivelNum===2?(modo==='LONG'?'N2 — LONG ESTÁNDAR':'N2 — TRADE ESTÁNDAR'):(modo==='LONG'?'N1 — LONG DÉBIL':'N1 — SEÑAL DÉBIL'))+'</div><div class="celu-estado-box celu-estado-n'+nivelNum+'">'+estado.map(l=>'<div>'+l+'</div>').join('')+'</div><div class="celu-lev"><span class="celu-lev-label">MAX RECO. LEVERAGE:</span><span class="celu-lev-val">['+maxLev+']</span></div></div><div class="celu-metrics"><div class="celu-metric-card"><div class="celu-metric-label">ADX</div><div class="celu-metric-row"><span class="celu-metric-val" style="color:'+fCol+'">'+Math.round(d.adx||20)+'</span><span class="celu-metric-tag" style="background:'+(adxTag==='CLÍMAX ABSOLUTO'?'rgba(255,0,204,0.12)':adxTag==='FUERTE Y MADURA'?'rgba(255,215,0,0.09)':'rgba(0,255,136,0.08)')+';border:1px solid '+(adxTag==='CLÍMAX ABSOLUTO'?'rgba(255,0,204,0.5)':adxTag==='FUERTE Y MADURA'?'rgba(255,215,0,0.4)':'rgba(0,255,136,0.35)')+';color:'+fCol+'">: '+adxTag+'</span></div><div class="celu-spark">'+sparkBars(d.adx||20,65,fCol)+'</div><div class="celu-bar-track"><div class="celu-bar-fill" style="width:'+adxPct+'%;background:'+fCol+'"></div></div></div><div class="celu-metric-card"><div class="celu-metric-label">FUNDING</div><div class="celu-metric-row"><span class="celu-metric-val" style="color:'+fundColor+'">'+fv+'</span><span class="celu-metric-tag" style="background:'+(fundingTag==='EUFORIA EXTREMA'?'rgba(255,215,0,0.09)':'rgba(255,107,0,0.09)')+';border:1px solid '+(fundingTag==='EUFORIA EXTREMA'?'rgba(255,215,0,0.4)':'rgba(255,107,0,0.3)')+';color:'+fundColor+'">: '+fundingTag+'</span></div><div class="celu-spark">'+sparkBars(Math.abs(fd||0)*1000,100,fundColor)+'</div><div class="celu-bar-track"><div class="celu-bar-fill" style="width:'+fundingPct+'%;background:'+fundColor+'"></div></div></div><div class="celu-metric-card"><div class="celu-metric-label">VOL WHALE</div><div class="celu-metric-row"><span class="celu-metric-val" style="color:'+whaleColor+'">'+(d.vRatio||1).toFixed(1)+'x</span><span class="celu-metric-tag" style="background:'+(d.whale==='buy'?'rgba(0,255,136,0.1)':d.whale==='sell'?'rgba(255,51,85,0.1)':'rgba(0,0,0,0.3)')+';border:1px solid '+(d.whale==='buy'?'var(--green2)':d.whale==='sell'?'var(--red2)':'var(--border2)')+';color:'+(d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text3)')+'">🐋 '+(d.whale==='buy'?'BUY':d.whale==='sell'?'SELL':'—')+(absorcion?' · ABSORCIÓN':'')+'</span></div><div class="celu-spark">'+sparkBars(d.vRatio||1,5,whaleColor)+'</div><div class="celu-bar-track"><div class="celu-bar-fill" style="width:'+whalePct+'%;background:'+whaleColor+'"></div></div></div><div class="celu-metric-card"><div class="celu-metric-label">WHALE DETECTOR'+(absorcion?': ABSORCIÓN':'')+'</div><div class="celu-metric-row" style="align-items:flex-start;flex-wrap:wrap;gap:4px"><span class="celu-metric-val" style="color:'+(d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text3)')+'">'+(d.whale==='buy'?'BUY':d.whale==='sell'?'SELL':'NEUTRAL')+'</span>'+(absorcion?'<span style="font-size:9px;color:var(--magenta);font-family:\'Barlow Condensed\',sans-serif;font-weight:700">(BLOQUES DE VENTA ABAJO)</span>':'')+'</div><div class="celu-score-row">'+[1,2,3,4,5].map(i=>'<div class="celu-score-dot" style="background:'+(i<=Math.max(1,Math.round(whalePct/20))?(d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text2)'):'var(--border2)')+'"></div>').join('')+'</div>'+(absorcion?'<div style="font-size:9px;color:var(--magenta);font-family:\'Barlow Condensed\',sans-serif;font-weight:700;margin-top:5px;letter-spacing:1px;animation:pulse 1.2s infinite">⚡ ABSORCIÓN CVD CONFIRMADA</div>':'')+(agotado?'<div style="font-size:9px;color:var(--orange);font-family:\'Barlow Condensed\',sans-serif;font-weight:700;margin-top:3px;letter-spacing:1px">⚠ AGOTAMIENTO SC4/SC5 DETECTADO</div>':'')+'</div></div></div><div class="celu-widget-footer"><span class="celu-widget-footer-l" style="color:'+nc+'">ESTADO: [N'+nivelNum+' — '+tipo+']</span><span class="celu-widget-footer-r" style="color:'+nc+'">['+confianza+'% CONFIRMED]</span></div></div>';}
 
 // CARRERA
 async function fetchAllTickers(){const r=await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr');if(!r.ok)throw new Error('No tickers');const d=await r.json();return d.filter(t=>t.symbol.endsWith('USDT')&&!t.symbol.includes('_')).map(t=>({symbol:t.symbol.replace('USDT',''),price:parseFloat(t.lastPrice),change24:parseFloat(t.priceChangePercent),volume:parseFloat(t.quoteVolume)})).sort((a,b)=>b.change24-a.change24);}
-async function fetchAgotData(symbol){if(raCache[symbol]&&Date.now()-raCache[symbol].ts<60000)return raCache[symbol];const pair=symbol+'USDT';try{const[k4,k15,fr,liq]=await Promise.allSettled([fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=4h&limit=50').then(r=>r.json()),fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=15m&limit=20').then(r=>r.json()),fetch('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=1').then(r=>r.json()),fetchLiqs(symbol)]);const kl=k4.status==='fulfilled'?k4.value:null;const k15v=k15.status==='fulfilled'?k15.value:null;let vR=1,sk=50,skP=50,sd=50,velVol=1,velPct=0,rangoRompe=false,cvdGiro=false,ema20=0,sobreEMA=false,vol15Ratio=1;if(kl&&kl.length>=20){const vols=kl.map(k=>parseFloat(k[5]));const av=vols.slice(-21,-1).reduce((a,b)=>a+b,0)/20;vR=av>0?vols[vols.length-1]/av:1;const cls=kl.map(k=>parseFloat(k[4]));const st=cStochRSI(cls,14,14,3,3);sk=st.k;skP=st.kP||st.k;sd=st.d;ema20=cls.slice(-20).reduce((a,b)=>a+b,0)/20;sobreEMA=cls[cls.length-1]>ema20;const p1=parseFloat(kl[kl.length-2][1]),p4=parseFloat(kl[kl.length-1][4]);velPct=p1>0?((p4-p1)/p1)*100:0;const rangos=kl.slice(-10).map(k=>parseFloat(k[2])-parseFloat(k[3]));const rangoMed=rangos.slice(0,-1).reduce((a,b)=>a+b,0)/8;const rangoAct=rangos[rangos.length-1];rangoRompe=rangoAct>rangoMed*2.5;const deltas=kl.map(k=>{const o=parseFloat(k[1]),c=parseFloat(k[4]),v=parseFloat(k[5]);return c>o?v:c<o?-v:0;});const cvdPrev=deltas.slice(-5,-1).reduce((a,b)=>a+b,0);const cvdAct=deltas[deltas.length-1];cvdGiro=cvdPrev<0&&cvdAct>0;}if(k15v&&k15v.length>=10){const v15=k15v.map(k=>parseFloat(k[5]));const v15med=v15.slice(-15,-3).reduce((a,b)=>a+b,0)/12;const v15rec=v15.slice(-3).reduce((a,b)=>a+b,0)/3;vol15Ratio=v15med>0?v15rec/v15med:1;}const funding=fr.status==='fulfilled'&&fr.value[0]?parseFloat(fr.value[0].fundingRate)*100:null;const lv=liq.status==='fulfilled'?liq.value:{sL:0,lL:0,climax:false};const res={vR,funding,stochK:sk,stochKP:skP,stochD:sd,shortLiqs:lv.sL,climax:lv.climax,velVol,velPct,rangoRompe,cvdGiro,sobreEMA,vol15Ratio,ema20,ts:Date.now()};raCache[symbol]=res;return res;}catch(e){return{vR:1,funding:null,stochK:50,climax:false,shortLiqs:0,velPct:0,rangoRompe:false,cvdGiro:false,sobreEMA:false,vol15Ratio:1,ts:Date.now()};}}
+
+async function fetchAgotData(symbol){if(raCache[symbol]&&Date.now()-raCache[symbol].ts<60000)return raCache[symbol];const pair=symbol+'USDT';try{const[k4,k15,fr,liq]=await Promise.allSettled([fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=4h&limit=50').then(r=>r.json()),fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=15m&limit=20').then(r=>r.json()),fetch('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=1').then(r=>r.json()),fetchLiqs(symbol)]);const kl=k4.status==='fulfilled'?k4.value:null;const k15v=k15.status==='fulfilled'?k15.value:null;let vR=1,sk=50,skP=50,sd=50,rangoRompe=false,cvdGiro=false,sobreEMA=false,vol15Ratio=1;if(kl&&kl.length>=20){const vols=kl.map(k=>parseFloat(k[5]));const av=vols.slice(-21,-1).reduce((a,b)=>a+b,0)/20;vR=av>0?vols[vols.length-1]/av:1;const cls=kl.map(k=>parseFloat(k[4]));const st=cStochRSI(cls,14,14,3,3);sk=st.k;skP=st.kP||st.k;sd=st.d;const ema20=cls.slice(-20).reduce((a,b)=>a+b,0)/20;sobreEMA=cls[cls.length-1]>ema20;const rangos=kl.slice(-10).map(k=>parseFloat(k[2])-parseFloat(k[3]));const rangoMed=rangos.slice(0,-1).reduce((a,b)=>a+b,0)/8;rangoRompe=rangos[rangos.length-1]>rangoMed*2.5;const deltas=kl.map(k=>{const o=parseFloat(k[1]),c=parseFloat(k[4]),v=parseFloat(k[5]);return c>o?v:c<o?-v:0;});const cvdPrev=deltas.slice(-5,-1).reduce((a,b)=>a+b,0);cvdGiro=cvdPrev<0&&deltas[deltas.length-1]>0;}if(k15v&&k15v.length>=10){const v15=k15v.map(k=>parseFloat(k[5]));const v15med=v15.slice(-15,-3).reduce((a,b)=>a+b,0)/12;const v15rec=v15.slice(-3).reduce((a,b)=>a+b,0)/3;vol15Ratio=v15med>0?v15rec/v15med:1;}const funding=fr.status==='fulfilled'&&fr.value[0]?parseFloat(fr.value[0].fundingRate)*100:null;const lv=liq.status==='fulfilled'?liq.value:{sL:0,lL:0,climax:false};const res={vR,funding,stochK:sk,stochKP:skP,stochD:sd,shortLiqs:lv.sL,climax:lv.climax,rangoRompe,cvdGiro,sobreEMA,vol15Ratio,ts:Date.now()};raCache[symbol]=res;return res;}catch(e){return{vR:1,funding:null,stochK:50,climax:false,shortLiqs:0,rangoRompe:false,cvdGiro:false,sobreEMA:false,vol15Ratio:1,ts:Date.now()};}}
 
 function detectAgot(token,ex){if(!ex)return false;let sc=0;if(ex.stochK>=90)sc+=3;else if(ex.stochK>=75)sc+=1;if(token.change24>=20)sc+=2;else if(token.change24>=10)sc+=1;if(ex.vR>=4)sc+=2;else if(ex.vR>=2.5)sc+=1;if(ex.funding!==null&&ex.funding>0.05)sc+=2;else if(ex.funding!==null&&ex.funding>0.02)sc+=1;return sc>=4;}
-
-function detectEarlyEntry(token,ex,pos){
-  if(!ex||!token)return false;
-  const ch=token.change24;
-  if(ch<1.5||ch>30)return false;
-  if(ex.stochK>=88)return false;
-  let sc=0;
-  if(ex.vol15Ratio>=5)sc+=3;else if(ex.vol15Ratio>=3)sc+=2;else if(ex.vol15Ratio>=2)sc+=1;
-  if(ex.cvdGiro)sc+=3;
-  if(ex.sobreEMA)sc+=2;
-  if(ex.rangoRompe)sc+=2;
-  if(ex.vR>=2)sc+=2;else if(ex.vR>=1.5)sc+=1;
-  if(ex.funding!==null&&ex.funding>0.1)sc-=2;
-  return sc>=5;
-}
-
-function detectPumpNow(token,ex,pos){
-  if(!ex||!token)return false;
-  const ch=token.change24;
-  if(ch<0.5||ch>15)return false;
-  if(ex.stochK>=85)return false;
-  let hits=0;
-  if(ex.vol15Ratio>=4)hits++;
-  if(ex.cvdGiro)hits++;
-  if(ex.sobreEMA)hits++;
-  if(ex.rangoRompe)hits++;
-  if(ex.vR>=3)hits++;
-  return hits>=3;
-}
 
 function barColor(ch){if(ch>=20)return'#00ff88';if(ch>=10)return'#00cc66';if(ch>=3)return'#ffd700';if(ch>=0)return'#44aa66';if(ch>=-5)return'#ff6b00';return'#ff3355';}
 
@@ -877,7 +817,7 @@ function renderRace(data,extraMap){
   document.getElementById('rs-winners').textContent=w;
   document.getElementById('rs-losers').textContent=l;
   if(disp.length>0){document.getElementById('rs-best').textContent=disp[0].symbol+' '+(disp[0].change24>=0?'+':'')+disp[0].change24.toFixed(2)+'%';const ww=disp[disp.length-1];document.getElementById('rs-worst').textContent=ww.symbol+' '+(ww.change24>=0?'+':'')+ww.change24.toFixed(2)+'%';}
-  let agCnt=0,clCnt=0,earlyCnt=0,pumpNowCnt=0,html='',lastW=disp[0]?.change24>=0;
+  let agCnt=0,clCnt=0,html='',lastW=disp[0]?.change24>=0;
   disp.forEach((tk,idx)=>{
     const pos=idx+1,isW=tk.change24>=0,isMy=mySet.has(tk.symbol);
     if(!isW&&lastW){html+='<div class="race-divider"><div class="race-divider-line"></div><span>▼ PERDEDORES</span><div class="race-divider-line"></div></div>';lastW=false;}
@@ -891,36 +831,23 @@ function renderRace(data,extraMap){
     const ex=em&&em[tk.symbol]?em[tk.symbol]:null;
     const isAg=isW&&detectAgot(tk,ex);
     const isCl=isW&&ex&&ex.climax;
-    const isPN=isW&&!isAg&&detectPumpNow(tk,ex,pos);
-    const isEE=isW&&!isAg&&!isPN&&detectEarlyEntry(tk,ex,pos);
-    if(isAg)agCnt++;if(isCl)clCnt++;if(isPN)pumpNowCnt++;if(isEE)earlyCnt++;
-    // ── AUTO-REGISTRO sin sonido ni cartel ──
-    if(isEE)autoRegistrar(tk.symbol,'EARLY ENTRY',pos,ex,tk);
-    if(isPN)autoRegistrar(tk.symbol,'PUMP NOW',pos,ex,tk);
+    if(isAg)agCnt++;if(isCl)clCnt++;
     let stH='';
     if(isCl)stH='<span class="race-cat-badge cat-climax">💀 CLIMAX SHORT TRAP</span>';
     else if(isAg)stH='<span class="race-cat-badge cat-agotado">⚠ AGOTADO → SHORT</span>';
-    else if(isPN)stH='<span class="race-cat-badge cat-pump-now">🚀 PUMP NOW</span>';
-    else if(isEE)stH='<span class="race-cat-badge cat-early">⚡ EARLY ENTRY</span>';
     else stH=isW?'<span class="race-cat-badge cat-winner">▲ WINNER</span>':'<span class="race-cat-badge cat-loser">▼ LOSER</span>';
-    const skI=ex&&ex.stochK!==undefined?'<span style="font-size:8px;color:'+(ex.stochK>75?'var(--red)':'var(--text3)')+'">K:'+Math.round(ex.stochK)+'</span>':'';
-    const lqI=ex&&ex.shortLiqs>50000?'<span style="font-size:8px;color:var(--magenta)">LIQ:$'+fmtBig(ex.shortLiqs)+'</span>':'';
-    const v15I=ex&&ex.vol15Ratio>=2?'<span style="font-size:8px;color:'+(isPN?'var(--green)':isEE?'var(--cyan)':'var(--red)')+'">15m:'+ex.vol15Ratio.toFixed(1)+'x</span>':'';
-    const cvdI=ex&&ex.cvdGiro?'<span style="font-size:8px;color:var(--cyan)">CVD▲</span>':'';
     const stH2=raceMode==='all'&&isMy?'<span class="my-token-star">★</span>':'';
-    const rC='race-row '+t3+' '+(isMy?'my-token':'')+' '+pC+' '+(isCl?'climax-trap':isAg?'agotado':isPN?'pump-now':isEE?'early-entry':'');
-    html+='<div class="'+rC+'" style="animation-delay:'+Math.min(idx,30)*0.025+'s"><div class="race-pos"><div class="race-pos-num">'+pos+'</div></div><div class="race-move">'+mv+'</div><div class="race-symbol-wrap"><div class="race-symbol">'+tk.symbol+stH2+'</div><div class="race-sub">USDT PERP</div></div><div class="race-bar-wrap"><div class="race-bar-track"><div class="race-bar-fill" style="width:'+bPct+'%;background:'+bC+'"></div></div>'+(ex&&(ex.vR>=2||ex.vol15Ratio>=2)?'<div style="display:flex;gap:6px;margin-top:2px">'+(ex.vR>=2?'<span style="font-size:8px;color:var(--red)">4h:'+ex.vR.toFixed(1)+'x</span>':'')+v15I+cvdI+skI+'</div>':(skI?'<div style="margin-top:2px">'+skI+'</div>':''))+(lqI?'<div style="margin-top:1px">'+lqI+'</div>':'')+'</div><div class="race-change"><div class="race-change-val '+(isW?'race-change-pos':'race-change-neg')+'">'+(tk.change24>=0?'+':'')+tk.change24.toFixed(2)+'%</div></div><div class="race-price">'+fmtP(tk.price)+'</div><div class="race-status-col">'+stH+'</div></div>';
+    // botón 📌 para Top 1-3
+    const btnPin=pos<=3?'<button class="btn-registrar" onclick="registrarDesdeCarrera(\''+tk.symbol+'\','+tk.change24.toFixed(2)+','+tk.price+','+pos+')" title="Guardar en Diario">📌 DIARIO</button>':'';
+    const rC='race-row '+t3+' '+(isMy?'my-token':'')+' '+pC+' '+(isCl?'climax-trap':isAg?'agotado':'');
+    const skI=ex&&ex.stochK!==undefined?'<span style="font-size:8px;color:'+(ex.stochK>75?'var(--red)':'var(--text3)')+'">K:'+Math.round(ex.stochK)+'</span>':'';
+    const v15I=ex&&ex.vol15Ratio>=2?'<span style="font-size:8px;color:var(--orange)">15m:'+ex.vol15Ratio.toFixed(1)+'x</span>':'';
+    html+='<div class="'+rC+'" style="animation-delay:'+Math.min(idx,30)*0.025+'s"><div class="race-pos"><div class="race-pos-num">'+pos+'</div></div><div class="race-move">'+mv+'</div><div class="race-symbol-wrap"><div class="race-symbol">'+tk.symbol+stH2+'</div><div class="race-sub">USDT PERP</div></div><div class="race-bar-wrap"><div class="race-bar-track"><div class="race-bar-fill" style="width:'+bPct+'%;background:'+bC+'"></div></div>'+(ex&&(ex.vR>=2||ex.vol15Ratio>=2)?'<div style="display:flex;gap:6px;margin-top:2px">'+(ex.vR>=2?'<span style="font-size:8px;color:var(--red)">4h:'+ex.vR.toFixed(1)+'x</span>':'')+v15I+skI+'</div>':'')+' </div><div class="race-change"><div class="race-change-val '+(isW?'race-change-pos':'race-change-neg')+'">'+(tk.change24>=0?'+':'')+tk.change24.toFixed(2)+'%</div></div><div class="race-price">'+fmtP(tk.price)+'</div><div class="race-status-col">'+stH+btnPin+'</div></div>';
   });
   list.innerHTML=html;
-  const np={};disp.forEach((t,i)=>{np[t.symbol]=i+1;});
-  prevRacePos=np;
+  const np={};disp.forEach((t,i)=>{np[t.symbol]=i+1;});prevRacePos=np;
   document.getElementById('rs-agotados').textContent=agCnt||'—';
   document.getElementById('rs-climax').textContent=clCnt||'—';
-  const rsEarly=document.getElementById('rs-early');
-  const rsPump=document.getElementById('rs-pump');
-  if(rsEarly)rsEarly.textContent=earlyCnt||'—';
-  if(rsPump)rsPump.textContent=pumpNowCnt||'—';
-  // Alertas agotados/climax (sin sonido)
   const clTk=disp.filter(t=>{const ex=em&&em[t.symbol]?em[t.symbol]:null;return t.change24>=0&&ex&&ex.climax;});
   if(clTk.length>0)showAlert2('💀 CLIMAX SHORT TRAP:<br>'+clTk.slice(0,3).map(t=>t.symbol+' +'+t.change24.toFixed(1)+'%').join(' · '));
   else{const agTk=disp.filter(t=>{const ex=em&&em[t.symbol]?em[t.symbol]:null;return t.change24>=0&&detectAgot(t,ex);});if(agTk.length>0)showAlert2('⚠ AGOTAMIENTO:<br>'+agTk.slice(0,3).map(t=>t.symbol+' +'+t.change24.toFixed(1)+'%').join(' · '));}
@@ -936,97 +863,32 @@ async function runRace(){if(raceRunning)return;raceRunning=true;const btn=docume
 
 function setRaceMode(m){raceMode=m;document.getElementById('race-mode-all').classList.toggle('active',m==='all');document.getElementById('race-mode-mine').classList.toggle('active',m==='mine');if(raceData.length>0)renderRace(raceData,null);}
 
-// PRE-CARRERA
-async function fetchAllTickersPR(){const r=await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr');if(!r.ok)throw new Error('No tickers');const d=await r.json();const mv=parseInt(document.getElementById('pr-minvol').value);return d.filter(t=>t.symbol.endsWith('USDT')&&!t.symbol.includes('_')&&parseFloat(t.quoteVolume)>=mv&&parseFloat(t.lastPrice)>=0.0001).map(t=>({symbol:t.symbol.replace('USDT',''),price:parseFloat(t.lastPrice),change24:parseFloat(t.priceChangePercent),volume24h:parseFloat(t.quoteVolume)}));}
-
-async function fetchPRData(symbol){const pair=symbol+'USDT';try{const r=await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=1d&limit=30');if(!r.ok)return null;const k=await r.json();if(!Array.isArray(k)||k.length<5)return null;const price=parseFloat(k[k.length-1][4]);if(!price||price<=0)return null;const maxPct=parseFloat(document.getElementById('pr-pct').value);const dm=k.map(c=>{const h=parseFloat(c[2]),l=parseFloat(c[3]),o=parseFloat(c[1]);return o>0?(h-l)/o*100:0;});let dF=0;for(let i=dm.length-1;i>=0;i--){if(dm[i]<=maxPct)dF++;else break;}const vs=k.map(c=>parseFloat(c[5]));const av=vs.slice(0,-1).reduce((a,b)=>a+b,0)/Math.max(vs.slice(0,-1).length,1);const rv=vs.slice(-5).reduce((a,b)=>a+b,0)/5;const vR=av>0?rv/av:1;const cls=k.map(c=>parseFloat(c[4]));const r5=cls.slice(-5).reduce((a,b)=>a+b,0)/5;const p10=cls.length>=15?cls.slice(-15,-5).reduce((a,b)=>a+b,0)/10:r5;const pT=p10>0?(r5-p10)/p10*100:0;let aF=null,oiV=0,whale='neutral',cvdD='flat',cvdP=0,wBR=false,wSR=false,sk=50,skP=50,sd=50,adx=20,vwap=price,absorcion=false,absorcionPct=0;try{const[fR,oR]=await Promise.allSettled([fetch('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=3').then(r=>r.json()),fetch('https://fapi.binance.com/fapi/v1/openInterest?symbol='+pair).then(r=>r.json())]);if(fR.status==='fulfilled'&&Array.isArray(fR.value)&&fR.value.length>0)aF=fR.value.reduce((a,f)=>a+parseFloat(f.fundingRate)*100,0)/fR.value.length;if(oR.status==='fulfilled'&&oR.value.openInterest)oiV=parseFloat(oR.value.openInterest)*price;}catch(e){}try{const wd=await fetchWhaleData(symbol);if(wd){whale=wd.whale;cvdD=wd.cvdDir;cvdP=wd.cvdPct||0;wBR=wd.wBR;wSR=wd.wSR;sk=wd.stochK;skP=wd.stochKP;sd=wd.stochD;adx=wd.adx;vwap=wd.vwap;absorcion=wd.absorcion;absorcionPct=wd.absorcionPct||0;}}catch(e){}let sq={val:0,prev:0,virando:false,diasNeg:0,positivo:false,subiendo:false};try{const hs=k.map(c=>parseFloat(c[2])),ls=k.map(c=>parseFloat(c[3])),n=20;function sm(arr,nn,end){const sl=arr.slice(Math.max(0,end-nn+1),end+1);return sl.reduce((a,b)=>a+b,0)/sl.length;}function cM(i){if(i<n)return 0;const hh=Math.max(...hs.slice(i-n,i)),ll=Math.min(...ls.slice(i-n,i));return cls[i]-((hh+ll)/2+sm(cls,n,i))/2;}const ma=cls.map((_,i)=>cM(i));const li=ma.length-1;sq.val=ma[li];sq.prev=ma[li-1]||0;sq.positivo=sq.val>0;sq.virando=sq.val>0&&sq.prev<=0;let dn=0;for(let i=li-1;i>=0;i--){if(ma[i]<=0)dn++;else break;}sq.diasNeg=dn;sq.subiendo=sq.val>sq.prev&&sq.val<0&&dn>=5;}catch(e){}return{symbol,price,diasFlat:dF,volRatio:vR,oiVal:oiV,priceTrend:pT,avgFunding:aF,avgVol:av,recentVol:rv,whale,wBR,wSR,cvdDir:cvdD,cvdPct:cvdP,stochK:sk,stochKP:skP,stochD:sd,adx,vwap,absorcion,absorcionPct,sqzmom:sq};}catch(e){return null;}}
-
-function calcCeluPrecarrera(d){
-  const funding=d.avgFunding!==null&&d.avgFunding!==undefined?d.avgFunding:0.01;
-  const adx=d.adx||20;const vRatio=d.volRatio||1;const cvdDir=d.cvdDir||'flat';const whale=d.whale||'neutral';const wBR=d.wBR||false;const absorcion=d.absorcion||false;const sq=d.sqzmom||{};const stochK=d.stochK||50;
-  let fS=0;if(funding<-0.01)fS=3;else if(funding<-0.005)fS=2;else if(funding<0)fS=2;else if(funding<=0.001)fS=1;else if(funding<=0.003)fS=1;else fS=0;
-  let aS=0;if(adx>=20)aS=3;else if(adx>=16)aS=2;else if(adx>=12)aS=1;else aS=0;
-  let wS=0;if(whale==='buy'||wBR)wS=3;else if(vRatio>=2.5)wS=3;else if(vRatio>=1.3)wS=2;else if(vRatio>=1.0)wS=1;else wS=0;
-  let fltS=0;if(absorcion)fltS+=2;if(sq.virando)fltS+=2;else if(sq.subiendo)fltS+=1;if(cvdDir==='up')fltS+=1;if(stochK<30)fltS+=1;
-  let nivelNum,confianza,color,accion,desc;
-  if(fS>=2&&aS>=2&&wS>=2&&fltS>=2){nivelNum=3;confianza=90;color='#ff00cc';accion='🚀 GATILLO INMEDIATO';desc='Resorte soltado · Ballenas barriendo órdenes · Entrar 1ª vela retroceso 5m';}
-  else if(fS>=2&&aS>=2&&(wS>=2||fltS>=3)){nivelNum=3;confianza=85;color='#ff00cc';accion='⚡ GATILLO CASI LISTO';desc='Spring institucional · Confirmar absorción CVD para 90%';}
-  else if(fS>=1&&aS>=1&&wS>=1&&fltS>=1){nivelNum=2;confianza=65;color='#ffd700';accion='⚠ ENTRADA PASIVA — POC VP';desc='Nido de ballena · Retail cansado tira, inst. acumula · SL cortito bajo rango';}
-  else if(fS>=1&&(aS>=1||wS>=1)&&fltS>=1){nivelNum=2;confianza=55;color='#ffd700';accion='👀 MONITOREAR';desc='En desarrollo · Funding + absorción OK · Esperar ADX ≥15 y whale mult ≥1.5x';}
-  else{nivelNum=1;confianza=30;color='#888888';accion='🛑 NO TOCAR — MONITORIZAR';desc='Acumulación fría · Sin señales de vida reales · ADX plano · Vol apagado';}
-  return{nivelNum,confianza,color,accion,desc,fS,aS,wS,fltS};
-}
-
-function renderCeluPR(d){
-  const n=calcCeluPrecarrera(d);const{nivelNum,confianza,color,accion,desc,fS,aS,wS,fltS}=n;
-  const nc=nivelNum===3?'celu-pr-n3':nivelNum===2?'celu-pr-n2':'celu-pr-n1';
-  const vars=[{label:'FUNDING',score:fS,max:3,hint:fS===3?'NEGATIVO FUERTE':fS===2?'NEUTRO/NEG':fS===1?'NEUTRAL':'RETAIL CÓMODO'},{label:'ADX',score:aS,max:3,hint:aS===3?'ROMPE 18→30':aS===2?'ROMPIENDO':aS===1?'CURVÁNDOSE':'APAGADO'},{label:'WHALE',score:wS,max:3,hint:wS===3?'>2.5x / BUY':wS===2?'1.5-2.5x':wS===1?'1.2x LEVE':'<1.2x NEUTRO'},{label:'CVD/ABS',score:fltS,max:5,hint:fltS>=4?'ABSORCIÓN+SQZ':fltS>=2?'ABSORCIÓN OK':fltS>=1?'CVD ALCISTA':'LATERAL'}];
-  const bars=vars.map(v=>{const pct=Math.min(1,v.score/v.max);const h=Math.max(4,Math.round(pct*30));const c=pct>=0.66?color:pct>=0.33?'#ffd700':'#1a1a30';return'<div class="celu-pr-bar" style="height:'+h+'px;background:'+c+'" title="'+v.label+': '+v.score+'/'+v.max+' — '+v.hint+'"></div>';}).join('');
-  const varDots=vars.map(v=>{const pct=Math.min(1,v.score/v.max);const c=pct>=0.66?color:pct>=0.33?'#ffd700':'#333355';const fillW=Math.round(pct*100);return'<div class="celu-pr-var" title="'+v.hint+'"><div class="celu-pr-var-dot" style="background:'+c+'"></div><span class="celu-pr-var-label">'+v.label+'</span><div class="celu-pr-var-bar"><div class="celu-pr-var-fill" style="width:'+fillW+'%;background:'+c+'"></div></div><span class="celu-pr-var-val" style="color:'+c+'">'+v.score+'/'+v.max+'</span></div>';}).join('');
-  return'<div class="celu-pr-wrap"><div class="celu-pr-header">⚡ CELU CONFIANZA LONG</div><div class="celu-pr-badge '+nc+'"><div class="celu-pr-conf">'+confianza+'<span style="font-size:12px">%</span></div><div class="celu-pr-body"><div class="celu-pr-nivel">N'+nivelNum+' — LONG PRE-CARRERA · MANUSCRITO v4</div><div class="celu-pr-accion">'+accion+'</div><div class="celu-pr-desc">'+desc+'</div></div><div class="celu-pr-bars">'+bars+'</div></div><div class="celu-pr-vars">'+varDots+'</div></div>';
-}
-
-function calcPRScore(d){const minD=parseInt(document.getElementById('pr-dias').value);const maxV=parseFloat(document.getElementById('pr-vol').value);if(!d)return{score:0,tier:0};let sc=0;if(d.diasFlat>=minD*2)sc+=30;else if(d.diasFlat>=minD*1.5)sc+=22;else if(d.diasFlat>=minD)sc+=15;else return{score:0,tier:0};if(d.volRatio<=maxV*0.4)sc+=25;else if(d.volRatio<=maxV*0.6)sc+=18;else if(d.volRatio<=maxV)sc+=10;else return{score:0,tier:0};if(d.avgFunding!==null){if(d.avgFunding<-0.01)sc+=20;else if(d.avgFunding<0)sc+=14;else if(d.avgFunding<0.005)sc+=8;else sc+=2;}else sc+=8;if(d.priceTrend<-15)sc+=15;else if(d.priceTrend<-8)sc+=10;else if(d.priceTrend<-3)sc+=6;else if(d.priceTrend<5)sc+=3;if(d.sqzmom){if(d.sqzmom.virando&&d.sqzmom.diasNeg>=10)sc+=20;else if(d.sqzmom.virando&&d.sqzmom.diasNeg>=5)sc+=15;else if(d.sqzmom.virando)sc+=10;else if(d.sqzmom.subiendo&&d.sqzmom.diasNeg>=10)sc+=12;else if(d.sqzmom.subiendo)sc+=7;else if(d.sqzmom.positivo)sc+=3;}if(d.stochK!==undefined){if(d.stochK<25)sc+=6;else if(d.stochK<40)sc+=3;}if(d.whale==='buy'||d.wBR)sc+=8;else if(d.cvdDir==='up')sc+=4;if(d.change24>15)return{score:0,tier:0};if(Math.abs(d.change24)<2)sc+=7;else if(Math.abs(d.change24)<5)sc+=4;else if(Math.abs(d.change24)<10)sc+=1;const pct=Math.round(sc);const sqV=d.sqzmom&&(d.sqzmom.virando||d.sqzmom.subiendo);const isSal=d.change24>=1.5&&d.change24<=12&&(sqV||d.whale==='buy'||d.wBR||d.cvdDir==='up'||d.volRatio>=(maxV*0.8))&&d.diasFlat>=minD;let tier=0;if(isSal)tier=4;else if(pct>=65)tier=1;else if(pct>=45)tier=2;else if(pct>=28)tier=3;return{score:pct,tier,isSal};}
-
-function renderPRCard(d,sd,tk,idx){
-  const{score,tier}=sd;if(tier===0)return'';
-  const cfg={1:{cls:'tier-1',bc:'prerace-badge-1',bt:'🔥 PUMP INMINENTE',sc:'prerace-signal-hot',st:'⚡ Alta probabilidad',fc:'f1'},2:{cls:'tier-2',bc:'prerace-badge-2',bt:'👀 EN COCCIÓN',sc:'prerace-signal-warm',st:'→ Monitorear',fc:'f2'},3:{cls:'tier-3',bc:'prerace-badge-3',bt:'💧 ACUMULANDO',sc:'prerace-signal-watch',st:'· Acumulación temprana',fc:'f3'},4:{cls:'tier-4',bc:'prerace-badge-4',bt:'🚀 SALIENDO',sc:'prerace-signal-saliendo',st:'🚀 Empieza a moverse',fc:'f4'}};
-  const c=cfg[tier];
-  const vC=d.volRatio<=0.3?'var(--green)':d.volRatio<=0.5?'var(--yellow)':'var(--orange)';
-  const fC=d.avgFunding!==null?(d.avgFunding<0?'var(--green)':d.avgFunding<0.005?'var(--yellow)':'var(--red)'):'var(--text2)';
-  const tC=d.priceTrend<-5?'var(--green)':d.priceTrend<3?'var(--yellow)':'var(--red)';
-  const fF=d.avgFunding!==null?(d.avgFunding>=0?'+':'')+d.avgFunding.toFixed(4)+'%':'—';
-  const tF=(d.priceTrend>=0?'+':'')+d.priceTrend.toFixed(1)+'%';
-  const pS=d.price>=1000?d.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):d.price>=1?d.price.toFixed(4):d.price.toFixed(6);
-  const v24=tk.volume24h>=1e9?(tk.volume24h/1e9).toFixed(1)+'B':tk.volume24h>=1e6?(tk.volume24h/1e6).toFixed(1)+'M':(tk.volume24h/1e3).toFixed(0)+'K';
-  const oiF=d.oiVal>=1e9?(d.oiVal/1e9).toFixed(1)+'B':d.oiVal>=1e6?(d.oiVal/1e6).toFixed(1)+'M':(d.oiVal/1e3).toFixed(0)+'K';
-  const dots=Array.from({length:5},(_,i)=>'<div class="prerace-score-dot '+(i<Math.round(score/20)?c.fc:'')+'"></div>').join('');
-  const oiB=Math.min(100,(d.oiVal/50e6)*100);
-  const wC=d.whale==='buy'?'var(--green)':d.whale==='sell'?'var(--red)':'var(--text3)';
-  const wT=d.whale==='buy'?'🐋 BUY':d.whale==='sell'?'🐋 SELL':d.wBR?'~ bull':d.wSR?'~ bear':'—';
-  const cC2=d.cvdDir==='up'?'var(--green)':d.cvdDir==='down'?'var(--red)':'var(--text3)';
-  const cA=d.cvdDir==='up'?'▲':d.cvdDir==='down'?'▼':'—';
-  const sk=Math.round(d.stochK||50),skC=sk<25?'var(--green)':sk>75?'var(--red)':'var(--text2)';
-  let sqH='';
-  if(d.sqzmom){const sq=d.sqzmom;const sqC=sq.virando?'var(--green)':sq.subiendo?'var(--yellow)':sq.positivo?'var(--cyan)':'var(--text3)';const sqT=sq.virando?'SQZMOM VIRANDO ▲':sq.subiendo?'SQZMOM SUBIENDO ↗':sq.positivo?'SQZMOM POSITIVO':'SQZMOM NEGATIVO';const sqD=sq.virando?'desde '+sq.diasNeg+'d':sq.subiendo?sq.diasNeg+'d neg subiendo':'';sqH='<div style="margin-top:6px;padding:4px 8px;font-family:Barlow Condensed,sans-serif;font-size:10px;font-weight:700;border-radius:2px;background:rgba(0,0,0,0.3);border:1px solid '+sqC+';color:'+sqC+';display:flex;align-items:center;justify-content:space-between"><span>'+sqT+'</span><span style="font-size:9px;opacity:0.7">'+sqD+'</span></div>';}
-  const celuHTML=renderCeluPR(d);
-  return'<div class="prerace-card '+c.cls+'" style="animation-delay:'+idx*0.04+'s"><div class="prerace-card-header"><div><div class="prerace-symbol">'+d.symbol+'</div><div class="prerace-price">$'+pS+' · Vol '+v24+'</div></div><span class="prerace-badge '+c.bc+'">'+c.bt+'</span></div><div class="prerace-metrics"><div class="prerace-metric"><span class="prerace-metric-label">Días flat</span><span class="prerace-metric-val" style="color:'+(tier===1||tier===4?'var(--orange)':'var(--cyan)')+'">'+d.diasFlat+'d</span></div><div class="prerace-metric"><span class="prerace-metric-label">Vol relativo</span><span class="prerace-metric-val" style="color:'+vC+'">'+d.volRatio.toFixed(2)+'x</span></div><div class="prerace-metric"><span class="prerace-metric-label">Funding avg</span><span class="prerace-metric-val" style="color:'+fC+'">'+fF+'</span></div><div class="prerace-metric"><span class="prerace-metric-label">Tendencia</span><span class="prerace-metric-val" style="color:'+tC+'">'+tF+'</span></div><div class="prerace-metric"><span class="prerace-metric-label">OI total</span><span class="prerace-metric-val" style="color:var(--cyan)">'+oiF+'</span></div><div class="prerace-metric"><span class="prerace-metric-label">StochRSI K</span><span class="prerace-metric-val" style="color:'+skC+'">'+sk+'</span></div></div><div class="prerace-score-bar"><span class="prerace-score-label">SCORE:</span>'+dots+'<span style="font-size:9px;color:var(--text2);margin-left:6px">'+score+'/100</span></div><div class="prerace-oi-bar"><div class="prerace-oi-fill" style="width:'+oiB+'%"></div></div>'+sqH+'<div class="whale-signal"><span style="color:'+wC+';font-family:Barlow Condensed,sans-serif;font-size:11px;font-weight:700">'+wT+'</span><span style="color:var(--text3)">CVD:</span><div class="cvd-bar"><div class="cvd-fill" style="width:'+Math.min(100,d.cvdPct||0)+'%;background:'+cC2+'"></div></div><span style="color:'+cC2+';font-family:Barlow Condensed,sans-serif;font-size:11px;font-weight:700">'+cA+'</span></div><div class="prerace-signal '+c.sc+'">'+c.st+'</div>'+celuHTML+'</div>';
-}
-
-async function runPrerace(){if(preraceRunning)return;preraceRunning=true;const btn=document.getElementById('prerace-scan-btn');btn.disabled=true;btn.textContent='⟳ ESCANEANDO...';const grid=document.getElementById('prerace-grid');grid.innerHTML='<div class="prerace-empty"><span class="spinner"></span> Paso 1/3 — Obteniendo pares...</div>';try{const tks=await fetchAllTickersPR();grid.innerHTML='<div class="prerace-empty"><span class="spinner"></span> Paso 2/3 — Filtrando '+tks.length+' tokens...</div>';const cands=tks.filter(t=>Math.abs(t.change24)<15);document.getElementById('pr-scanned').textContent=tks.length;grid.innerHTML='<div class="prerace-empty"><span class="spinner"></span> Paso 3/3 — Analizando CELU v4 + Confianza en '+Math.min(cands.length,120)+' candidatos...</div>';const bs=15,res=[];for(let i=0;i<Math.min(cands.length,120);i+=bs){const b=cands.slice(i,i+bs);const br=await Promise.all(b.map(t=>fetchPRData(t.symbol)));res.push(...br.map((d,j)=>({data:d,ticker:b[j]})));if(i+bs<cands.length)await new Promise(r=>setTimeout(r,300));}const minD=parseInt(document.getElementById('pr-dias').value);const scored=res.filter(r=>r.data!==null&&r.data.diasFlat>=minD).map(r=>({...r,sd:calcPRScore(r.data)})).filter(r=>r.sd.tier>0).sort((a,b)=>{if(a.sd.tier===4&&b.sd.tier!==4)return-1;if(b.sd.tier===4&&a.sd.tier!==4)return 1;return b.sd.score-a.sd.score;});const hot=scored.filter(r=>r.sd.tier===1).length,warm=scored.filter(r=>r.sd.tier===2).length,watch=scored.filter(r=>r.sd.tier===3).length,sal=scored.filter(r=>r.sd.tier===4).length;
-  const celuN3=scored.filter(r=>calcCeluPrecarrera(r.data).nivelNum===3).length;
-  const celuN2=scored.filter(r=>calcCeluPrecarrera(r.data).nivelNum===2).length;
-  document.getElementById('pr-relevant').textContent=scored.length;document.getElementById('pr-hot').textContent=hot;document.getElementById('pr-warm').textContent=warm;document.getElementById('pr-watch').textContent=watch;document.getElementById('pr-saliendo').textContent=sal;
-  const celuN3El=document.getElementById('pr-celu-n3');const celuN2El=document.getElementById('pr-celu-n2');if(celuN3El)celuN3El.textContent=celuN3;if(celuN2El)celuN2El.textContent=celuN2;
-  document.getElementById('prerace-stats').style.display='flex';if(scored.length===0)grid.innerHTML='<div class="prerace-empty">No se encontraron tokens. Reducí los días mínimos.</div>';else{grid.innerHTML=scored.slice(0,30).map((r,i)=>renderPRCard(r.data,r.sd,r.ticker,i)).join('');showToast('🚀 '+scored.length+' tokens · '+sal+' SALIENDO · '+hot+' HOT · '+celuN3+' CELU N3');}document.getElementById('prerace-last-update').textContent='Actualizado: '+new Date().toLocaleTimeString('es-AR')+' · CELU v4 + Confianza Long';}catch(e){grid.innerHTML='<div class="prerace-empty">Error: '+e.message+'</div>';}btn.disabled=false;btn.textContent='▶ ESCANEAR';preraceRunning=false;}
-
-
-
 // ALERTAS
 let alertHist=[],prevSS={},prevAg=new Set(),prevCl=new Set(),alertOpen=false,unrL=0,unrS=0;
 function toggleAlertPanel(){alertOpen=!alertOpen;document.getElementById('alert-panel').classList.toggle('open',alertOpen);if(alertOpen){unrL=0;unrS=0;updAT();}}
 function updAT(){const btn=document.getElementById('alert-toggle'),cnt=document.getElementById('alert-toggle-cnt'),ico=document.getElementById('alert-toggle-icon');btn.classList.remove('has-long','has-short');if(unrS>0){btn.classList.add('has-short');ico.textContent='⚠️';cnt.textContent=unrS;cnt.className='alert-cnt red';cnt.style.display='inline-flex';}else if(unrL>0){btn.classList.add('has-long');ico.textContent='🚀';cnt.textContent=unrL;cnt.className='alert-cnt';cnt.style.display='inline-flex';}else{ico.textContent='🔔';cnt.style.display='none';}}
 function flashSc(color){const el=document.getElementById('alert-flash');el.style.background=color==='green'?'rgba(0,255,136,0.07)':color==='magenta'?'rgba(255,0,204,0.1)':'rgba(255,51,85,0.07)';el.classList.add('show');setTimeout(()=>el.classList.remove('show'),300);}
 function addAlert(type,sym,detail,price){const now=new Date(),ts=now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});alertHist.unshift({type,sym,detail,price,ts,id:Date.now()});if(alertHist.length>50)alertHist=alertHist.slice(0,50);if(!alertOpen){if(type==='wlong')unrL++;else unrS++;updAT();}if(type==='wlong')flashSc('green');else if(type==='climax'||type==='absorcion')flashSc('magenta');else flashSc('red');renderAlerts();}
-function renderAlerts(){const list=document.getElementById('alert-list');if(alertHist.length===0){list.innerHTML='<div class="alert-empty">Sin alertas · CELU v4: Absorción + OI + Climax</div>';return;}const bm={wlong:['badge-al-wlong','W▲ LONG'],wshort:['badge-al-wshort','W▼ SHORT'],agotado:['badge-al-agotado','⚠ AGOTADO'],absorcion:['badge-al-absorcion','🔄 ABSORCIÓN CVD'],climax:['badge-al-climax','💀 CLIMAX SHORT TRAP'],mecanico:['badge-al-mecanico','⚡ OI MECÁNICO']};list.innerHTML=alertHist.map((it,i)=>{const[bc,bt]=bm[it.type]||['badge-al-wlong','SEÑAL'];return'<div class="alert-item type-'+it.type+'" style="animation-delay:'+(i===0?'0':'0.05')+'s"><div class="alert-item-header"><span class="alert-item-symbol">'+it.sym+'</span><span class="alert-item-time">'+it.ts+'</span></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span class="alert-item-badge '+bc+'">'+bt+'</span>'+(it.price?'<span style="font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700">$'+fmtP(it.price)+'</span>':'')+'</div><div class="alert-item-detail">'+it.detail+'</div></div>';}).join('');}
+function renderAlerts(){const list=document.getElementById('alert-list');if(alertHist.length===0){list.innerHTML='<div class="alert-empty">Sin alertas</div>';return;}const bm={wlong:['badge-al-wlong','W▲ LONG'],wshort:['badge-al-wshort','W▼ SHORT'],agotado:['badge-al-agotado','⚠ AGOTADO'],absorcion:['badge-al-absorcion','🔄 ABSORCIÓN CVD'],climax:['badge-al-climax','💀 CLIMAX SHORT TRAP'],mecanico:['badge-al-mecanico','⚡ OI MECÁNICO']};list.innerHTML=alertHist.map((it,i)=>{const[bc,bt]=bm[it.type]||['badge-al-wlong','SEÑAL'];return'<div class="alert-item type-'+it.type+'" style="animation-delay:'+(i===0?'0':'0.05')+'s"><div class="alert-item-header"><span class="alert-item-symbol">'+it.sym+'</span><span class="alert-item-time">'+it.ts+'</span></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span class="alert-item-badge '+bc+'">'+bt+'</span>'+(it.price?'<span style="font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700">$'+fmtP(it.price)+'</span>':'')+'</div><div style="font-size:9px;color:var(--text2)">'+it.detail+'</div></div>';}).join('');}
 function clearAlerts(){alertHist=[];prevSS={};prevAg=new Set();prevCl=new Set();unrL=0;unrS=0;updAT();renderAlerts();showToast('Alertas limpiadas');}
-function checkScanAlerts(data){if(!data)return;data.forEach(d=>{if(d.error)return;const s=calcSetup(d),sym=d.symbol,prev=prevSS[sym],nT=s.type;if(nT&&nT!=='neutral'&&nT!==prev){let det='';if(nT==='wlong')det='Whale BUY + StochRSI + VWAP — posible LONG';else if(nT==='wshort')det='Whale SELL + StochRSI — posible SHORT';else if(nT==='absorcion')det='Precio↑ pero CVD↓ '+d.absorcionPct.toFixed(0)+'% — rally falso, vendedores absorbiendo';else if(nT==='mecanico')det='OI cayó '+Math.abs(d.oiCaida).toFixed(1)+'% mientras precio sube — movimiento por liquidaciones';else if(nT==='climax')det='Liq shorts $'+fmtBig(d.shortLiqs)+' en 5min — agotamiento vendedores, posible reversa';if(det){addAlert(nT,sym,det,d.price);prevSS[sym]=nT;}}else if(!nT||nT==='neutral')prevSS[sym]=null;});}
-function checkRaceAlerts(data,em){if(!data||!em)return;data.slice(0,80).forEach(tk=>{const ex=em[tk.symbol],key=tk.symbol;if(ex&&ex.climax&&!prevCl.has(key)){prevCl.add(key);addAlert('climax',tk.symbol,'Liq shorts $'+fmtBig(ex.shortLiqs)+' · +'+tk.change24.toFixed(1)+'% — SHORT potencial fuerte',tk.price);}else if((!ex||!ex.climax)&&prevCl.has(key))prevCl.delete(key);const isAg=tk.change24>=0&&detectAgot(tk,ex);if(isAg&&!prevAg.has(key)){prevAg.add(key);addAlert('agotado',tk.symbol,'K:'+(ex&&ex.stochK?Math.round(ex.stochK):'?')+' · +'+tk.change24.toFixed(1)+'% — SHORT potencial',tk.price);}else if(!isAg&&prevAg.has(key))prevAg.delete(key);});}
+function checkScanAlerts(data){if(!data)return;data.forEach(d=>{if(d.error)return;const s=calcSetup(d),sym=d.symbol,prev=prevSS[sym],nT=s.type;if(nT&&nT!=='neutral'&&nT!==prev){let det='';if(nT==='wlong')det='Whale BUY + StochRSI + VWAP';else if(nT==='wshort')det='Whale SELL + StochRSI';else if(nT==='absorcion')det='Precio↑ pero CVD↓ — rally falso';else if(nT==='mecanico')det='OI cayó '+Math.abs(d.oiCaida||0).toFixed(1)+'%';else if(nT==='climax')det='Liq shorts $'+fmtBig(d.shortLiqs)+' en 5min';if(det){addAlert(nT,sym,det,d.price);prevSS[sym]=nT;}}else if(!nT||nT==='neutral')prevSS[sym]=null;});}
+function checkRaceAlerts(data,em){if(!data||!em)return;data.slice(0,80).forEach(tk=>{const ex=em[tk.symbol],key=tk.symbol;if(ex&&ex.climax&&!prevCl.has(key)){prevCl.add(key);addAlert('climax',tk.symbol,'Liq shorts $'+fmtBig(ex.shortLiqs)+' · +'+tk.change24.toFixed(1)+'%',tk.price);}else if((!ex||!ex.climax)&&prevCl.has(key))prevCl.delete(key);const isAg=tk.change24>=0&&detectAgot(tk,ex);if(isAg&&!prevAg.has(key)){prevAg.add(key);addAlert('agotado',tk.symbol,'K:'+(ex&&ex.stochK?Math.round(ex.stochK):'?')+' · +'+tk.change24.toFixed(1)+'%',tk.price);}else if(!isAg&&prevAg.has(key))prevAg.delete(key);});}
 
 // INIT
-registroRows=loadRegistro();
-renderRegistro();
-updateRegistroStats();
+diarioRows=loadDiario();
+renderDiario();
+updateDiarioStats();
+// fecha hoy por defecto
+document.getElementById('f-fecha').value=new Date().toISOString().split('T')[0];
 document.getElementById('scan-btn').addEventListener('click',runScan);
 document.getElementById('add-btn').addEventListener('click',addCustomToken);
 document.getElementById('reset-btn').addEventListener('click',resetTokens);
 document.getElementById('refresh-select').addEventListener('change',setRefresh);
 document.getElementById('custom-input').addEventListener('keydown',e=>{if(e.key==='Enter')addCustomToken();});
-document.getElementById('prerace-scan-btn').addEventListener('click',runPrerace);
 document.getElementById('race-refresh-btn').addEventListener('click',runRace);
 initTags();
 connectLiqWS();
-requestNotificationPermission();
+if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();
 setTimeout(()=>{runScan();setRefresh();},400);
 </script>
 </body>
