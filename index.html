@@ -1176,23 +1176,51 @@ async function fetchHM(symbol){
   }catch(e){ return null; }
 }
 
-function renderHMHTML(sym,data){
-  if(!data) return '<div class="heatmap-loading">⚠ No se pudo cargar heatmap</div>';
-  const{price,levels,pMin,pMax,ws,wl}=data;
-  const pPct=((price-pMin)/(pMax-pMin)*100).toFixed(1);
-  const bars=levels.map(lvl=>{
-    const h=Math.max(3,lvl.n*100),a=0.25+lvl.n*0.75;
-    const col=lvl.side==='short'?`rgba(255,51,85,${a})`:`rgba(0,255,136,${a})`;
-    return`<div class="hm-bar-wrap"><div class="hm-tooltip"><span style="color:#fff;font-size:11px">${fmtP(lvl.price)}</span><span style="font-size:9px;color:${lvl.side==='short'?'#ff6688':'#00ff88'}">Vol: ${fmtBig(lvl.vol)}</span><span style="font-size:9px;color:var(--text2)">${lvl.d>=0?'+':''}${lvl.d.toFixed(2)}%</span></div><div class="hm-bar" style="height:${h}%;background:${col}"></div></div>`;
-  }).join('');
-  const ll=Math.min(Math.max(parseFloat(pPct),5),80);
-  return`<div style="font-size:9px;color:var(--text2);margin-bottom:6px;letter-spacing:1px">🔥 HEATMAP — ${sym}</div>
-  <div class="heatmap-chart">${bars}<div style="position:absolute;left:${pPct}%;top:0;bottom:0;width:2px;background:rgba(255,255,255,.7);z-index:10;pointer-events:none"><div style="position:absolute;top:-20px;left:${ll}%;font-size:9px;color:#fff;background:rgba(0,0,0,.85);border:1px solid rgba(255,255,255,.3);padding:2px 5px;transform:translateX(-50%);font-family:'Barlow Condensed',sans-serif;font-weight:700">${fmtP(price)}</div></div></div>
-  <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--text3);margin-top:3px"><span>${fmtP(pMin)}</span><span>← ${Math.round(parseFloat(pPct))}% →</span><span>${fmtP(pMax)}</span></div>
-  <div class="heatmap-walls">
-    <div class="heatmap-wall wall-short"><span class="heatmap-wall-label" style="color:var(--red)">Pared SHORT</span><span class="heatmap-wall-price" style="color:var(--red)">${ws?fmtP(ws.price):'—'}</span><span class="heatmap-wall-vol" style="color:#ff6688">Vol: ${ws?fmtBig(ws.vol):'—'}</span></div>
-    <div class="heatmap-wall wall-long"><span class="heatmap-wall-label" style="color:var(--green)">Soporte LONG</span><span class="heatmap-wall-price" style="color:var(--green)">${wl?fmtP(wl.price):'—'}</span><span class="heatmap-wall-vol" style="color:#00ff88">Vol: ${wl?fmtBig(wl.vol):'—'}</span></div>
-  </div>`;
+function renderHMHTML(sym, data) {
+  if (!data) return '<div class="heatmap-loading">⚠ No se pudo cargar heatmap</div>';
+  const { price, levels, pMin, pMax, ws, wl } = data;
+  const N_BANDAS = 40;
+  const step = (pMax - pMin) / N_BANDAS;
+  const bandas = [];
+  for (let i = N_BANDAS - 1; i >= 0; i--) {
+    const lo = pMin + step * i;
+    const hi = pMin + step * (i + 1);
+    const mid = (lo + hi) / 2;
+    let vol = 0;
+    levels.forEach(lvl => { if (lvl.price >= lo && lvl.price < hi) vol += lvl.vol; });
+    bandas.push({ lo, hi, mid, vol, side: mid > price ? 'short' : 'long' });
+  }
+  const maxVol = Math.max(...bandas.map(b => b.vol), 1);
+  function heatColor(norm, side) {
+    if (norm < 0.03) return 'rgba(255,255,255,0.03)';
+    if (side === 'long') {
+      if (norm >= 0.85) return '#f0f020';
+      if (norm >= 0.60) return '#cccc00';
+      if (norm >= 0.35) return '#1d9e75';
+      if (norm >= 0.15) return '#0f6e56';
+      return '#085041';
+    } else {
+      if (norm >= 0.85) return '#ff3355';
+      if (norm >= 0.60) return '#cc2244';
+      if (norm >= 0.35) return '#993366';
+      if (norm >= 0.15) return '#7c3aed';
+      return '#4c1d95';
+    }
+  }
+  const pricePct = Math.min(100, Math.max(0, (price - pMin) / (pMax - pMin) * 100));
+  let rowsHtml = '';
+  bandas.forEach(b => {
+    const norm = b.vol / maxVol;
+    const isCurrentBand = price >= b.lo && price < b.hi;
+    const barW = Math.max(norm * 100, norm > 0.03 ? 1.5 : 0);
+    const col = heatColor(norm, b.side);
+    const borderTop = isCurrentBand ? 'border-top:2px solid #ffffff;' : '';
+    const opacity = Math.min(norm < 0.03 ? 0.15 : 0.85 + norm * 0.15, 1);
+    rowsHtml += `<div style="display:flex;align-items:center;height:8px;position:relative;${borderTop}" title="${fmtP(b.mid)} — Vol: ${fmtBig(b.vol)}"><div style="width:${barW}%;height:6px;background:${col};opacity:${opacity};border-radius:0 2px 2px 0;"></div>${isCurrentBand ? `<div style="position:absolute;left:${pricePct}%;top:-1px;width:2px;height:10px;background:#fff;z-index:5;"></div>` : ''}</div>`;
+  });
+  const labelPrices = [];
+  for (let i = 0; i <= 5; i++) labelPrices.push(pMin + (pMax - pMin) * (i / 5));
+  return `<div style="font-size:9px;color:var(--text2);margin-bottom:6px;letter-spacing:1px;display:flex;align-items:center;justify-content:space-between;"><span>🔥 HEATMAP — ${sym}</span><span style="color:var(--cyan)">${fmtP(price)}</span></div><div style="display:flex;gap:4px;"><div style="display:flex;flex-direction:column;justify-content:space-between;padding:2px 0;width:44px;flex-shrink:0;">${labelPrices.slice().reverse().map(p=>`<span style="font-size:8px;color:var(--text3);text-align:right;">${fmtP(p)}</span>`).join('')}</div><div style="flex:1;position:relative;border:1px solid var(--border2);padding:2px 0;background:#050508;overflow:hidden;">${rowsHtml}<div style="position:absolute;left:0;right:0;top:${100-pricePct}%;height:2px;background:rgba(255,255,255,0.9);z-index:10;pointer-events:none;"></div><div style="position:absolute;right:4px;top:${100-pricePct}%;transform:translateY(-50%);background:#1d9e75;color:#fff;font-size:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;padding:1px 5px;z-index:11;">${fmtP(price)}</div></div></div><div style="display:flex;gap:10px;margin-top:6px;font-size:8px;color:var(--text3);flex-wrap:wrap;"><span style="display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;background:#f0f020;display:inline-block;"></span>Liq. masiva</span><span style="display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;background:#1d9e75;display:inline-block;"></span>Liq. alta long</span><span style="display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;background:#cc2244;display:inline-block;"></span>Liq. alta short</span></div><div class="heatmap-walls"><div class="heatmap-wall wall-short"><span class="heatmap-wall-label" style="color:var(--red)">Pared SHORT</span><span class="heatmap-wall-price" style="color:var(--red)">${ws?fmtP(ws.price):'—'}</span><span class="heatmap-wall-vol" style="color:#ff6688">Vol: ${ws?fmtBig(ws.vol):'—'}</span></div><div class="heatmap-wall wall-long"><span class="heatmap-wall-label" style="color:var(--green)">Soporte LONG</span><span class="heatmap-wall-price" style="color:var(--green)">${wl?fmtP(wl.price):'—'}</span><span class="heatmap-wall-vol" style="color:#00ff88">Vol: ${wl?fmtBig(wl.vol):'—'}</span></div></div>`;
 }
 
 async function toggleHeatmap(sym){
