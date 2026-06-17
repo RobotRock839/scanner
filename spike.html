@@ -1,530 +1,80 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPIKE DEEP PANEL — Binance Futures</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;700;900&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:#050508;color:#c8c8e0;font-family:'Share Tech Mono',monospace;min-height:100vh;padding:16px;}
-body::before{content:"";position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:999;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
-@keyframes spin{to{transform:rotate(360deg);}}
-.spinner{display:inline-block;width:12px;height:12px;border:2px solid #1a1a2e;border-top-color:#00e5ff;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle;}
+/**
+ * 🚀 SISTEMA DE FILTRADO EN TIEMPO REAL - BINANCE API
+ * Optimización de Lógica y Visualización para el Spike Deep Panel
+ * * Reemplaza o integra esta sección en tu script principal de GitHub.
+ */
 
-header{border-bottom:1px solid #1a1a2e;padding:14px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;letter-spacing:4px;color:#00e5ff;}
-.logo span{color:#ff9500;}
-.status-bar{display:flex;gap:16px;align-items:center;font-size:10px;color:#6666aa;}
-
-.controls{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
-.sym-input{background:#0a0a0f;border:1px solid #252540;color:#c8c8e0;padding:7px 12px;font-family:'Share Tech Mono',monospace;font-size:12px;width:120px;text-transform:uppercase;outline:none;}
-.sym-input:focus{border-color:#00e5ff;}
-.auto-select{background:#0a0a0f;border:1px solid #252540;color:#c8c8e0;padding:7px 10px;font-family:'Share Tech Mono',monospace;font-size:11px;outline:none;cursor:pointer;}
-.btn{background:#ff9500;color:#000;border:none;padding:8px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;transition:opacity .15s;}
-.btn:hover{opacity:.85;}
-.btn:disabled{background:#252540;color:#333355;cursor:not-allowed;}
-.btn-sm{background:transparent;border:1px solid #252540;color:#6666aa;padding:7px 12px;font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer;transition:all .15s;letter-spacing:1px;}
-.btn-sm:hover{border-color:#00e5ff;color:#00e5ff;}
-
-.semaforo{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:12px 16px;border:1px solid #1a1a2e;background:#07070d;}
-.sem-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;}
-.sem-label{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;letter-spacing:2px;}
-.sem-right{margin-left:auto;text-align:right;}
-.sem-price{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#fff;}
-.sem-sub{font-size:9px;color:#6666aa;letter-spacing:1px;margin-top:2px;}
-
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
-.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
-
-.card{background:#0a0a0f;border:1px solid #1a1a2e;padding:12px 14px;}
-.card-orange{border-color:rgba(255,149,0,.4);}
-.card-title{font-size:8px;color:#6666aa;letter-spacing:2px;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;margin-bottom:5px;}
-.card-val{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;line-height:1;}
-.card-sub{font-size:9px;color:#6666aa;margin-top:4px;font-family:'Barlow Condensed',sans-serif;}
-.card-sub b{font-weight:700;}
-
-.bar-wrap{margin-top:8px;}
-.bar-label{font-size:8px;color:#6666aa;letter-spacing:1px;font-family:'Barlow Condensed',sans-serif;margin-bottom:3px;display:flex;justify-content:space-between;}
-.bar-track{height:4px;background:#1a1a2e;overflow:hidden;}
-.bar-fill{height:100%;transition:width .8s ease;}
-
-.accel-box{background:#0a0a0f;border:1px solid #1a1a2e;padding:12px 14px;margin-bottom:10px;}
-.accel-title{font-size:8px;color:#6666aa;letter-spacing:2px;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
-.spark-wrap{display:flex;align-items:flex-end;gap:3px;height:48px;}
-.spark-bar{min-height:2px;flex:1;border-radius:1px 1px 0 0;transition:height .4s ease;}
-.spark-labels{display:flex;justify-content:space-between;margin-top:5px;font-size:8px;color:#333355;font-family:'Barlow Condensed',sans-serif;}
-
-.blocks-title{font-size:8px;color:#6666aa;letter-spacing:2px;font-family:'Barlow Condensed',sans-serif;margin-bottom:6px;text-transform:uppercase;}
-.nivel-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px;}
-.nivel-card{background:#0a0a0f;border:1px solid #1a1a2e;padding:8px 10px;}
-.nivel-card.top{border-color:rgba(255,149,0,.5);background:rgba(255,149,0,.04);}
-.nivel-price{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:#ff9500;}
-.nivel-dist{font-size:8px;color:#6666aa;font-family:'Barlow Condensed',sans-serif;margin-top:2px;}
-.nivel-liq{font-size:8px;color:#c8c8e0;font-family:'Barlow Condensed',sans-serif;margin-top:1px;}
-.nivel-falta{font-size:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-top:3px;}
-.nivel-bar{height:3px;background:#1a1a2e;margin-top:5px;overflow:hidden;}
-.nivel-bar-fill{height:100%;}
-
-.estado-grid{display:flex;flex-direction:column;gap:6px;}
-.estado-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #0a0a0f;}
-.estado-label{font-size:9px;color:#6666aa;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;}
-.tag{display:inline-block;padding:2px 8px;font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;}
-.tag-green{background:rgba(0,255,136,.1);border:1px solid #00cc66;color:#00ff88;}
-.tag-red{background:rgba(255,51,85,.1);border:1px solid #cc2244;color:#ff3355;}
-.tag-yellow{background:rgba(255,215,0,.1);border:1px solid #ccaa00;color:#ffd700;}
-.tag-orange{background:rgba(255,149,0,.1);border:1px solid #cc7700;color:#ff9500;}
-.tag-gray{background:rgba(0,0,0,.3);border:1px solid #252540;color:#6666aa;}
-
-.book-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
-.book-side{display:flex;flex-direction:column;gap:2px;}
-.book-row{display:flex;align-items:center;gap:6px;font-size:9px;font-family:'Barlow Condensed',sans-serif;}
-.book-price{width:70px;text-align:right;font-weight:700;}
-.book-vol-bar{height:6px;min-width:2px;border-radius:1px;}
-.book-usd{color:#6666aa;font-size:8px;}
-
-.status-bottom{font-size:9px;color:#333355;padding:10px 0;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;border-top:1px solid #1a1a2e;margin-top:12px;display:flex;justify-content:space-between;}
-.miss{text-align:center;padding:60px 24px;color:#333355;font-size:11px;font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;line-height:2;}
-.error-box{padding:20px;border:1px solid #cc2244;background:rgba(255,51,85,.05);color:#ff3355;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1px;}
-</style>
-</head>
-<body>
-
-<header>
-  <div class="logo">SPIKE <span>DEEP PANEL</span></div>
-  <div class="status-bar">
-    <span id="ts-header">--:--:--</span>
-    <span>UTC-3 · BINANCE FUTURES</span>
-  </div>
-</header>
-
-<div class="controls">
-  <input class="sym-input" id="sym" value="H" placeholder="TOKEN" maxlength="15">
-  <select class="auto-select" id="auto-refresh">
-    <option value="0">AUTO OFF</option>
-    <option value="30">30s</option>
-    <option value="60">1min</option>
-    <option value="120">2min</option>
-  </select>
-  <button class="btn" id="btnScan" onclick="runPanel()">▶ ANALIZAR</button>
-  <button class="btn-sm" onclick="clearOutput()">✕ LIMPIAR</button>
-  <span id="cd-txt" style="font-size:10px;color:#6666aa;font-family:'Barlow Condensed',sans-serif;min-width:40px;"></span>
-</div>
-
-<div id="output">
-  <div class="miss">
-    Ingresá el token y presioná ANALIZAR<br>
-    <span style="font-size:9px">Ejemplo: H · PORTAL · EDEN · PLAY</span>
-  </div>
-</div>
-
-<div class="status-bottom">
-  <span id="status-left">—</span>
-  <span id="status-right">—</span>
-</div>
-
-<script>
-'use strict';
-
-let autoTimer = null, cdTimer = null, cdSecs = 0;
-
-function fmtP(p){
-  if(p===null||p===undefined||isNaN(p)) return '—';
-  if(p>=1000) return p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  if(p>=1) return p.toFixed(4);
-  if(p>=0.01) return p.toFixed(5);
-  return p.toFixed(6);
-}
-function fmtBig(n){
-  if(!n||isNaN(n)) return '—';
-  if(n>=1e9) return (n/1e9).toFixed(2)+'B';
-  if(n>=1e6) return (n/1e6).toFixed(2)+'M';
-  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
-  return n.toFixed(0);
-}
-function fmtTime(mins){
-  if(mins===null||isNaN(mins)) return 'SIN VEL';
-  if(mins<1) return '<1 MIN';
-  if(mins>999) return '>999 MIN';
-  return mins.toFixed(0)+' MIN';
-}
-function setTs(){ document.getElementById('ts-header').textContent = new Date().toLocaleTimeString('es-AR'); }
-
-function clearOutput(){
-  document.getElementById('output').innerHTML = '<div class="miss">Ingresá el token y presioná ANALIZAR</div>';
-  document.getElementById('status-left').textContent = '—';
-  document.getElementById('status-right').textContent = '—';
-}
-
-function startCD(secs){
-  clearInterval(cdTimer); cdSecs=secs;
-  const el=document.getElementById('cd-txt');
-  function tick(){ el.textContent=cdSecs>0?'↺ '+cdSecs+'s':''; if(cdSecs>0) cdSecs--; }
-  tick(); cdTimer=setInterval(tick,1000);
-}
-
-document.getElementById('auto-refresh').addEventListener('change', function(){
-  clearInterval(autoTimer); autoTimer=null;
-  const v=parseInt(this.value);
-  if(v>0){ autoTimer=setInterval(()=>runPanel(),v*1000); }
-});
-
-document.getElementById('sym').addEventListener('keydown', e=>{ if(e.key==='Enter') runPanel(); });
-
-async function runPanel(){
-  const sym = document.getElementById('sym').value.trim().toUpperCase().replace(/USDT$/,'');
-  if(!sym) return;
-  const btn = document.getElementById('btnScan');
-  btn.disabled=true; btn.textContent='⟳ CARGANDO...';
-  document.getElementById('output').innerHTML = '<div class="miss"><span class="spinner"></span>Conectando con Binance Futures...</div>';
-  setTs();
-
-  try {
-    const pair = sym+'USDT';
-
-    let testOk = false;
-    try {
-      const test = await fetch('https://fapi.binance.com/fapi/v1/ping');
-      testOk = test.ok;
-    } catch(e) {
-      document.getElementById('output').innerHTML = `<div class="error-box">
-        SIN CONEXIÓN A BINANCE FUTURES<br>
-        <span style="font-size:10px;color:#6666aa;line-height:1.8;display:block;margin-top:8px">
-          Si abriste el archivo directo desde tu PC (file://) el navegador bloquea las requests.<br>
-          SOLUCIÓN: Abrí el archivo desde un servidor local o usá la preview.<br><br>
-          Para correrlo local: abrí una terminal en la carpeta del archivo y ejecutá:<br>
-          <span style="color:#00e5ff">python -m http.server 8080</span><br>
-          Luego abrí: <span style="color:#00e5ff">http://localhost:8080/spike_deep_panel.html</span>
-        </span>
-      </div>`;
-      btn.disabled=false; btn.textContent='▶ ANALIZAR'; return;
+// 1. CONFIGURACIÓN DE LOS ESTADOS DEL SPIKE (La traducción a modo humano)
+const ESTADOS_SPIKE = {
+    NORMAL: {
+        texto: "FLUJO EN RANGO — OPERABLE",
+        claseCSS: "spike-normal"
+    },
+    BARRIENDO: {
+        texto: "⚠️ ALERTA: BARRIENDO STOPS — PRECIO SIN FRENO",
+        claseCSS: "spike-peligro"
+    },
+    TECHO_BALLENA: {
+        texto: "🎯 TECHO ALCANZADO: ENTRANDO EN PARED DE BALLENA",
+        claseCSS: "spike-zona-caza"
+    },
+    GATILLO_SHORT: {
+        texto: "📉 CONFIRMADO: AGOTAMIENTO TOTAL — APRETÁ EL GATILLO",
+        claseCSS: "spike-gatillo-short"
     }
+};
 
-    const [tkRes, kl1Res, kl5Res, depthRes, frRes] = await Promise.allSettled([
-      fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol='+pair).then(r=>r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=1m&limit=16').then(r=>r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=5m&limit=13').then(r=>r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/depth?symbol='+pair+'&limit=500').then(r=>r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=1').then(r=>r.json())
-    ]);
-
-    const tk = tkRes.status==='fulfilled' ? tkRes.value : null;
-    if(!tk||tk.code){
-      document.getElementById('output').innerHTML=`<div class="error-box">
-        TOKEN "${sym}" NO ENCONTRADO EN BINANCE FUTURES<br>
-        <span style="font-size:10px;color:#6666aa;line-height:2;display:block;margin-top:6px">
-          · Verificá que el par ${sym}USDT exista en futuros perpetuos<br>
-          · No incluyas USDT ni .P al final
-        </span>
-      </div>`;
-      btn.disabled=false; btn.textContent='▶ ANALIZAR'; return;
-    }
-
-    const price   = parseFloat(tk.lastPrice);
-    const ch24    = parseFloat(tk.priceChangePercent);
-    const vol24   = parseFloat(tk.quoteVolume);
-    const funding = frRes.status==='fulfilled'&&frRes.value[0] ? parseFloat(frRes.value[0].fundingRate)*100 : 0;
-
-    // Incluimos la vela viva (actual) para un cálculo instantáneo en scalping
-    const kl1m  = kl1Res.status==='fulfilled'  ? kl1Res.value  : [];
-    const kl5m  = kl5Res.status==='fulfilled'  ? kl5Res.value  : [];
-
-    const velas1m = kl1m.map(k=>{
-      const o=parseFloat(k[1]), c=parseFloat(k[4]), v=parseFloat(k[5]);
-      return { cvd: c>=o ? v : -v, vol: v, close: c, ts: k[0] };
-    });
-
-    const velas5m = kl5m.map(k=>{
-      const o=parseFloat(k[1]), c=parseFloat(k[4]), v=parseFloat(k[5]);
-      return { cvd: c>=o ? v : -v, vol: v };
-    });
-
-    const cvdNeto1m   = velas1m.reduce((a,b)=>a+b.cvd, 0);
-    const cvdNeto5m   = velas5m.reduce((a,b)=>a+b.cvd, 0);
-    const cvdNetoUSD  = Math.max(0, cvdNeto1m * price);
-
-    // Métrica de Aceleración Estricta del Momentum en ventanas móviles fijas
-    const mitad       = Math.floor(velas1m.length/2);
-    const cvdFirst    = velas1m.slice(0,mitad).reduce((a,b)=>a+b.cvd,0);
-    const cvdLast     = velas1m.slice(mitad).reduce((a,b)=>a+b.cvd,0);
-    const acelerando   = cvdLast > cvdFirst && cvdLast > 0;
-    const desacelerando = cvdFirst > 0 && cvdLast < cvdFirst * 0.3;
-
-    const depth = depthRes.status==='fulfilled' ? depthRes.value : {asks:[],bids:[]};
-
-    const asks = (depth.asks||[])
-      .map(a=>({price:parseFloat(a[0]), qty:parseFloat(a[1]), usd:parseFloat(a[0])*parseFloat(a[1])}))
-      .filter(a=>a.price>=price)
-      .sort((a,b)=>a.price-b.price);
-
-    const bids = (depth.bids||[])
-      .map(b=>({price:parseFloat(b[0]), qty:parseFloat(b[1]), usd:parseFloat(b[0])*parseFloat(b[1])}))
-      .filter(b=>b.price<=price)
-      .sort((a,b)=>b.price-a.price);
-
-    // Sumar profundidad del Orderbook real hasta un rango del 2.5% para evitar distorsiones de órdenes fantasma lejanas
-    const RANGO_BOOK_FUTUROS = price * 0.025;
-    const totalAskUSD = asks.filter(a=>a.price <= price + RANGO_BOOK_FUTUROS).reduce((s,a)=>s+a.usd, 0);
-    const totalBidUSD = bids.filter(b=>b.price >= price - RANGO_BOOK_FUTUROS).reduce((s,b)=>s+b.usd, 0);
-    const bookRatio   = totalBidUSD > 0 ? totalAskUSD/totalBidUSD : 99;
-
-    const blockPct  = 0.005;
-    const blockSize = price * blockPct;
-    const blocks    = {};
+/**
+ * 2. LÓGICA DE PROCESAMIENTO EN TIEMPO REAL
+ * Esta función debe ejecutarse cada vez que el WebSocket de Binance actualiza el CVD o el Order Book
+ */
+function procesarFlujoBinance(datosAPI) {
+    // Variables mapeadas desde tu backend actual de Binance
+    const cvdNeto1M = datosAPI.cvdNeto1M;         // Ej: +385.2K (image_35ce3e.jpg)
+    const aceleracionCVD = datosAPI.aceleracion;  // "ACELERANDO" o "DESACELERANDO"
+    const bookAbsorbido = datosAPI.bookAbsorbido; // true si los bloques inmediatos dicen ✓ ABSORBIDO
+    const agotamientoSC = datosAPI.agotamientoSC; // true si saltó sc4 / se5 en el script CELU
     
-    asks.forEach(a=>{
-      const key = Math.floor((a.price - price) / blockSize);
-      if(key<0 || key>=5) return; // Limitar estrictamente a los primeros 5 bloques del 0.5%
-      if(!blocks[key]) blocks[key]={minPrice:price+key*blockSize, maxPrice:price+(key+1)*blockSize, usd:0, qty:0};
-      blocks[key].usd += a.usd;
-      blocks[key].qty += a.qty;
-    });
+    // Contenedor visual del cartel superior en tu HTML
+    const cartelSpike = document.getElementById("alerta-spike-banner"); 
+    
+    if (!cartelSpike) return; // Resguardo por si el DOM no cargó
 
-    // Rellenar bloques vacíos si no hay órdenes mapeadas
-    for(let i=0; i<5; i++){
-      if(!blocks[i]) blocks[i]={minPrice:price+i*blockSize, maxPrice:price+(i+1)*blockSize, usd:0, qty:0};
+    let estadoActual = ESTADOS_SPIKE.NORMAL;
+
+    // --- EVALUACIÓN DE ESTRUCTURA MATEMÁTICA EN TIEMPO REAL ---
+
+    // ESTADO 1: Furia compradora barriendo las órdenes límite (Latigazo saca-stops)
+    if (cvdNeto1M > 0 && aceleracionCVD === "ACELERANDO" && bookAbsorbido) {
+        estadoActual = ESTADOS_SPIKE.BARRIENDO;
+    }
+    
+    // ESTADO 2: El precio impacta la pared pesada de Asks y la velocidad de compra muere
+    else if (bookAbsorbido && aceleracionCVD === "DESACELERANDO") {
+        estadoActual = ESTADOS_SPIKE.TECHO_BALLENA;
+    }
+    
+    // ESTADO 3: Confirmación absoluta por flujo de órdenes + indicador de TradingView (Gatillo Short Premium)
+    else if (agotamientoSC && cvdNeto1M > 0 && aceleracionCVD === "DESACELERANDO") {
+        estadoActual = ESTADOS_SPIKE.GATILLO_SHORT;
     }
 
-    const topBlocks = Object.values(blocks).sort((a,b)=>a.minPrice-b.minPrice);
-
-    // Acumulado secuencial real de la muralla de órdenes
-    let acumuladorAsksUSD = 0;
-    const blocksData = topBlocks.map(b=>{
-      acumuladorAsksUSD += b.usd;
-      const falta       = Math.max(0, acumuladorAsksUSD - cvdNetoUSD);
-      const pctDist     = ((b.minPrice - price) / price * 100);
-      const absorbida   = acumuladorAsksUSD > 0 ? (Math.min(cvdNetoUSD, acumuladorAsksUSD) / acumuladorAsksUSD) * 100 : 0;
-      return {...b, liquHasta: acumuladorAsksUSD, falta, pctDist, absorbida};
-    });
-
-    const velasBuy   = velas1m.filter(v=>v.cvd>0);
-    const velMinuto  = velasBuy.length > 0
-      ? (velasBuy.reduce((s,v)=>s+v.cvd,0)/velasBuy.length) * price
-      : 0;
-
-    const primerBloque = blocksData[0];
-    const faltaSpike   = primerBloque ? primerBloque.falta : 0;
-    const tiempoMin    = velMinuto > 0 && faltaSpike > 0 ? faltaSpike / velMinuto : (faltaSpike === 0 ? 0 : null);
-
-    let semColor, semLabel, semBg, semBorder;
-    if(cvdNeto1m>0 && acelerando && faltaSpike === 0){
-      semColor='#00ff88'; semLabel='SPIKE INMINENTE — BOOK CASI ABSORBIDO'; semBg='rgba(0,255,136,.06)'; semBorder='#00ff88';
-    } else if(cvdNeto1m>0 && acelerando){
-      semColor='#00e5ff'; semLabel='ACELERANDO — MONITOREAR CADA 30s'; semBg='rgba(0,229,255,.05)'; semBorder='#00e5ff';
-    } else if(cvdNeto1m>0 && !desacelerando){
-      semColor='#ff9500'; semLabel='PRESIÓN COMPRADORA — SIN ACELERACIÓN'; semBg='rgba(255,149,0,.05)'; semBorder='#ff9500';
-    } else if(cvdNeto1m>0 && desacelerando){
-      semColor='#ffd700'; semLabel='CVD DESACELERANDO — POSIBLE ABORTO'; semBg='rgba(255,215,0,.05)'; semBorder='#ffd700';
-    } else {
-      semColor='#ff3355'; semLabel='SIN PRESIÓN COMPRADORA — ESPERAR'; semBg='rgba(255,51,85,.05)'; semBorder='#ff3355';
-    }
-
-    const maxBookUSD = Math.max(...asks.slice(0,8).map(a=>a.usd), ...bids.slice(0,8).map(b=>b.usd), 1);
-
-    function bookRows(arr, side, maxU){
-      return arr.slice(0,8).map(r=>{
-        const w  = Math.max(4, (r.usd/maxU)*120);
-        const col = side==='ask'?'#ff3355':'#00ff88';
-        return `<div class="book-row">
-          <span class="book-price" style="color:${col}">${fmtP(r.price)}</span>
-          <div class="book-vol-bar" style="width:${w}px;height:6px;background:${col};opacity:.7;border-radius:1px;"></div>
-          <span class="book-usd">$${fmtBig(r.usd)}</span>
-        </div>`;
-      }).join('');
-    }
-
-    const maxCvd = Math.max(...velas1m.map(v=>Math.abs(v.cvd)), 1);
-    const sparkHtml = velas1m.map(v=>{
-      const h   = Math.max(4, (Math.abs(v.cvd)/maxCvd)*44);
-      const col = v.cvd>0?'#00ff88':'#ff3355';
-      const op  = Math.max(0.25, Math.abs(v.cvd)/maxCvd);
-      return `<div class="spark-bar" style="height:${h}px;background:${col};opacity:${op};" title="${v.cvd>0?'+':''}${fmtBig(Math.abs(v.cvd)*price)}"></div>`;
-    }).join('');
-
-    let acelTag, acelColor;
-    if(acelerando){ acelTag='ACELERANDO ▲'; acelColor='#00ff88'; }
-    else if(desacelerando){ acelTag='DESACELERANDO ▼'; acelColor='#ff3355'; }
-    else { acelTag='ESTABLE —'; acelColor='#ffd700'; }
-
-    const bookTag   = bookRatio>2.5?'RESISTENCIA FUERTE':bookRatio>1.5?'RESISTENCIA MEDIA':'BOOK LIVIANO';
-    const bookColor = bookRatio>2.5?'#ff3355':bookRatio>1.5?'#ffd700':'#00ff88';
-
-    document.getElementById('output').innerHTML = `
-      <div class="semaforo" style="background:${semBg};border-color:${semBorder}">
-        <div class="sem-dot" style="background:${semColor}"></div>
-        <div>
-          <div class="sem-label" style="color:${semColor}">${semLabel}</div>
-          <div style="font-size:9px;color:#6666aa;font-family:'Barlow Condensed',sans-serif;margin-top:2px;letter-spacing:1px">
-            ${sym}USDT · Actualizado: ${new Date().toLocaleTimeString('es-AR')}
-          </div>
-        </div>
-        <div class="sem-right">
-          <div class="sem-price">${fmtP(price)}</div>
-          <div class="sem-sub">${ch24>=0?'+':''}${ch24.toFixed(2)}% 24H · Vol $${fmtBig(vol24)}</div>
-        </div>
-      </div>
-
-      <div class="grid4">
-        <div class="card">
-          <div class="card-title">CVD NETO 1M</div>
-          <div class="card-val" style="color:${cvdNeto1m>0?'#00ff88':'#ff3355'};font-size:18px">
-            ${cvdNeto1m>0?'▲':'▼'} $${fmtBig(cvdNetoUSD)}
-          </div>
-          <div class="card-sub"><span style="color:${acelColor}">${acelTag}</span></div>
-        </div>
-        <div class="card">
-          <div class="card-title">LIQUIDEZ ASKS REAL (2.5%)</div>
-          <div class="card-val" style="color:${bookColor};font-size:18px">$${fmtBig(totalAskUSD)}</div>
-          <div class="card-sub" style="color:${bookColor}">${bookTag} · ${bookRatio.toFixed(2)}x</div>
-        </div>
-        <div class="card card-orange">
-          <div class="card-title">TIEMPO EST. SPIKE</div>
-          <div class="card-val" style="color:#ff9500;font-size:18px">${fmtTime(tiempoMin)}</div>
-          <div class="card-sub">Vel: $${fmtBig(velMinuto)}/min</div>
-        </div>
-        <div class="card">
-          <div class="card-title">FALTA ABSORBER</div>
-          <div class="card-val" style="color:${faltaSpike===0?'#00ff88':'#ff3355'};font-size:18px">
-            $${fmtBig(faltaSpike)}
-          </div>
-          <div class="card-sub">Para 1er bloque</div>
-        </div>
-      </div>
-
-      <div class="accel-box">
-        <div class="accel-title">
-          <span>CVD POR VELA 1M — Aceleración / Desaceleración</span>
-          <span style="color:${acelColor}">${acelTag}</span>
-        </div>
-        <div class="spark-wrap">${sparkHtml}</div>
-        <div class="spark-labels">
-          <span>← MÁS ANTIGUO</span>
-          <span style="color:${cvdNeto1m>0?'#00ff88':'#ff3355'}">${cvdNeto1m>0?'▲ PRESIÓN COMPRADORA':'▼ PRESIÓN VENDEDORA'}</span>
-          <span>MÁS RECIENTE →</span>
-        </div>
-      </div>
-
-      <div class="blocks-title">BLOQUES DE RESISTENCIA (cada 0.5% desde precio actual) — Cuánto falta absorber acumulado secuencialmente</div>
-      <div class="nivel-grid">
-        ${blocksData.map((b,i)=>{
-          const isTop = i===0;
-          const col   = i===0?'#ff9500':i===1?'#ffd700':'#6666aa';
-          const faltaColor = b.falta === 0 ? '#00ff88' : b.falta < cvdNetoUSD ? '#ffd700' : '#ff3355';
-          return `<div class="nivel-card ${isTop?'top':''}">
-            <div class="nivel-price" style="color:${col}">${fmtP(b.minPrice)}</div>
-            <div class="nivel-dist">+${b.pctDist.toFixed(1)}%</div>
-            <div class="nivel-liq">Acum: $${fmtBig(b.liquHasta)}</div>
-            <div class="nivel-falta" style="color:${faltaColor}">
-              ${b.falta===0?'✓ ABSORBIDO':'Falta: $'+fmtBig(b.falta)}
-            </div>
-            <div class="nivel-bar">
-              <div class="nivel-bar-fill" style="width:${Math.min(100,b.absorbida)}%;background:${col}"></div>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
-
-      <div class="grid2">
-        <div class="card">
-          <div class="card-title">ORDER BOOK VISUAL (top 8 niveles)</div>
-          <div class="book-wrap">
-            <div class="book-side">
-              <div style="font-size:8px;color:#ff3355;font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-bottom:4px;letter-spacing:1px">ASKS (RESISTENCIA)</div>
-              ${bookRows(asks, 'ask', maxBookUSD)}
-            </div>
-            <div class="book-side">
-              <div style="font-size:8px;color:#00ff88;font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-bottom:4px;letter-spacing:1px">BIDS (SOPORTE)</div>
-              ${bookRows(bids, 'bid', maxBookUSD)}
-            </div>
-          </div>
-          <div class="bar-wrap">
-            <div class="bar-label"><span>ASKS $${fmtBig(totalAskUSD)}</span><span>BIDS $${fmtBig(totalBidUSD)}</span></div>
-            <div class="bar-track" style="height:6px">
-              <div class="bar-fill" style="width:${Math.min(100,totalAskUSD/(totalAskUSD+totalBidUSD||1)*100)}%;background:#ff3355"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">CHECKLIST DE CONDICIONES</div>
-          <div class="estado-grid">
-            <div class="estado-row">
-              <span class="estado-label">FUNDING</span>
-              <span class="tag ${funding<-0.01?'tag-green':funding>0.05?'tag-red':'tag-gray'}">${funding>=0?'+':''}${funding.toFixed(4)}%</span>
-            </div>
-            <div class="estado-row">
-              <span class="estado-label">CVD 1M DIRECCIÓN</span>
-              <span class="tag ${cvdNeto1m>0?'tag-green':'tag-red'}">${cvdNeto1m>0?'▲ COMPRA NETA':'▼ VENTA NETA'}</span>
-            </div>
-            <div class="estado-row">
-              <span class="estado-label">CVD 5M CONFIRMACIÓN</span>
-              <span class="tag ${cvdNeto5m>0?'tag-green':'tag-red'}">${cvdNeto5m>0?'▲ CONFIRMA':'▼ DIVERGE'}</span>
-            </div>
-            <div class="estado-row">
-              <span class="estado-label">ACELERACIÓN CVD</span>
-              <span class="tag ${acelerando?'tag-green':desacelerando?'tag-red':'tag-yellow'}">${acelTag}</span>
-            </div>
-            <div class="estado-row">
-              <span class="estado-label">BOOK RESISTENCIA</span>
-              <span class="tag ${bookRatio>2.5?'tag-red':bookRatio>1.5?'tag-yellow':'tag-green'}">${bookTag}</span>
-            </div>
-            <div class="estado-row">
-              <span class="estado-label">VELOCIDAD COMPRADORA</span>
-              <span class="tag ${velMinuto>0?'tag-orange':'tag-gray'}">$${fmtBig(velMinuto)}/min</span>
-            </div>
-            <div class="estado-row">
-              <span class="estado-label">FALTA PARA 1er BLOQUE</span>
-              <span class="tag ${faltaSpike===0?'tag-green':faltaSpike<cvdNetoUSD?'tag-yellow':'tag-red'}">$${fmtBig(faltaSpike)}</span>
-            </div>
-            <div class="estado-row" style="border:none">
-              <span class="estado-label">TIEMPO ESTIMADO SPIKE</span>
-              <span class="tag tag-orange">${fmtTime(tiempoMin)}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="accel-box" style="margin-top:10px">
-        <div class="accel-title">
-          <span>CVD POR VELA 5M — Confirmación de tendencia</span>
-          <span style="color:${cvdNeto5m>0?'#00ff88':'#ff3355'}">${cvdNeto5m>0?'▲ ALCISTA':'▼ BAJISTA'}</span>
-        </div>
-        <div class="spark-wrap">
-          ${(()=>{
-            const mx=Math.max(...velas5m.map(v=>Math.abs(v.cvd)),1);
-            return velas5m.map(v=>{
-              const h=Math.max(4,(Math.abs(v.cvd)/mx)*44);
-              const col=v.cvd>0?'#00ff88':'#ff3355';
-              const op=Math.max(0.25,Math.abs(v.cvd)/mx);
-              return `<div class="spark-bar" style="height:${h}px;background:${col};opacity:${op}"></div>`;
-            }).join('');
-          })()}
-        </div>
-        <div class="spark-labels">
-          <span>← MÁS ANTIGUO</span>
-          <span style="font-size:8px;color:#6666aa">Si 1m y 5m coinciden = señal más fuerte</span>
-          <span>MÁS RECIENTE →</span>
-        </div>
-      </div>
-    `;
-
-    document.getElementById('status-left').textContent = sym+'USDT · '+new Date().toLocaleTimeString('es-AR');
-    document.getElementById('status-right').textContent = 'Refresh manual recomendado cada 30s para datos frescos';
-
-    const v = parseInt(document.getElementById('auto-refresh').value);
-    if(v>0) startCD(v);
-
-  } catch(e) {
-    document.getElementById('output').innerHTML = '<div class="error-box">ERROR AL CONECTAR: '+e.message+'</div>';
-  }
-
-  document.getElementById('btnScan').disabled=false;
-  document.getElementById('btnScan').textContent='▶ ANALIZAR';
-  setTs();
+    // --- ACTUALIZACIÓN DE LA INTERFAZ VISUAL ---
+    renderizarCartelSpike(cartelSpike, estadoActual);
 }
 
-setInterval(setTs, 1000);
-</script>
-</body>
-</html>
+/**
+ * 3. CONTROLADOR VISUAL (Modifica textos y apaga los verdes que confunden)
+ */
+function renderizarCartelSpike(elemento, estado) {
+    // Limpiamos clases viejas para que no se pisen los colores
+    elemento.className = "banner-base " + estado.claseCSS;
+    
+    // Inyectamos el nuevo texto explicativo que te ayuda a decidir
+    elemento.innerHTML = `
+        <div class="spike-contenido">
+            <span class="spike-indicador-punto"></span>
+            <span class="spike-texto-principal">${estado.texto}</span>
+        </div>
+    `;
+}
