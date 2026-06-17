@@ -1,80 +1,173 @@
-/**
- * 🚀 SISTEMA DE FILTRADO EN TIEMPO REAL - BINANCE API
- * Optimización de Lógica y Visualización para el Spike Deep Panel
- * * Reemplaza o integra esta sección en tu script principal de GitHub.
- */
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPIKE DEEP PANEL — BINANCE FUTURES</title>
+    <style>
+        /* ==========================================================================
+           1. ESTILOS BASE DE TU PANEL OSCURO
+           ========================================================================== */
+        body {
+            background-color: #050508;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
 
-// 1. CONFIGURACIÓN DE LOS ESTADOS DEL SPIKE (La traducción a modo humano)
-const ESTADOS_SPIKE = {
-    NORMAL: {
-        texto: "FLUJO EN RANGO — OPERABLE",
-        claseCSS: "spike-normal"
-    },
-    BARRIENDO: {
-        texto: "⚠️ ALERTA: BARRIENDO STOPS — PRECIO SIN FRENO",
-        claseCSS: "spike-peligro"
-    },
-    TECHO_BALLENA: {
-        texto: "🎯 TECHO ALCANZADO: ENTRANDO EN PARED DE BALLENA",
-        claseCSS: "spike-zona-caza"
-    },
-    GATILLO_SHORT: {
-        texto: "📉 CONFIRMADO: AGOTAMIENTO TOTAL — APRETÁ EL GATILLO",
-        claseCSS: "spike-gatillo-short"
-    }
-};
+        .panel-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-/**
- * 2. LÓGICA DE PROCESAMIENTO EN TIEMPO REAL
- * Esta función debe ejecutarse cada vez que el WebSocket de Binance actualiza el CVD o el Order Book
- */
-function procesarFlujoBinance(datosAPI) {
-    // Variables mapeadas desde tu backend actual de Binance
-    const cvdNeto1M = datosAPI.cvdNeto1M;         // Ej: +385.2K (image_35ce3e.jpg)
-    const aceleracionCVD = datosAPI.aceleracion;  // "ACELERANDO" o "DESACELERANDO"
-    const bookAbsorbido = datosAPI.bookAbsorbido; // true si los bloques inmediatos dicen ✓ ABSORBIDO
-    const agotamientoSC = datosAPI.agotamientoSC; // true si saltó sc4 / se5 en el script CELU
-    
-    // Contenedor visual del cartel superior en tu HTML
-    const cartelSpike = document.getElementById("alerta-spike-banner"); 
-    
-    if (!cartelSpike) return; // Resguardo por si el DOM no cargó
+        h1 {
+            color: #00f0ff;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
 
-    let estadoActual = ESTADOS_SPIKE.NORMAL;
+        /* ==========================================================================
+           2. COMPONENTE DEL BANNER SUPERIOR (EL SEMÁFORO DEL SPIKE)
+           ========================================================================== */
+        .banner-base {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-radius: 4px;
+            transition: all 0.3s ease-in-out;
+            box-sizing: border-box;
+            margin-bottom: 25px;
+        }
 
-    // --- EVALUACIÓN DE ESTRUCTURA MATEMÁTICA EN TIEMPO REAL ---
+        /* Estado normal: Sin peligro inmediato */
+        .spike-normal {
+            background-color: #111116 !important;
+            color: #4a4a5a !important;
+            border: 1px solid #222230;
+        }
 
-    // ESTADO 1: Furia compradora barriendo las órdenes límite (Latigazo saca-stops)
-    if (cvdNeto1M > 0 && aceleracionCVD === "ACELERANDO" && bookAbsorbido) {
-        estadoActual = ESTADOS_SPIKE.BARRIENDO;
-    }
-    
-    // ESTADO 2: El precio impacta la pared pesada de Asks y la velocidad de compra muere
-    else if (bookAbsorbido && aceleracionCVD === "DESACELERANDO") {
-        estadoActual = ESTADOS_SPIKE.TECHO_BALLENA;
-    }
-    
-    // ESTADO 3: Confirmación absoluta por flujo de órdenes + indicador de TradingView (Gatillo Short Premium)
-    else if (agotamientoSC && cvdNeto1M > 0 && aceleracionCVD === "DESACELERANDO") {
-        estadoActual = ESTADOS_SPIKE.GATILLO_SHORT;
-    }
+        /* Estado Alerta: Precio barriendo el libro hacia arriba. ¡Manos abajo! */
+        .spike-peligro {
+            background-color: #2b2512 !important; 
+            color: #ffb700 !important;            
+            border: 1px solid #ffb700;
+        }
 
-    // --- ACTUALIZACIÓN DE LA INTERFAZ VISUAL ---
-    renderizarCartelSpike(cartelSpike, estadoActual);
-}
+        /* Estado Zona de Caza: Resistencia de la ballena. Momento de vigilar */
+        .spike-zona-caza {
+            background-color: #0b192c !important; 
+            color: #00e5ff !important;            
+            border: 1px solid #00e5ff;
+        }
 
-/**
- * 3. CONTROLADOR VISUAL (Modifica textos y apaga los verdes que confunden)
- */
-function renderizarCartelSpike(elemento, estado) {
-    // Limpiamos clases viejas para que no se pisen los colores
-    elemento.className = "banner-base " + estado.claseCSS;
-    
-    // Inyectamos el nuevo texto explicativo que te ayuda a decidir
-    elemento.innerHTML = `
-        <div class="spike-contenido">
-            <span class="spike-indicador-punto"></span>
-            <span class="spike-texto-principal">${estado.texto}</span>
+        /* Estado Gatillo: Todo confirmado en la API. Color de Short Premium */
+        .spike-gatillo-short {
+            background-color: #3d0c1b !important; 
+            color: #ff0055 !important;            
+            border: 1px solid #ff0055;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
+            animation: pulsoGatillo 1.2s infinite alternate;
+        }
+
+        @keyframes pulsoGatillo {
+            from { transform: scale(1); box-shadow: 0 0 10px rgba(255, 0, 85, 0.2); }
+            to { transform: scale(1.01); box-shadow: 0 0 20px rgba(255, 0, 85, 0.5); }
+        }
+
+        /* Mock del espacio de gráficos para simular tu entorno */
+        .mock-graficos {
+            background-color: #0b0b0f;
+            border: 1px solid #1a1a24;
+            padding: 40px;
+            text-align: center;
+            color: #333344;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="panel-container">
+        <h1>SPIKE DEEP PANEL</h1>
+
+        <div id="alerta-spike-banner" class="banner-base spike-normal">
+            Cargando flujo de datos de Binance...
         </div>
-    `;
-}
+
+        <div class="mock-graficos">
+            [ Espacio de simulación del flujo de órdenes en tiempo real ]
+        </div>
+    </div>
+
+    <script>
+        // Diccionario con los estados limpios para evitar el mareo visual
+        const ESTADOS_SPIKE = {
+            NORMAL: {
+                texto: "FLUJO EN RANGO — OPERABLE",
+                claseCSS: "spike-normal"
+            },
+            BARRIENDO: {
+                texto: "⚠️ ALERTA: BARRIENDO STOPS — PRECIO SIN FRENO",
+                claseCSS: "spike-peligro"
+            },
+            TECHO_BALLENA: {
+                texto: "🎯 TECHO ALCANZADO: ENTRANDO EN PARED DE BALLENA",
+                claseCSS: "spike-zona-caza"
+            },
+            GATILLO_SHORT: {
+                texto: "📉 CONFIRMADO: AGOTAMIENTO TOTAL — APRETÁ EL GATILLO",
+                claseCSS: "spike-gatillo-short"
+            }
+        };
+
+        /**
+         * Función central que procesa las variables de tu WebSocket de Binance
+         */
+        function procesarFlujoBinance(datosAPI) {
+            const cartelSpike = document.getElementById("alerta-spike-banner"); 
+            if (!cartelSpike) return;
+
+            let estadoActual = ESTADOS_SPIKE.NORMAL;
+
+            // ESTADO 1: Furia compradora barriendo las órdenes límite (Latigazo saca-stops)
+            if (datosAPI.cvdNeto1M > 0 && datosAPI.aceleracion === "ACELERANDO" && datosAPI.bookAbsorbido) {
+                estadoActual = ESTADOS_SPIKE.BARRIENDO;
+            }
+            // ESTADO 2: El precio impacta la pared pesada de Asks y la velocidad de compra muere
+            else if (datosAPI.bookAbsorbido && datosAPI.aceleracion === "DESACELERANDO") {
+                estadoActual = ESTADOS_SPIKE.TECHO_BALLENA;
+            }
+            // ESTADO 3: Confirmación absoluta (Gatillo Short Premium)
+            else if (datosAPI.agotamientoSC && datosAPI.cvdNeto1M > 0 && datosAPI.aceleracion === "DESACELERANDO") {
+                estadoActual = ESTADOS_SPIKE.GATILLO_SHORT;
+            }
+
+            // Cambia las clases CSS y el texto en pantalla
+            cartelSpike.className = "banner-base " + estadoActual.claseCSS;
+            cartelSpike.innerHTML = `<span>${estadoActual.texto}</span>`;
+        }
+
+        // --- SIMULADOR DE PRUEBA (Para desarrollo) ---
+        // Esto emula los cambios rápidos de la API cada 3 segundos para que verifiques que los colores cambian bien.
+        setInterval(() => {
+            const modosPrueba = [
+                { cvdNeto1M: 385000, aceleracion: "ACELERANDO", bookAbsorbido: true, agotamientoSC: false },  // Barriendo Stops
+                { cvdNeto1M: 350000, aceleracion: "DESACELERANDO", bookAbsorbido: true, agotamientoSC: false }, // Pared Ballena
+                { cvdNeto1M: 200000, aceleracion: "DESACELERANDO", bookAbsorbido: true, agotamientoSC: true },  // Gatillo Short
+                { cvdNeto1M: 10000,  aceleracion: "NEUTRO", bookAbsorbido: false, agotamientoSC: false }       // Normal
+            ];
+            
+            // Elige un estado aleatorio de la API de Binance para testear visualmente
+            const simulacionDatos = modosPrueba[Math.floor(Math.random() * modosPrueba.length)];
+            procesarFlujoBinance(simulacionDatos);
+        }, 3000);
+    </script>
+</body>
+</html>
