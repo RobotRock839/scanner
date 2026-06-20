@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPIKE TECHO v2 — Binance Futures</title>
+<title>SPIKE TECHO v3 — Binance Futures</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -11,7 +11,6 @@
   --bg:#07080d;
   --bg2:#0e0f17;
   --bg3:#141520;
-  --bg4:#1a1b2e;
   --border:#1e1f2e;
   --text:#c8cae0;
   --muted:#525470;
@@ -27,374 +26,114 @@ body{
   color:var(--text);
   font-family:'IBM Plex Sans',sans-serif;
   min-height:100vh;
-  padding:20px 16px 40px;
+  padding:20px 16px 48px;
   max-width:640px;
   margin:0 auto;
 }
 
-/* ── HEADER ── */
-.hdr{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:24px;
-  padding-bottom:16px;
-  border-bottom:1px solid var(--border);
-}
-.logo{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:12px;
-  font-weight:700;
-  color:var(--muted);
-  letter-spacing:3px;
-  text-transform:uppercase;
-  display:flex;
-  align-items:center;
-  gap:7px;
-}
-.dot{
-  width:7px;height:7px;
-  border-radius:50%;
-  background:var(--accent);
-  animation:blink 2s infinite;
-  flex-shrink:0;
-}
-@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(91,127,255,.4);}50%{opacity:.3;box-shadow:0 0 0 4px rgba(91,127,255,0);}}
-.ver{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:9px;
-  color:var(--accent);
-  background:rgba(91,127,255,.12);
-  padding:2px 7px;
-  border-radius:3px;
-  letter-spacing:1px;
-}
-.ts{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;
-  color:var(--muted);
-  margin-left:auto;
-}
+/* HEADER */
+.hdr{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.logo{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink 2s infinite;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(91,127,255,.5);}50%{opacity:.2;box-shadow:0 0 0 5px rgba(91,127,255,0);}}
+.ver{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--accent);background:rgba(91,127,255,.12);padding:2px 8px;border-radius:3px;letter-spacing:1px;font-weight:700;}
+.ts{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-left:auto;}
 
-/* ── INPUT BAR ── */
-.bar{
-  display:flex;
-  gap:8px;
-  margin-bottom:24px;
-}
-.sym{
-  background:var(--bg2);
-  border:1px solid var(--border);
-  color:var(--text);
-  font-family:'IBM Plex Mono',monospace;
-  font-size:15px;
-  font-weight:600;
-  padding:11px 14px;
-  flex:1;
-  text-transform:uppercase;
-  outline:none;
-  border-radius:7px;
-  letter-spacing:2px;
-  transition:border-color .15s;
-}
+/* INPUT */
+.bar{display:flex;gap:8px;margin-bottom:22px;}
+.sym{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;padding:11px 14px;flex:1;text-transform:uppercase;outline:none;border-radius:7px;letter-spacing:2px;transition:border-color .15s;}
 .sym:focus{border-color:var(--accent);}
 .sym::placeholder{color:var(--muted);}
-.sel{
-  background:var(--bg2);
-  border:1px solid var(--border);
-  color:var(--muted);
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;
-  padding:11px 10px;
-  outline:none;
-  border-radius:7px;
-  cursor:pointer;
-}
-.go{
-  background:var(--accent);
-  color:#fff;
-  border:none;
-  padding:11px 22px;
-  font-family:'IBM Plex Sans',sans-serif;
-  font-weight:600;
-  font-size:13px;
-  border-radius:7px;
-  cursor:pointer;
-  transition:opacity .15s, transform .1s;
-  white-space:nowrap;
-}
+.sel{background:var(--bg2);border:1px solid var(--border);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:11px 10px;outline:none;border-radius:7px;cursor:pointer;}
+.go{background:var(--accent);color:#fff;border:none;padding:11px 22px;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13px;border-radius:7px;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap;}
 .go:hover{opacity:.85;}
 .go:active{transform:scale(.97);}
 .go:disabled{background:var(--bg3);color:var(--muted);cursor:not-allowed;transform:none;}
 
-/* ── PRICE ── */
-.price-row{margin-bottom:20px;}
-.price-num{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:40px;
-  font-weight:700;
-  color:#fff;
-  letter-spacing:-1px;
-  line-height:1;
-}
-.price-meta{
-  font-size:12px;
-  color:var(--muted);
-  margin-top:6px;
-  font-family:'IBM Plex Mono',monospace;
-  letter-spacing:.5px;
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-}
+/* PRICE */
+.price-row{margin-bottom:18px;}
+.price-num{font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:700;color:#fff;letter-spacing:-1px;line-height:1;}
+.price-meta{font-size:12px;color:var(--muted);margin-top:6px;font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;display:flex;gap:10px;flex-wrap:wrap;}
 .price-ch{font-weight:600;}
 .price-ch.pos{color:var(--green);}
 .price-ch.neg{color:var(--red);}
 
-/* ── TECHO METER ── */
-.techo-wrap{
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:16px 18px;
-  margin-bottom:16px;
-}
-.techo-hdr{
-  display:flex;
-  justify-content:space-between;
-  font-size:10px;
-  color:var(--muted);
-  font-family:'IBM Plex Mono',monospace;
-  letter-spacing:1px;
-  margin-bottom:10px;
-}
-.techo-track{
-  height:10px;
-  background:var(--bg3);
-  border-radius:5px;
-  overflow:hidden;
-  position:relative;
-}
-.techo-fill{
-  height:100%;
-  border-radius:5px;
-  transition:width 1.2s cubic-bezier(.4,0,.2,1);
-  position:relative;
-}
-.techo-fill::after{
-  content:'';
-  position:absolute;
-  top:0;right:0;bottom:0;
-  width:3px;
-  background:rgba(255,255,255,.4);
-  border-radius:2px;
-}
-.techo-label{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:26px;
-  font-weight:700;
-  margin-top:12px;
-  display:flex;
-  align-items:baseline;
-  gap:10px;
-  line-height:1;
-}
-.techo-sub{
-  font-size:10px;
-  color:var(--muted);
-  font-family:'IBM Plex Mono',monospace;
-  margin-top:6px;
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.techo-sub span{
-  background:var(--bg3);
-  padding:2px 7px;
-  border-radius:3px;
-}
+/* METER */
+.techo-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+.techo-hdr{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;margin-bottom:10px;}
+.techo-track{height:10px;background:var(--bg3);border-radius:5px;overflow:hidden;}
+.techo-fill{height:100%;border-radius:5px;transition:width 1.2s cubic-bezier(.4,0,.2,1);position:relative;}
+.techo-fill::after{content:'';position:absolute;top:0;right:0;bottom:0;width:3px;background:rgba(255,255,255,.35);border-radius:2px;}
+.techo-label{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:700;margin-top:12px;display:flex;align-items:baseline;gap:10px;line-height:1;}
+.techo-sub{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:7px;display:flex;gap:8px;flex-wrap:wrap;}
+.techo-sub span{background:var(--bg3);padding:2px 7px;border-radius:3px;}
+.techo-sub .hi{color:var(--red);background:rgba(240,74,90,.1);}
 
-/* ── ALERTS ── */
-.alert-extremo{
-  background:rgba(240,74,90,.08);
-  border:1px solid rgba(240,74,90,.3);
-  border-radius:8px;
-  padding:12px 16px;
-  margin-bottom:12px;
-  font-size:12px;
-  color:var(--red);
-  font-family:'IBM Plex Mono',monospace;
-  letter-spacing:.5px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.alert-icon{font-size:16px;}
+/* ALERTAS */
+.alert{border-radius:8px;padding:12px 16px;margin-bottom:12px;font-size:12px;font-family:'IBM Plex Mono',monospace;letter-spacing:.4px;display:flex;align-items:flex-start;gap:10px;line-height:1.6;}
+.alert-red{background:rgba(240,74,90,.08);border:1px solid rgba(240,74,90,.3);color:var(--red);}
+.alert-yellow{background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.25);color:var(--yellow);}
+.alert-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
 
-/* ── VEREDICTO ── */
-.veredicto{
-  padding:16px 20px;
-  border-radius:9px;
-  font-size:15px;
-  font-weight:600;
-  letter-spacing:.5px;
-  margin-bottom:20px;
-  border-left:3px solid transparent;
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
+/* VEREDICTO */
+.veredicto{padding:16px 20px;border-radius:9px;font-size:15px;font-weight:600;letter-spacing:.5px;margin-bottom:18px;border-left:3px solid transparent;display:flex;align-items:center;gap:10px;}
 .v-red{background:rgba(240,74,90,.1);border-color:var(--red);color:var(--red);}
 .v-yellow{background:rgba(245,200,66,.08);border-color:var(--yellow);color:var(--yellow);}
+.v-orange{background:rgba(255,140,66,.08);border-color:var(--orange);color:var(--orange);}
 .v-green{background:rgba(0,201,122,.08);border-color:var(--green);color:var(--green);}
 .v-gray{background:var(--bg2);border-color:var(--border);color:var(--muted);}
 .v-icon{font-size:18px;flex-shrink:0;}
 
-/* ── SEÑALES GRID ── */
-.section-title{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:9px;
-  letter-spacing:2px;
-  color:var(--muted);
-  text-transform:uppercase;
-  margin-bottom:8px;
-}
-.qs{
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:10px;
-  overflow:hidden;
-  margin-bottom:16px;
-}
-.q{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:14px 18px;
-  border-bottom:1px solid var(--bg3);
-  gap:12px;
-  transition:background .1s;
-}
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:11px 8px;text-align:center;}
+.card-val{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700;line-height:1;margin-bottom:4px;}
+.card-lbl{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:.8px;text-transform:uppercase;}
+
+/* SEÑALES */
+.section-title{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.qs{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;}
+.q{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--bg3);gap:12px;transition:background .1s;}
 .q:last-child{border-bottom:none;}
 .q:hover{background:var(--bg3);}
 .q-left{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;}
 .q-txt{font-size:13px;color:var(--text);line-height:1.4;}
 .q-hint{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.badge{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;
-  font-weight:600;
-  padding:5px 12px;
-  border-radius:5px;
-  white-space:nowrap;
-  letter-spacing:.5px;
-  flex-shrink:0;
-}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:5px 11px;border-radius:5px;white-space:nowrap;letter-spacing:.4px;flex-shrink:0;}
 .b-green{background:rgba(0,201,122,.15);color:var(--green);}
 .b-red{background:rgba(240,74,90,.15);color:var(--red);}
 .b-yellow{background:rgba(245,200,66,.12);color:var(--yellow);}
-.b-gray{background:var(--bg3);color:var(--muted);}
 .b-orange{background:rgba(255,140,66,.12);color:var(--orange);}
+.b-gray{background:var(--bg3);color:var(--muted);}
 .b-purple{background:rgba(168,85,247,.15);color:var(--purple);}
 
-/* ── SCORE CARDS ── */
-.cards{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:8px;
-  margin-bottom:16px;
-}
-.card{
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:12px;
-  text-align:center;
-}
-.card-val{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:18px;
-  font-weight:700;
-  line-height:1;
-  margin-bottom:4px;
-}
-.card-lbl{
-  font-size:9px;
-  color:var(--muted);
-  font-family:'IBM Plex Mono',monospace;
-  letter-spacing:1px;
-  text-transform:uppercase;
-}
+/* STOCH PILL */
+.stoch-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:4px;width:80px;}
+.stoch-fill{height:100%;border-radius:3px;transition:width .8s ease;}
 
-/* ── CHANGELOG ── */
-.changelog{
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:14px 18px;
-  margin-bottom:16px;
-  font-size:11px;
-  color:var(--muted);
-  font-family:'IBM Plex Mono',monospace;
-  line-height:2;
-}
-.changelog strong{color:var(--accent);}
-
-/* ── MISC ── */
-.miss{
-  padding:60px 0;
-  text-align:center;
-  color:var(--muted);
-  font-size:12px;
-  line-height:2.8;
-  font-family:'IBM Plex Mono',monospace;
-  letter-spacing:1px;
-}
-.err{
-  padding:16px 18px;
-  border:1px solid rgba(240,74,90,.3);
-  border-radius:8px;
-  color:var(--red);
-  font-size:12px;
-  line-height:2;
-  font-family:'IBM Plex Mono',monospace;
-  background:rgba(240,74,90,.05);
-}
-.bottom{
-  font-size:10px;
-  color:var(--muted);
-  font-family:'IBM Plex Mono',monospace;
-  letter-spacing:1px;
-  display:flex;
-  justify-content:space-between;
-  margin-top:24px;
-  padding-top:16px;
-  border-top:1px solid var(--border);
-  flex-wrap:wrap;
-  gap:6px;
-}
+/* MISC */
+.miss{padding:60px 0;text-align:center;color:var(--muted);font-size:12px;line-height:3;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;}
+.err{padding:16px 18px;border:1px solid rgba(240,74,90,.3);border-radius:8px;color:var(--red);font-size:12px;line-height:2;font-family:'IBM Plex Mono',monospace;background:rgba(240,74,90,.05);}
+.bottom{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;display:flex;justify-content:space-between;margin-top:24px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap;gap:6px;}
 
 @media(max-width:420px){
   .price-num{font-size:32px;}
+  .cards{grid-template-columns:repeat(2,1fr);}
   .techo-label{font-size:22px;}
-  .cards{grid-template-columns:1fr 1fr;}
 }
-@media(prefers-reduced-motion:reduce){
-  .dot{animation:none;}
-  .techo-fill{transition:none;}
-}
+@media(prefers-reduced-motion:reduce){.dot{animation:none;}.techo-fill{transition:none;}}
 </style>
 </head>
 <body>
 
 <div class="hdr">
   <span class="logo"><span class="dot"></span>SPIKE TECHO</span>
-  <span class="ver">v2</span>
+  <span class="ver">v3</span>
   <span class="ts" id="ts">—</span>
 </div>
 
 <div class="bar">
-  <input class="sym" id="sym" placeholder="TOKEN · EJ: AGT" maxlength="12">
+  <input class="sym" id="sym" placeholder="TOKEN · EJ: BTW" maxlength="12">
   <select class="sel" id="auto">
     <option value="0">MANUAL</option>
     <option value="30">30s</option>
@@ -405,274 +144,300 @@ body{
 </div>
 
 <div id="out">
-  <div class="miss">
-    Ingresá el token<br>
-    AGT · ESPORTS · BICO · BTW · RE
-  </div>
+  <div class="miss">Ingresá el token<br>AGT · BTW · ESPORTS · BICO</div>
 </div>
 
 <div class="bottom">
   <span id="bl">—</span>
-  <span>BINANCE FUTURES · SPIKE TECHO v2</span>
+  <span>BINANCE FUTURES · SPIKE TECHO v3</span>
 </div>
 
 <script>
 'use strict';
 let autoT = null;
 
-/* ── UTILS ── */
 function fmtP(p) {
   if (!p || isNaN(p)) return '—';
-  if (p >= 1000) return p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (p >= 1000) return p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   if (p >= 1)    return p.toFixed(4);
   if (p >= 0.01) return p.toFixed(5);
   return p.toFixed(6);
 }
 function fmtBig(n) {
   if (!n || isNaN(n)) return '—';
-  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
-  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  if (n >= 1e9) return (n/1e9).toFixed(2)+'B';
+  if (n >= 1e6) return (n/1e6).toFixed(2)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
   return n.toFixed(0);
 }
-function tick() { document.getElementById('ts').textContent = new Date().toLocaleTimeString('es-AR'); }
-setInterval(tick, 1000); tick();
+function tick(){ document.getElementById('ts').textContent = new Date().toLocaleTimeString('es-AR'); }
+setInterval(tick,1000); tick();
 
-document.getElementById('sym').addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
-document.getElementById('auto').addEventListener('change', function () {
-  clearInterval(autoT); autoT = null;
-  const v = parseInt(this.value);
-  if (v > 0) autoT = setInterval(run, v * 1000);
+document.getElementById('sym').addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
+document.getElementById('auto').addEventListener('change', function(){
+  clearInterval(autoT); autoT=null;
+  const v=parseInt(this.value);
+  if(v>0) autoT=setInterval(run,v*1000);
 });
 
-/* ── MAIN ── */
-async function run() {
-  const raw = document.getElementById('sym').value.trim().toUpperCase().replace(/USDT$/, '');
-  if (!raw) return;
+async function run(){
+  const raw = document.getElementById('sym').value.trim().toUpperCase().replace(/USDT$/,'');
+  if(!raw) return;
   const btn = document.getElementById('btn');
-  btn.disabled = true; btn.textContent = '...';
-  document.getElementById('out').innerHTML = '<div class="miss">Conectando con Binance...</div>';
+  btn.disabled=true; btn.textContent='...';
+  document.getElementById('out').innerHTML='<div class="miss">Conectando con Binance...</div>';
 
   try {
-    const pair = raw + 'USDT';
+    const pair = raw+'USDT';
 
-    /* ping */
-    try { await fetch('https://fapi.binance.com/fapi/v1/ping'); }
-    catch (e) {
-      document.getElementById('out').innerHTML = `<div class="err">SIN CONEXIÓN A BINANCE<br><br>
+    try{ await fetch('https://fapi.binance.com/fapi/v1/ping'); }
+    catch(e){
+      document.getElementById('out').innerHTML=`<div class="err">SIN CONEXIÓN A BINANCE<br><br>
 Abrís desde file:// — el navegador bloquea las requests.<br>
-Subí el archivo a un servidor o usá:<br>python -m http.server 8080</div>`;
-      btn.disabled = false; btn.textContent = 'ANALIZAR'; return;
+Subí el archivo a un servidor o usá: python -m http.server 8080</div>`;
+      btn.disabled=false; btn.textContent='ANALIZAR'; return;
     }
 
-    const [tkR, kl1R, kl5R, kl15R, depR, frR, oiR] = await Promise.allSettled([
-      fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=' + pair).then(r => r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/klines?symbol=' + pair + '&interval=1m&limit=30').then(r => r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/klines?symbol=' + pair + '&interval=5m&limit=20').then(r => r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/klines?symbol=' + pair + '&interval=15m&limit=10').then(r => r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/depth?symbol=' + pair + '&limit=500').then(r => r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/fundingRate?symbol=' + pair + '&limit=3').then(r => r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/openInterest?symbol=' + pair).then(r => r.json())
+    // Fetch todo en paralelo — incluye klines de 1h para stoch aproximado
+    const [tkR, kl1R, kl5R, kl15R, kl1hR, depR, frR, oiR] = await Promise.allSettled([
+      fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol='+pair).then(r=>r.json()),
+      fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=1m&limit=40').then(r=>r.json()),
+      fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=5m&limit=24').then(r=>r.json()),
+      fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=15m&limit=14').then(r=>r.json()),
+      fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=1h&limit=14').then(r=>r.json()),
+      fetch('https://fapi.binance.com/fapi/v1/depth?symbol='+pair+'&limit=500').then(r=>r.json()),
+      fetch('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=3').then(r=>r.json()),
+      fetch('https://fapi.binance.com/fapi/v1/openInterest?symbol='+pair).then(r=>r.json())
     ]);
 
-    const tk = tkR.status === 'fulfilled' ? tkR.value : null;
-    if (!tk || tk.code) {
-      document.getElementById('out').innerHTML = `<div class="err">TOKEN "${raw}" NO ENCONTRADO<br>Verificá que ${pair} exista en futuros perpetuos de Binance</div>`;
-      btn.disabled = false; btn.textContent = 'ANALIZAR'; return;
+    const tk = tkR.status==='fulfilled' ? tkR.value : null;
+    if(!tk||tk.code){
+      document.getElementById('out').innerHTML=`<div class="err">TOKEN "${raw}" NO ENCONTRADO<br>Verificá que ${pair} exista en futuros perpetuos de Binance</div>`;
+      btn.disabled=false; btn.textContent='ANALIZAR'; return;
     }
 
-    const price   = parseFloat(tk.lastPrice);
-    const ch24    = parseFloat(tk.priceChangePercent);
-    const vol24   = parseFloat(tk.quoteVolume);
-    const high24  = parseFloat(tk.highPrice);
-    const open24  = parseFloat(tk.openPrice);
+    const price  = parseFloat(tk.lastPrice);
+    const ch24   = parseFloat(tk.priceChangePercent);
+    const vol24  = parseFloat(tk.quoteVolume);
+    const high24 = parseFloat(tk.highPrice);
+    const low24  = parseFloat(tk.lowPrice);
+    const open24 = parseFloat(tk.openPrice);
 
-    /* FUNDING — promedio últimas 3 rondas */
-    const frArr = frR.status === 'fulfilled' ? frR.value : [];
-    const funding = frArr.length > 0
-      ? frArr.reduce((a, b) => a + parseFloat(b.fundingRate), 0) / frArr.length * 100
-      : 0;
-    const fundingLast = frArr.length > 0 ? parseFloat(frArr[0].fundingRate) * 100 : 0;
+    // FUNDING — promedio últimas 3 rondas
+    const frArr   = frR.status==='fulfilled' ? frR.value : [];
+    const funding = frArr.length>0 ? frArr.reduce((a,b)=>a+parseFloat(b.fundingRate),0)/frArr.length*100 : 0;
+    const fundingLast = frArr.length>0 ? parseFloat(frArr[0].fundingRate)*100 : 0;
 
-    /* OPEN INTEREST */
-    const oi = oiR.status === 'fulfilled' && oiR.value.openInterest
-      ? parseFloat(oiR.value.openInterest) * price
-      : 0;
+    // OPEN INTEREST
+    const oi = oiR.status==='fulfilled' && oiR.value.openInterest ? parseFloat(oiR.value.openInterest)*price : 0;
 
-    /* ── VELAS 1m — CVD MEJORADO (presión de vela) ── */
-    const kl1m = kl1R.status === 'fulfilled' ? kl1R.value : [];
-    const v1 = kl1m.map(k => {
-      const o = parseFloat(k[1]), h = parseFloat(k[2]), l = parseFloat(k[3]),
-            c = parseFloat(k[4]), v = parseFloat(k[5]);
-      const range = h - l;
-      // Fórmula presión: pondera según dónde cerró la vela en su rango
-      const presion = range > 0 ? ((c - l) - (h - c)) / range : (c >= o ? 1 : -1);
-      return { cvd: presion * v, vol: v, close: c, high: h, low: l, open: o };
-    });
+    // ── CVD MEJORADO — fórmula presión de vela ──
+    function parseCVD(klines){
+      return klines.map(k=>{
+        const o=parseFloat(k[1]),h=parseFloat(k[2]),l=parseFloat(k[3]),c=parseFloat(k[4]),v=parseFloat(k[5]);
+        const range=h-l;
+        const presion = range>0 ? ((c-l)-(h-c))/range : (c>=o?1:-1);
+        return {cvd:presion*v, vol:v, close:c, high:h, low:l, open:o};
+      });
+    }
 
-    /* VELAS 5m */
-    const kl5m = kl5R.status === 'fulfilled' ? kl5R.value : [];
-    const v5 = kl5m.map(k => {
-      const o = parseFloat(k[1]), h = parseFloat(k[2]), l = parseFloat(k[3]),
-            c = parseFloat(k[4]), v = parseFloat(k[5]);
-      const range = h - l;
-      const presion = range > 0 ? ((c - l) - (h - c)) / range : (c >= o ? 1 : -1);
-      return { cvd: presion * v, vol: v, close: c };
-    });
+    const kl1m  = kl1R.status==='fulfilled'  ? kl1R.value  : [];
+    const kl5m  = kl5R.status==='fulfilled'  ? kl5R.value  : [];
+    const kl15m = kl15R.status==='fulfilled' ? kl15R.value : [];
+    const kl1h  = kl1hR.status==='fulfilled' ? kl1hR.value : [];
 
-    /* VELAS 15m */
-    const kl15m = kl15R.status === 'fulfilled' ? kl15R.value : [];
-    const v15 = kl15m.map(k => {
-      const o = parseFloat(k[1]), c = parseFloat(k[4]), v = parseFloat(k[5]);
-      const h = parseFloat(k[2]), l = parseFloat(k[3]);
-      const range = h - l;
-      const presion = range > 0 ? ((c - l) - (h - c)) / range : (c >= o ? 1 : -1);
-      return { cvd: presion * v, vol: v };
-    });
+    const v1  = parseCVD(kl1m);
+    const v5  = parseCVD(kl5m);
+    const v15 = parseCVD(kl15m);
+    const v1h = parseCVD(kl1h);
 
-    const cvd1  = v1.reduce((a, b) => a + b.cvd, 0);
-    const cvd5  = v5.reduce((a, b) => a + b.cvd, 0);
-    const cvd15 = v15.reduce((a, b) => a + b.cvd, 0);
-    const cvdUSD = Math.max(0, cvd1 * price);
+    const cvd1  = v1.reduce((a,b)=>a+b.cvd,0);
+    const cvd5  = v5.reduce((a,b)=>a+b.cvd,0);
+    const cvd15 = v15.reduce((a,b)=>a+b.cvd,0);
+    const cvdUSD = Math.max(0, cvd1*price);
 
-    /* ACELERACIÓN / DESACELERACIÓN CVD 1m */
-    const mid  = Math.floor(v1.length / 2);
-    const cvdA = v1.slice(0, mid).reduce((a, b) => a + b.cvd, 0);
-    const cvdB = v1.slice(mid).reduce((a, b) => a + b.cvd, 0);
-    const acelerando    = cvdB > cvdA && cvdB > 0;
-    const desacelerando = cvdA > 0 && cvdB < cvdA * 0.35;
+    // ── STOCÁSTICO APROXIMADO en 1h (14 períodos) ──
+    // Mide si estamos en sobrecompra extrema sin depender de Binance para indicadores
+    let stochK = 50;
+    if(kl1h.length>=14){
+      const period=14;
+      const slice=kl1h.slice(-period);
+      const lowestL = Math.min(...slice.map(k=>parseFloat(k[3])));
+      const highestH= Math.max(...slice.map(k=>parseFloat(k[2])));
+      const lastC   = parseFloat(kl1h[kl1h.length-1][4]);
+      stochK = highestH>lowestL ? ((lastC-lowestL)/(highestH-lowestL))*100 : 50;
+    }
+    const sobrecompra = stochK >= 85;
+    const sobrecompraExtrema = stochK >= 95;
 
-    /* ── DIVERGENCIA CVD/PRECIO (mejorada) ── */
-    // Umbral menos exigente: 93% del máximo (era 97%)
-    const ultimas6  = v1.slice(-6);
-    const cvdUlt6   = ultimas6.reduce((a, b) => a + b.cvd, 0) / Math.max(ultimas6.length, 1);
-    const primerMid = v1.slice(0, mid);
-    const cvdPrimAvg = primerMid.reduce((a, b) => a + b.cvd, 0) / Math.max(primerMid.length, 1);
-    const precioAlto = price >= high24 * 0.93; // antes 0.97
-    const divergencia = precioAlto && cvdUlt6 < cvdPrimAvg * 0.5 && cvdPrimAvg > 0;
+    // ── ACELERACIÓN / DESACELERACIÓN CVD ──
+    const mid  = Math.floor(v1.length/2);
+    const cvdA = v1.slice(0,mid).reduce((a,b)=>a+b.cvd,0);
+    const cvdB = v1.slice(mid).reduce((a,b)=>a+b.cvd,0);
+    const acelerando    = cvdB>cvdA && cvdB>0;
+    const desacelerando = cvdA>0 && cvdB<cvdA*0.35;
 
-    // Divergencia en 5m
-    const cvd5Last = v5.slice(-4).reduce((a, b) => a + b.cvd, 0) / 4;
-    const cvd5Prev = v5.slice(0, -4).reduce((a, b) => a + b.cvd, 0) / Math.max(v5.length - 4, 1);
-    const divergencia5m = precioAlto && cvd5Last < cvd5Prev * 0.5 && cvd5Prev > 0;
+    // ── DIVERGENCIA CVD/PRECIO ──
+    // v3: umbral 90% (era 93% en v2) — detecta más temprano
+    const ultimas6   = v1.slice(-6);
+    const cvdUlt6Avg = ultimas6.reduce((a,b)=>a+b.cvd,0)/Math.max(ultimas6.length,1);
+    const primerMid  = v1.slice(0,mid);
+    const cvdPrimAvg = primerMid.reduce((a,b)=>a+b.cvd,0)/Math.max(primerMid.length,1);
+    const precioAlto = price>=high24*0.90;
+    const divergencia   = precioAlto && cvdUlt6Avg<cvdPrimAvg*0.5 && cvdPrimAvg>0;
 
-    /* ── VOLUMEN DECAYENDO ── */
-    const vol3   = v1.slice(-3).reduce((a, b) => a + b.vol, 0) / 3;
-    const vol6   = v1.slice(-9, -3).reduce((a, b) => a + b.vol, 0) / 6;
-    const volCayendo = vol6 > 0 && vol3 < vol6 * 0.6;
+    // Divergencia 5m
+    const cvd5Last = v5.slice(-4).reduce((a,b)=>a+b.cvd,0)/4;
+    const cvd5Prev = v5.slice(0,-4).reduce((a,b)=>a+b.cvd,0)/Math.max(v5.length-4,1);
+    const divergencia5m = precioAlto && cvd5Last<cvd5Prev*0.5 && cvd5Prev>0;
 
-    /* Volumen institucional — ratio vs promedio */
-    const volAvg = v1.reduce((a, b) => a + b.vol, 0) / Math.max(v1.length, 1);
-    const volInstitucional = vol3 > volAvg * 1.5;
+    // Divergencia 15m
+    const cvd15Last = v15.slice(-3).reduce((a,b)=>a+b.cvd,0)/3;
+    const cvd15Prev = v15.slice(0,-3).reduce((a,b)=>a+b.cvd,0)/Math.max(v15.length-3,1);
+    const divergencia15m = precioAlto && cvd15Last<cvd15Prev*0.5 && cvd15Prev>0;
 
-    /* ── ORDER BOOK ── */
-    const dep  = depR.status === 'fulfilled' ? depR.value : { asks: [], bids: [] };
-    const RNG  = price * 0.025;
-    const asks = (dep.asks || []).map(a => ({ price: parseFloat(a[0]), usd: parseFloat(a[0]) * parseFloat(a[1]) })).filter(a => a.price >= price);
-    const bids = (dep.bids || []).map(b => ({ price: parseFloat(b[0]), usd: parseFloat(b[0]) * parseFloat(b[1]) })).filter(b => b.price <= price);
+    // ── VOLUMEN ──
+    const vol3   = v1.slice(-3).reduce((a,b)=>a+b.vol,0)/3;
+    const vol6   = v1.slice(-9,-3).reduce((a,b)=>a+b.vol,0)/6;
+    const volAvg = v1.reduce((a,b)=>a+b.vol,0)/Math.max(v1.length,1);
+    const volCayendo       = vol6>0 && vol3<vol6*0.6;
+    const volInstitucional = vol3>volAvg*1.5;
 
-    const askUSD = asks.filter(a => a.price <= price + RNG).reduce((s, a) => s + a.usd, 0);
-    const bidUSD = bids.filter(b => b.price >= price - RNG).reduce((s, b) => s + b.usd, 0);
-    const ratio  = bidUSD > 0 ? askUSD / bidUSD : 99;
-
-    /* Absorción 1er bloque 0.5% */
-    const blkUSD = asks.filter(a => a.price <= price + price * 0.005).reduce((s, a) => s + a.usd, 0);
-    const absorb = blkUSD > 0 ? Math.min(100, (cvdUSD / blkUSD) * 100) : 0;
-    const sinLibro = absorb > 60;
-
-    /* Pared activa */
-    const paredFuerte = ratio > 2.5;
-    const paredMedia  = ratio > 1.5;
-
-    /* Ballena de soporte */
+    // ── ORDER BOOK ──
+    const dep  = depR.status==='fulfilled' ? depR.value : {asks:[],bids:[]};
+    const RNG  = price*0.025;
+    const asks = (dep.asks||[]).map(a=>({price:parseFloat(a[0]),usd:parseFloat(a[0])*parseFloat(a[1])})).filter(a=>a.price>=price);
+    const bids = (dep.bids||[]).map(b=>({price:parseFloat(b[0]),usd:parseFloat(b[0])*parseFloat(b[1])})).filter(b=>b.price<=price);
+    const askUSD = asks.filter(a=>a.price<=price+RNG).reduce((s,a)=>s+a.usd,0);
+    const bidUSD = bids.filter(b=>b.price>=price-RNG).reduce((s,b)=>s+b.usd,0);
+    const ratio  = bidUSD>0 ? askUSD/bidUSD : 99;
+    const blkUSD = asks.filter(a=>a.price<=price+price*0.005).reduce((s,a)=>s+a.usd,0);
+    const absorb = blkUSD>0 ? Math.min(100,(cvdUSD/blkUSD)*100) : 0;
+    const sinLibro = absorb>60;
+    const paredFuerte = ratio>2.5;
+    const paredMedia  = ratio>1.5;
     const topBid = bids[0];
-    const ballenaSoporte = topBid && bidUSD > 0 && (topBid.usd / bidUSD) > 0.25;
+    const ballenaSoporte = topBid && bidUSD>0 && (topBid.usd/bidUSD)>0.25;
 
-    /* ── PUMP INTRADAY (1m) ── */
-    // Detecta cuánto subió desde el mínimo de las últimas 30 velas
-    const lows1m  = v1.map(v => v.low);
-    const minLocal = Math.min(...lows1m);
-    const pumpIntraday = minLocal > 0 ? ((price - minLocal) / minLocal) * 100 : 0;
+    // ── PUMP LOCAL (mínimo de las últimas 40 velas 1m) ──
+    const minLocal     = Math.min(...v1.map(v=>v.low));
+    const pumpIntraday = minLocal>0 ? ((price-minLocal)/minLocal)*100 : 0;
 
-    /* ── SCORE TECHO v2 ── */
-    // Pump: usa el mayor entre 24h y intraday local (peso 40%)
-    const pumpEfectivo = Math.max(ch24, pumpIntraday * 2); // intraday pesa el doble
-    const scorePump = Math.min(40, (pumpEfectivo / 200) * 40);
+    // ── PUMP EFECTIVO — toma el mayor ──
+    // v3: intraday multiplica x3 (era x2) para casos como BTW donde el pump local es el real
+    const pumpEfectivo = Math.max(ch24, pumpIntraday*3);
 
-    // Funding: mayor peso para funding extremo (peso 30%)
-    // Antes 25%, ahora 30% y escala mejor con valores altos
-    const scoreFund = funding > 0.3  ? 30 :
-                      funding > 0.1  ? 22 :
-                      funding > 0.05 ? 15 :
-                      funding > 0.01 ? 8  : 0;
+    // ──────────────────────────────────────────────
+    // SCORE TECHO v3
+    // Nuevos pesos aprendidos de BTW y ESPORTS:
+    // Pump   35% (menos peso, el pump solo no basta)
+    // Fund   30% (igual, muy importante)
+    // Divg   20% (multi-TF ahora)
+    // Vol    10% (igual)
+    // Stoch   5% (NUEVO — sobrecompra 1h)
+    // ──────────────────────────────────────────────
+    const scorePump  = Math.min(35, (pumpEfectivo/200)*35);
 
-    // Divergencia: 1m y 5m (peso 20%)
-    const scoreDivg = divergencia && divergencia5m ? 20 :
-                      divergencia || divergencia5m  ? 12 :
-                      desacelerando                 ? 6  : 0;
+    const scoreFund  = funding>0.3  ? 30 :
+                       funding>0.15 ? 24 :
+                       funding>0.1  ? 18 :
+                       funding>0.05 ? 12 :
+                       funding>0.01 ? 6  : 0;
 
-    // Volumen cayendo (peso 10%)
-    const scoreVol = volCayendo ? 10 : 0;
+    // Divergencia multi-TF: más señales = más score
+    const divgCount  = [divergencia, divergencia5m, divergencia15m].filter(Boolean).length;
+    const scoreDivg  = divgCount===3 ? 20 : divgCount===2 ? 14 : divgCount===1 ? 8 : desacelerando ? 4 : 0;
 
-    const techoScore = Math.round(scorePump + scoreFund + scoreDivg + scoreVol);
+    const scoreVol   = volCayendo ? 10 : 0;
+
+    // NUEVO v3 — Stoch 1h
+    const scoreStoch = sobrecompraExtrema ? 5 : sobrecompra ? 3 : 0;
+
+    const techoScore = Math.round(scorePump+scoreFund+scoreDivg+scoreVol+scoreStoch);
 
     const [fillColor, techoText] =
-      techoScore >= 80 ? ['var(--red)',    'ZONA DE TECHO'] :
-      techoScore >= 55 ? ['var(--yellow)', 'SPIKE MADURO']  :
-      techoScore >= 25 ? ['var(--green)',  'SPIKE EN CURSO']:
-                         ['var(--muted)',  'INICIO'];
+      techoScore>=80 ? ['var(--red)',    'ZONA DE TECHO'] :
+      techoScore>=55 ? ['var(--yellow)', 'SPIKE MADURO']  :
+      techoScore>=25 ? ['var(--green)',  'SPIKE EN CURSO']:
+                       ['var(--muted)',  'INICIO'];
 
-    /* ── REGLA NUEVA: TECHO EXTREMO ──
-       Funding muy alto + absorción 100% + pump extremo = TECHO CONFIRMADO
-       aunque no haya divergencia todavía */
-    const techoExtremo = funding > 0.3 && sinLibro && (ch24 > 100 || pumpIntraday > 50);
+    // ──────────────────────────────────────────────
+    // REGLAS ESPECIALES v3
+    // ──────────────────────────────────────────────
 
-    /* ── VEREDICTO v2 ── */
+    // TECHO EXTREMO (aprendido de ESPORTS)
+    // Funding muy alto + absorción + pump grande = techo aunque no haya divergencia
+    const techoExtremo = funding>0.3 && sinLibro && (ch24>100||pumpIntraday>50);
+
+    // TECHO MEDIO SIN DIVERGENCIA (aprendido de BTW)
+    // Pump>100% + funding>0.15% + absorción + sobrecompra = precaución aunque CVD siga positivo
+    const techoMedioSinDiv = ch24>100 && funding>0.15 && sinLibro && sobrecompra && !divergencia && !divergencia5m;
+
+    // DEGRADAR si CVD positivo + sin vol institucional (aprendido del caso BTW donde siguió subiendo)
+    // Evita FALSOS CONFIRMADOS cuando el momentum comprador sigue presente
+    const cvdAunPositivo = cvd1>0 && !volInstitucional && !divergencia && !divergencia5m;
+
+    // ──────────────────────────────────────────────
+    // SEÑALES TOTALES (de 8)
+    // ──────────────────────────────────────────────
     const señalesTecho = [
       sinLibro && desacelerando,
       divergencia,
       divergencia5m,
-      fundingLast > 0.05 && desacelerando,
-      volCayendo && (divergencia || divergencia5m),
-      techoExtremo
+      divergencia15m,
+      fundingLast>0.05 && desacelerando,
+      volCayendo && (divergencia||divergencia5m),
+      techoExtremo,
+      sobrecompraExtrema && sinLibro
     ].filter(Boolean).length;
 
+    // ── VEREDICTO v3 ──
     let vCls, vTxt, vIcon;
-    if (techoExtremo || señalesTecho >= 3) {
-      vCls = 'v-red';    vTxt = 'TECHO CONFIRMADO — ENTRADA SHORT'; vIcon = '🔴';
-    } else if (señalesTecho === 2) {
-      vCls = 'v-yellow'; vTxt = 'ZONA DE TECHO — PRECAUCIÓN';       vIcon = '⚠️';
-    } else if (acelerando && !divergencia && !divergencia5m) {
-      vCls = 'v-green';  vTxt = 'SIGUE CON FUERZA — ESPERAR';       vIcon = '🟢';
+
+    if(techoExtremo || señalesTecho>=4){
+      vCls='v-red';    vTxt='TECHO CONFIRMADO — ENTRADA SHORT'; vIcon='🔴';
+    } else if(techoMedioSinDiv || señalesTecho===3){
+      // v3: si CVD aún positivo sin vol institucional → bajar un nivel
+      if(cvdAunPositivo){
+        vCls='v-orange'; vTxt='ZONA DE TECHO — CVD POSITIVO, ESPERAR DIVERGENCIA'; vIcon='🟠';
+      } else {
+        vCls='v-yellow'; vTxt='ZONA DE TECHO — PRECAUCIÓN';  vIcon='⚠️';
+      }
+    } else if(señalesTecho===2){
+      vCls='v-yellow'; vTxt='SEÑALES INICIALES — VIGILAR';   vIcon='⚠️';
+    } else if(acelerando && !divergencia && !divergencia5m){
+      vCls='v-green';  vTxt='SIGUE CON FUERZA — ESPERAR';    vIcon='🟢';
     } else {
-      vCls = 'v-gray';   vTxt = 'SIN SEÑAL CLARA';                  vIcon = '⬜';
+      vCls='v-gray';   vTxt='SIN SEÑAL CLARA';               vIcon='⬜';
     }
 
-    const libroTxt = paredFuerte ? 'PARED FUERTE' : paredMedia ? 'PARED MEDIA' : 'LIVIANO';
-    const libroCls = paredFuerte ? 'b-red' : paredMedia ? 'b-yellow' : 'b-gray';
+    // ── LABELS ──
+    const libroTxt = paredFuerte?'PARED FUERTE':paredMedia?'PARED MEDIA':'LIVIANO';
+    const libroCls = paredFuerte?'b-red':paredMedia?'b-yellow':'b-gray';
+    const fundingCls = Math.abs(fundingLast)>0.3?'b-red':Math.abs(fundingLast)>0.05?'b-yellow':'b-gray';
+    const fundingTxt = (fundingLast>=0?'+':'')+fundingLast.toFixed(4)+'%';
+    const fundingLbl = fundingLast>0.3?'EUFORIA EXTREMA':fundingLast>0.15?'MUY ALTO':fundingLast>0.05?'RETAIL ATRAPADO':fundingLast>0.01?'ELEVADO':'NORMAL';
+    const cvdCls = cvd1>0?'b-green':'b-red';
+    const cvdTxt = (cvd1>=0?'+':'')+fmtBig(Math.abs(cvd1*price))+' USD';
+    const stochCls = sobrecompraExtrema?'b-red':sobrecompra?'b-yellow':'b-gray';
+    const stochTxt = stochK.toFixed(0)+'%';
+    const stochLbl = sobrecompraExtrema?'SOBRECOMPRA EXTREMA':sobrecompra?'SOBRECOMPRA':'OK';
 
-    const fundingCls = Math.abs(fundingLast) > 0.3 ? 'b-red' :
-                       Math.abs(fundingLast) > 0.05 ? 'b-yellow' : 'b-gray';
-    const fundingTxt = (fundingLast >= 0 ? '+' : '') + fundingLast.toFixed(4) + '%';
-    const fundingLbl = fundingLast > 0.3 ? 'EUFORIA EXTREMA' :
-                       fundingLast > 0.05 ? 'RETAIL ATRAPADO' :
-                       fundingLast > 0.01 ? 'ELEVADO' : 'NORMAL';
-
-    const cvdCls = cvd1 > 0 ? 'b-green' : 'b-red';
-    const cvdTxt = (cvd1 >= 0 ? '+' : '') + fmtBig(Math.abs(cvd1 * price)) + ' USD';
+    // Divergencias texto
+    const divgTxt = divgCount===3?'1M+5M+15M':divgCount===2?'2 TFs':divgCount===1?'1 TF':'NO';
+    const divgCls = divgCount>=2?'b-red':divgCount===1?'b-yellow':'b-gray';
 
     const now = new Date().toLocaleTimeString('es-AR');
 
-    /* ── RENDER ── */
     document.getElementById('out').innerHTML = `
 
       <div class="price-row">
         <div class="price-num">${fmtP(price)}</div>
         <div class="price-meta">
           <span>${raw}USDT</span>
-          <span class="price-ch ${ch24 >= 0 ? 'pos' : 'neg'}">${ch24 >= 0 ? '+' : ''}${ch24.toFixed(2)}% 24h</span>
+          <span class="price-ch ${ch24>=0?'pos':'neg'}">${ch24>=0?'+':''}${ch24.toFixed(2)}% 24h</span>
           <span>Vol $${fmtBig(vol24)}</span>
-          ${oi > 0 ? `<span>OI $${fmtBig(oi)}</span>` : ''}
+          ${oi>0?`<span>OI $${fmtBig(oi)}</span>`:''}
         </div>
       </div>
 
@@ -683,22 +448,35 @@ Subí el archivo a un servidor o usá:<br>python -m http.server 8080</div>`;
         </div>
         <div class="techo-label" style="color:${fillColor}">
           ${techoScore}%
-          <span style="font-size:15px;font-weight:400;color:var(--muted)">—</span>
-          <span style="font-size:18px;">${techoText}</span>
+          <span style="font-size:14px;font-weight:400;color:var(--muted)">—</span>
+          <span style="font-size:17px;">${techoText}</span>
         </div>
         <div class="techo-sub">
           <span>pump 24h ${ch24.toFixed(1)}%</span>
           <span>pump local ${pumpIntraday.toFixed(1)}%</span>
-          <span>funding ${fundingLast >= 0 ? '+' : ''}${fundingLast.toFixed(4)}%</span>
-          <span>${divergencia || divergencia5m ? '⚡ divergencia detectada' : 'sin divergencia'}</span>
+          <span>fund ${fundingLast>=0?'+':''}${fundingLast.toFixed(4)}%</span>
+          <span>stoch 1h ${stochK.toFixed(0)}%</span>
+          ${divgCount>0?`<span class="hi">⚡ divergencia ${divgTxt}</span>`:'<span>sin divergencia</span>'}
         </div>
       </div>
 
-      ${techoExtremo ? `
-      <div class="alert-extremo">
+      ${techoExtremo?`
+      <div class="alert alert-red">
         <span class="alert-icon">🚨</span>
-        TECHO EXTREMO DETECTADO — Funding &gt;0.3% + absorción 100% + pump &gt;100% sin necesidad de divergencia
-      </div>` : ''}
+        <span>TECHO EXTREMO — Funding &gt;0.3% + absorción 100% + pump &gt;100%. Techo confirmado sin divergencia necesaria.</span>
+      </div>`:''}
+
+      ${techoMedioSinDiv && !techoExtremo?`
+      <div class="alert alert-yellow">
+        <span class="alert-icon">⚠️</span>
+        <span>PRECAUCIÓN BTW-STYLE — Pump &gt;100% + funding alto + sobrecompra sin divergencia. CVD puede seguir positivo un tiempo más.</span>
+      </div>`:''}
+
+      ${cvdAunPositivo && señalesTecho>=2?`
+      <div class="alert alert-yellow">
+        <span class="alert-icon">🟠</span>
+        <span>CVD AÚN POSITIVO + SIN VOL INST. — El precio puede seguir subiendo. Esperar divergencia antes de entrar short.</span>
+      </div>`:''}
 
       <div class="veredicto ${vCls}">
         <span class="v-icon">${vIcon}</span>
@@ -707,22 +485,28 @@ Subí el archivo a un servidor o usá:<br>python -m http.server 8080</div>`;
 
       <div class="cards">
         <div class="card">
-          <div class="card-val" style="color:${techoScore>=80?'var(--red)':techoScore>=55?'var(--yellow)':'var(--green)'}">
+          <div class="card-val" style="color:${techoScore>=80?'var(--red)':techoScore>=55?'var(--yellow)':techoScore>=25?'var(--green)':'var(--muted)'}">
             ${techoScore}%
           </div>
-          <div class="card-lbl">score techo</div>
+          <div class="card-lbl">score</div>
         </div>
         <div class="card">
-          <div class="card-val" style="color:${señalesTecho>=3?'var(--red)':señalesTecho>=2?'var(--yellow)':'var(--muted)'}">
-            ${señalesTecho}/6
+          <div class="card-val" style="color:${señalesTecho>=4?'var(--red)':señalesTecho>=3?'var(--yellow)':señalesTecho>=2?'var(--orange)':'var(--muted)'}">
+            ${señalesTecho}/8
           </div>
           <div class="card-lbl">señales</div>
         </div>
         <div class="card">
-          <div class="card-val" style="color:${volInstitucional?'var(--green)':'var(--muted)'}">
-            ${volInstitucional?'SÍ':'NO'}
+          <div class="card-val" style="color:${stochK>=95?'var(--red)':stochK>=85?'var(--yellow)':'var(--muted)'}">
+            ${stochK.toFixed(0)}%
           </div>
-          <div class="card-lbl">vol inst.</div>
+          <div class="card-lbl">stoch 1h</div>
+        </div>
+        <div class="card">
+          <div class="card-val" style="color:${divgCount>=2?'var(--red)':divgCount===1?'var(--yellow)':'var(--muted)'}">
+            ${divgCount}/3
+          </div>
+          <div class="card-lbl">divg TFs</div>
         </div>
       </div>
 
@@ -734,47 +518,40 @@ Subí el archivo a un servidor o usá:<br>python -m http.server 8080</div>`;
             <span class="q-txt">¿La ballena absorbió el libro?</span>
             <span class="q-hint">CVD presión vs resistencia 1er bloque 0.5% · ${absorb.toFixed(0)}% absorbido</span>
           </div>
-          <span class="badge ${sinLibro ? 'b-red' : 'b-gray'}">${sinLibro ? 'SÍ — ' + absorb.toFixed(0) + '%' : 'NO — ' + absorb.toFixed(0) + '%'}</span>
+          <span class="badge ${sinLibro?'b-red':'b-gray'}">${sinLibro?'SÍ — '+absorb.toFixed(0)+'%':'NO — '+absorb.toFixed(0)+'%'}</span>
         </div>
 
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">¿Divergencia CVD/precio? (1m)</span>
-            <span class="q-hint">Precio en zona alta pero CVD de últimas velas cae · umbral 93% máximo</span>
+            <span class="q-txt">Divergencia CVD/precio (multi-TF)</span>
+            <span class="q-hint">1m · 5m · 15m · umbral 90% del máximo 24h · ${divgCount}/3 TFs</span>
           </div>
-          <span class="badge ${divergencia ? 'b-red' : 'b-gray'}">${divergencia ? 'DIVERGENCIA 1M' : 'NO'}</span>
-        </div>
-
-        <div class="q">
-          <div class="q-left">
-            <span class="q-txt">¿Divergencia CVD/precio? (5m)</span>
-            <span class="q-hint">Confirmación en timeframe mayor — señal más confiable</span>
-          </div>
-          <span class="badge ${divergencia5m ? 'b-red' : 'b-gray'}">${divergencia5m ? 'DIVERGENCIA 5M' : 'NO'}</span>
-        </div>
-
-        <div class="q">
-          <div class="q-left">
-            <span class="q-txt">¿El volumen de compra está cayendo?</span>
-            <span class="q-hint">Últimas 3 velas vs 6 anteriores — agotamiento comprador</span>
-          </div>
-          <span class="badge ${volCayendo ? 'b-yellow' : 'b-gray'}">${volCayendo ? 'CAYENDO' : 'SOSTENIDO'}</span>
+          <span class="badge ${divgCls}">${divgTxt}</span>
         </div>
 
         <div class="q">
           <div class="q-left">
             <span class="q-txt">CVD acumulado (1m)</span>
-            <span class="q-hint">${acelerando ? 'Acelerando — momentum comprador activo' : desacelerando ? 'Desacelerando — compradores perdiendo fuerza' : 'Neutro'}</span>
+            <span class="q-hint">${acelerando?'Acelerando — momentum activo':desacelerando?'Desacelerando — fuerza compradora cae':'Neutro'}</span>
           </div>
           <span class="badge ${cvdCls}">${cvdTxt}</span>
         </div>
 
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">¿Hay pared activa arriba?</span>
-            <span class="q-hint">Ratio asks/bids en rango ±2.5% · ${ratio.toFixed(1)}x</span>
+            <span class="q-txt">¿Volumen de compra cayendo?</span>
+            <span class="q-hint">Últimas 3 velas vs 6 anteriores (1m) — agotamiento comprador</span>
           </div>
-          <span class="badge ${libroCls}">${libroTxt}</span>
+          <span class="badge ${volCayendo?'b-yellow':'b-gray'}">${volCayendo?'CAYENDO':'SOSTENIDO'}</span>
+        </div>
+
+        <div class="q">
+          <div class="q-left">
+            <span class="q-txt">Stocástico 1h (14 períodos)</span>
+            <span class="q-hint">${stochLbl} · >85 sobrecompra · >95 extremo</span>
+            <div class="stoch-bar"><div class="stoch-fill" style="width:${stochK.toFixed(0)}%;background:${stochK>=95?'var(--red)':stochK>=85?'var(--yellow)':'var(--green)'}"></div></div>
+          </div>
+          <span class="badge ${stochCls}">${stochTxt}</span>
         </div>
 
         <div class="q">
@@ -787,39 +564,54 @@ Subí el archivo a un servidor o usá:<br>python -m http.server 8080</div>`;
 
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">¿Volumen institucional presente?</span>
-            <span class="q-hint">Últimas 3 velas vs promedio histórico 1m · &gt;1.5x para activar</span>
+            <span class="q-txt">¿Hay pared activa arriba?</span>
+            <span class="q-hint">Ratio asks/bids en rango ±2.5% · ${ratio.toFixed(1)}x</span>
           </div>
-          <span class="badge ${volInstitucional ? 'b-purple' : 'b-gray'}">${volInstitucional ? 'SÍ — ' + (vol3 / volAvg).toFixed(1) + 'x' : 'NO — ' + (vol3 / volAvg).toFixed(1) + 'x'}</span>
+          <span class="badge ${libroCls}">${libroTxt}</span>
+        </div>
+
+        <div class="q">
+          <div class="q-left">
+            <span class="q-txt">¿Volumen institucional presente?</span>
+            <span class="q-hint">Últimas 3 velas vs promedio 1m · >1.5x · ${(vol3/volAvg).toFixed(1)}x actual</span>
+          </div>
+          <span class="badge ${volInstitucional?'b-purple':'b-gray'}">${volInstitucional?'SÍ — '+(vol3/volAvg).toFixed(1)+'x':'NO — '+(vol3/volAvg).toFixed(1)+'x'}</span>
         </div>
 
         <div class="q">
           <div class="q-left">
             <span class="q-txt">¿Aparece ballena de soporte?</span>
-            <span class="q-hint">Bid dominante &gt;25% del libro — podría frenar la caída</span>
+            <span class="q-hint">Bid dominante >25% del libro — puede frenar la caída</span>
           </div>
-          <span class="badge ${ballenaSoporte ? 'b-green' : 'b-gray'}">${ballenaSoporte ? 'SÍ — $' + fmtBig(topBid.usd) : 'NO'}</span>
+          <span class="badge ${ballenaSoporte?'b-green':'b-gray'}">${ballenaSoporte?'SÍ — $'+fmtBig(topBid.usd):'NO'}</span>
         </div>
 
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">¿Techo extremo? (regla nueva v2)</span>
-            <span class="q-hint">Funding &gt;0.3% + absorción 100% + pump &gt;100% = techo sin divergencia</span>
+            <span class="q-txt">¿Techo extremo activo? (v3)</span>
+            <span class="q-hint">Funding >0.3% + absorción + pump >100% = confirmado sin divergencia</span>
           </div>
-          <span class="badge ${techoExtremo ? 'b-red' : 'b-gray'}">${techoExtremo ? '🚨 ACTIVO' : 'NO'}</span>
+          <span class="badge ${techoExtremo?'b-red':'b-gray'}">${techoExtremo?'🚨 ACTIVO':'NO'}</span>
+        </div>
+
+        <div class="q">
+          <div class="q-left">
+            <span class="q-txt">¿Alerta BTW-style? (v3)</span>
+            <span class="q-hint">Pump >100% + fund >0.15% + sobrecompra sin divergencia = CVD puede seguir</span>
+          </div>
+          <span class="badge ${techoMedioSinDiv?'b-orange':'b-gray'}">${techoMedioSinDiv?'⚠️ ACTIVO':'NO'}</span>
         </div>
 
       </div>
-
     `;
 
-    document.getElementById('bl').textContent = raw + 'USDT · ' + now;
+    document.getElementById('bl').textContent = raw+'USDT · '+now;
 
-  } catch (e) {
-    document.getElementById('out').innerHTML = '<div class="err">ERROR: ' + e.message + '</div>';
+  } catch(e){
+    document.getElementById('out').innerHTML='<div class="err">ERROR: '+e.message+'</div>';
   }
 
-  btn.disabled = false; btn.textContent = 'ANALIZAR';
+  btn.disabled=false; btn.textContent='ANALIZAR';
 }
 </script>
 </body>
