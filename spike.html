@@ -3,35 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPIKE TECHO v3 — Binance Futures</title>
+<title>SPIKE TECHO v4 — Binance Futures</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#07080d;
-  --bg2:#0e0f17;
-  --bg3:#141520;
-  --border:#1e1f2e;
-  --text:#c8cae0;
-  --muted:#525470;
-  --accent:#5b7fff;
-  --green:#00c97a;
-  --yellow:#f5c842;
-  --red:#f04a5a;
-  --orange:#ff8c42;
-  --purple:#a855f7;
+  --bg:#07080d;--bg2:#0e0f17;--bg3:#141520;--border:#1e1f2e;
+  --text:#c8cae0;--muted:#525470;--accent:#5b7fff;
+  --green:#00c97a;--yellow:#f5c842;--red:#f04a5a;--orange:#ff8c42;--purple:#a855f7;
 }
-body{
-  background:var(--bg);
-  color:var(--text);
-  font-family:'IBM Plex Sans',sans-serif;
-  min-height:100vh;
-  padding:20px 16px 48px;
-  max-width:640px;
-  margin:0 auto;
-}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;padding:20px 16px 48px;max-width:640px;margin:0 auto;}
 
-/* HEADER */
 .hdr{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--border);}
 .logo{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink 2s infinite;flex-shrink:0;}
@@ -39,26 +21,26 @@ body{
 .ver{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--accent);background:rgba(91,127,255,.12);padding:2px 8px;border-radius:3px;letter-spacing:1px;font-weight:700;}
 .ts{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-left:auto;}
 
-/* INPUT */
 .bar{display:flex;gap:8px;margin-bottom:22px;}
 .sym{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;padding:11px 14px;flex:1;text-transform:uppercase;outline:none;border-radius:7px;letter-spacing:2px;transition:border-color .15s;}
 .sym:focus{border-color:var(--accent);}
 .sym::placeholder{color:var(--muted);}
 .sel{background:var(--bg2);border:1px solid var(--border);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:11px 10px;outline:none;border-radius:7px;cursor:pointer;}
 .go{background:var(--accent);color:#fff;border:none;padding:11px 22px;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13px;border-radius:7px;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap;}
-.go:hover{opacity:.85;}
-.go:active{transform:scale(.97);}
+.go:hover{opacity:.85;}.go:active{transform:scale(.97);}
 .go:disabled{background:var(--bg3);color:var(--muted);cursor:not-allowed;transform:none;}
 
-/* PRICE */
+/* MEMORIA LOCK */
+.lock-bar{display:flex;align-items:center;gap:10px;background:rgba(240,74,90,.07);border:1px solid rgba(240,74,90,.25);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--red);}
+.lock-icon{font-size:14px;flex-shrink:0;}
+.lock-bar .countdown{margin-left:auto;font-weight:700;font-size:13px;}
+.lock-bar.amarillo{background:rgba(245,200,66,.06);border-color:rgba(245,200,66,.25);color:var(--yellow);}
+
 .price-row{margin-bottom:18px;}
 .price-num{font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:700;color:#fff;letter-spacing:-1px;line-height:1;}
 .price-meta{font-size:12px;color:var(--muted);margin-top:6px;font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;display:flex;gap:10px;flex-wrap:wrap;}
-.price-ch{font-weight:600;}
-.price-ch.pos{color:var(--green);}
-.price-ch.neg{color:var(--red);}
+.price-ch{font-weight:600;}.price-ch.pos{color:var(--green);}.price-ch.neg{color:var(--red);}
 
-/* METER */
 .techo-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;}
 .techo-hdr{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;margin-bottom:10px;}
 .techo-track{height:10px;background:var(--bg3);border-radius:5px;overflow:hidden;}
@@ -69,13 +51,11 @@ body{
 .techo-sub span{background:var(--bg3);padding:2px 7px;border-radius:3px;}
 .techo-sub .hi{color:var(--red);background:rgba(240,74,90,.1);}
 
-/* ALERTAS */
 .alert{border-radius:8px;padding:12px 16px;margin-bottom:12px;font-size:12px;font-family:'IBM Plex Mono',monospace;letter-spacing:.4px;display:flex;align-items:flex-start;gap:10px;line-height:1.6;}
 .alert-red{background:rgba(240,74,90,.08);border:1px solid rgba(240,74,90,.3);color:var(--red);}
 .alert-yellow{background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.25);color:var(--yellow);}
 .alert-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
 
-/* VEREDICTO */
 .veredicto{padding:16px 20px;border-radius:9px;font-size:15px;font-weight:600;letter-spacing:.5px;margin-bottom:18px;border-left:3px solid transparent;display:flex;align-items:center;gap:10px;}
 .v-red{background:rgba(240,74,90,.1);border-color:var(--red);color:var(--red);}
 .v-yellow{background:rgba(245,200,66,.08);border-color:var(--yellow);color:var(--yellow);}
@@ -84,18 +64,15 @@ body{
 .v-gray{background:var(--bg2);border-color:var(--border);color:var(--muted);}
 .v-icon{font-size:18px;flex-shrink:0;}
 
-/* CARDS */
 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:11px 8px;text-align:center;}
 .card-val{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700;line-height:1;margin-bottom:4px;}
 .card-lbl{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:.8px;text-transform:uppercase;}
 
-/* SEÑALES */
 .section-title{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
 .qs{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;}
 .q{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--bg3);gap:12px;transition:background .1s;}
-.q:last-child{border-bottom:none;}
-.q:hover{background:var(--bg3);}
+.q:last-child{border-bottom:none;}.q:hover{background:var(--bg3);}
 .q-left{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;}
 .q-txt{font-size:13px;color:var(--text);line-height:1.4;}
 .q-hint{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -107,20 +84,14 @@ body{
 .b-gray{background:var(--bg3);color:var(--muted);}
 .b-purple{background:rgba(168,85,247,.15);color:var(--purple);}
 
-/* STOCH PILL */
-.stoch-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:4px;width:80px;}
+.stoch-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:5px;width:70px;}
 .stoch-fill{height:100%;border-radius:3px;transition:width .8s ease;}
 
-/* MISC */
 .miss{padding:60px 0;text-align:center;color:var(--muted);font-size:12px;line-height:3;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;}
 .err{padding:16px 18px;border:1px solid rgba(240,74,90,.3);border-radius:8px;color:var(--red);font-size:12px;line-height:2;font-family:'IBM Plex Mono',monospace;background:rgba(240,74,90,.05);}
 .bottom{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;display:flex;justify-content:space-between;margin-top:24px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap;gap:6px;}
 
-@media(max-width:420px){
-  .price-num{font-size:32px;}
-  .cards{grid-template-columns:repeat(2,1fr);}
-  .techo-label{font-size:22px;}
-}
+@media(max-width:420px){.price-num{font-size:32px;}.cards{grid-template-columns:repeat(2,1fr);}.techo-label{font-size:22px;}}
 @media(prefers-reduced-motion:reduce){.dot{animation:none;}.techo-fill{transition:none;}}
 </style>
 </head>
@@ -128,7 +99,7 @@ body{
 
 <div class="hdr">
   <span class="logo"><span class="dot"></span>SPIKE TECHO</span>
-  <span class="ver">v3</span>
+  <span class="ver">v4</span>
   <span class="ts" id="ts">—</span>
 </div>
 
@@ -143,35 +114,70 @@ body{
   <button class="go" id="btn" onclick="run()">ANALIZAR</button>
 </div>
 
+<div id="lock-display"></div>
 <div id="out">
   <div class="miss">Ingresá el token<br>AGT · BTW · ESPORTS · BICO</div>
 </div>
 
 <div class="bottom">
   <span id="bl">—</span>
-  <span>BINANCE FUTURES · SPIKE TECHO v3</span>
+  <span>BINANCE FUTURES · SPIKE TECHO v4</span>
 </div>
 
 <script>
 'use strict';
-let autoT = null;
 
-function fmtP(p) {
-  if (!p || isNaN(p)) return '—';
-  if (p >= 1000) return p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  if (p >= 1)    return p.toFixed(4);
-  if (p >= 0.01) return p.toFixed(5);
+/* ── MEMORIA DE SEÑAL (v4) ──────────────────────────────────────────
+   Guarda el veredicto más alto alcanzado por token.
+   No baja de nivel mientras:
+   - No hayan pasado más de LOCK_MINUTES minutos
+   - El precio no haya superado el máximo en más de 2% (nuevo spike)
+   ------------------------------------------------------------------ */
+const LOCK_MINUTES = 15;
+const memory = {}; // { [token]: { level, score, maxPrice, ts, vCls, vTxt, vIcon } }
+
+let autoT = null;
+let lockTimer = null;
+
+function fmtP(p){
+  if(!p||isNaN(p)) return '—';
+  if(p>=1000) return p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(p>=1)    return p.toFixed(4);
+  if(p>=0.01) return p.toFixed(5);
   return p.toFixed(6);
 }
-function fmtBig(n) {
-  if (!n || isNaN(n)) return '—';
-  if (n >= 1e9) return (n/1e9).toFixed(2)+'B';
-  if (n >= 1e6) return (n/1e6).toFixed(2)+'M';
-  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+function fmtBig(n){
+  if(!n||isNaN(n)) return '—';
+  if(n>=1e9) return (n/1e9).toFixed(2)+'B';
+  if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
   return n.toFixed(0);
 }
+
+// Nivel numérico para comparar veredictos
+function levelNum(cls){
+  return cls==='v-red'?4:cls==='v-yellow'?3:cls==='v-orange'?2:cls==='v-green'?1:0;
+}
+
 function tick(){ document.getElementById('ts').textContent = new Date().toLocaleTimeString('es-AR'); }
 setInterval(tick,1000); tick();
+
+function updateLockDisplay(token){
+  const m = memory[token];
+  const el = document.getElementById('lock-display');
+  if(!m || levelNum(m.vCls)<3){ el.innerHTML=''; return; }
+  const elapsed = (Date.now()-m.ts)/1000;
+  const remaining = Math.max(0, LOCK_MINUTES*60 - elapsed);
+  if(remaining<=0){ el.innerHTML=''; return; }
+  const min = Math.floor(remaining/60);
+  const sec = Math.floor(remaining%60);
+  const isRed = m.vCls==='v-red';
+  el.innerHTML=`<div class="lock-bar ${isRed?'':'amarillo'}">
+    <span class="lock-icon">${isRed?'🔒':'⚠️'}</span>
+    <span>SEÑAL BLOQUEADA — ${m.vTxt}</span>
+    <span class="countdown">${min}:${sec.toString().padStart(2,'0')}</span>
+  </div>`;
+}
 
 document.getElementById('sym').addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
 document.getElementById('auto').addEventListener('change', function(){
@@ -180,256 +186,259 @@ document.getElementById('auto').addEventListener('change', function(){
   if(v>0) autoT=setInterval(run,v*1000);
 });
 
-async function run(){
-  const raw = document.getElementById('sym').value.trim().toUpperCase().replace(/USDT$/,'');
-  if(!raw) return;
-  const btn = document.getElementById('btn');
-  btn.disabled=true; btn.textContent='...';
-  document.getElementById('out').innerHTML='<div class="miss">Conectando con Binance...</div>';
+// Calcular CVD con fórmula presión de vela
+function parseCVD(klines){
+  return klines.map(k=>{
+    const o=parseFloat(k[1]),h=parseFloat(k[2]),l=parseFloat(k[3]),c=parseFloat(k[4]),v=parseFloat(k[5]);
+    const range=h-l;
+    const presion=range>0?((c-l)-(h-c))/range:(c>=o?1:-1);
+    return {cvd:presion*v,vol:v,close:c,high:h,low:l,open:o};
+  });
+}
 
-  try {
-    const pair = raw+'USDT';
+async function run(){
+  const raw=document.getElementById('sym').value.trim().toUpperCase().replace(/USDT$/,'');
+  if(!raw) return;
+  const btn=document.getElementById('btn');
+  btn.disabled=true; btn.textContent='...';
+
+  try{
+    const pair=raw+'USDT';
 
     try{ await fetch('https://fapi.binance.com/fapi/v1/ping'); }
     catch(e){
-      document.getElementById('out').innerHTML=`<div class="err">SIN CONEXIÓN A BINANCE<br><br>
-Abrís desde file:// — el navegador bloquea las requests.<br>
-Subí el archivo a un servidor o usá: python -m http.server 8080</div>`;
+      document.getElementById('out').innerHTML=`<div class="err">SIN CONEXIÓN A BINANCE<br><br>Abrís desde file:// — usá python -m http.server 8080</div>`;
       btn.disabled=false; btn.textContent='ANALIZAR'; return;
     }
 
-    // Fetch todo en paralelo — incluye klines de 1h para stoch aproximado
-    const [tkR, kl1R, kl5R, kl15R, kl1hR, depR, frR, oiR] = await Promise.allSettled([
+    const [tkR,kl1R,kl5R,kl15R,kl1hR,depR,frR,oiR] = await Promise.allSettled([
       fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol='+pair).then(r=>r.json()),
       fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=1m&limit=40').then(r=>r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=5m&limit=24').then(r=>r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=15m&limit=14').then(r=>r.json()),
+      fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=5m&limit=30').then(r=>r.json()),
+      fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=15m&limit=20').then(r=>r.json()),
       fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=1h&limit=14').then(r=>r.json()),
       fetch('https://fapi.binance.com/fapi/v1/depth?symbol='+pair+'&limit=500').then(r=>r.json()),
       fetch('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=3').then(r=>r.json()),
       fetch('https://fapi.binance.com/fapi/v1/openInterest?symbol='+pair).then(r=>r.json())
     ]);
 
-    const tk = tkR.status==='fulfilled' ? tkR.value : null;
+    const tk=tkR.status==='fulfilled'?tkR.value:null;
     if(!tk||tk.code){
-      document.getElementById('out').innerHTML=`<div class="err">TOKEN "${raw}" NO ENCONTRADO<br>Verificá que ${pair} exista en futuros perpetuos de Binance</div>`;
+      document.getElementById('out').innerHTML=`<div class="err">TOKEN "${raw}" NO ENCONTRADO</div>`;
       btn.disabled=false; btn.textContent='ANALIZAR'; return;
     }
 
-    const price  = parseFloat(tk.lastPrice);
-    const ch24   = parseFloat(tk.priceChangePercent);
-    const vol24  = parseFloat(tk.quoteVolume);
-    const high24 = parseFloat(tk.highPrice);
-    const low24  = parseFloat(tk.lowPrice);
-    const open24 = parseFloat(tk.openPrice);
+    const price   = parseFloat(tk.lastPrice);
+    const ch24    = parseFloat(tk.priceChangePercent);
+    const vol24   = parseFloat(tk.quoteVolume);
+    const high24  = parseFloat(tk.highPrice);
+    const oi      = oiR.status==='fulfilled'&&oiR.value.openInterest?parseFloat(oiR.value.openInterest)*price:0;
 
-    // FUNDING — promedio últimas 3 rondas
-    const frArr   = frR.status==='fulfilled' ? frR.value : [];
-    const funding = frArr.length>0 ? frArr.reduce((a,b)=>a+parseFloat(b.fundingRate),0)/frArr.length*100 : 0;
-    const fundingLast = frArr.length>0 ? parseFloat(frArr[0].fundingRate)*100 : 0;
+    // FUNDING
+    const frArr   = frR.status==='fulfilled'?frR.value:[];
+    const funding = frArr.length>0?frArr.reduce((a,b)=>a+parseFloat(b.fundingRate),0)/frArr.length*100:0;
+    const fundingLast=frArr.length>0?parseFloat(frArr[0].fundingRate)*100:0;
 
-    // OPEN INTEREST
-    const oi = oiR.status==='fulfilled' && oiR.value.openInterest ? parseFloat(oiR.value.openInterest)*price : 0;
+    // VELAS
+    const v1  = parseCVD(kl1R.status==='fulfilled'?kl1R.value:[]);
+    const v5  = parseCVD(kl5R.status==='fulfilled'?kl5R.value:[]);
+    const v15 = parseCVD(kl15R.status==='fulfilled'?kl15R.value:[]);
+    const kl1h= kl1hR.status==='fulfilled'?kl1hR.value:[];
 
-    // ── CVD MEJORADO — fórmula presión de vela ──
-    function parseCVD(klines){
-      return klines.map(k=>{
-        const o=parseFloat(k[1]),h=parseFloat(k[2]),l=parseFloat(k[3]),c=parseFloat(k[4]),v=parseFloat(k[5]);
-        const range=h-l;
-        const presion = range>0 ? ((c-l)-(h-c))/range : (c>=o?1:-1);
-        return {cvd:presion*v, vol:v, close:c, high:h, low:l, open:o};
-      });
-    }
+    /* ── CVD PRINCIPAL: 5m (más estable que 1m) ── v4 cambio clave */
+    const cvd5Total = v5.reduce((a,b)=>a+b.cvd,0);
+    const mid5  = Math.floor(v5.length/2);
+    const cvd5A = v5.slice(0,mid5).reduce((a,b)=>a+b.cvd,0);
+    const cvd5B = v5.slice(mid5).reduce((a,b)=>a+b.cvd,0);
+    const acelerando5    = cvd5B>cvd5A && cvd5B>0;
+    const desacelerando5 = cvd5A>0 && cvd5B<cvd5A*0.35;
 
-    const kl1m  = kl1R.status==='fulfilled'  ? kl1R.value  : [];
-    const kl5m  = kl5R.status==='fulfilled'  ? kl5R.value  : [];
-    const kl15m = kl15R.status==='fulfilled' ? kl15R.value : [];
-    const kl1h  = kl1hR.status==='fulfilled' ? kl1hR.value : [];
+    // CVD 1m solo para absorción
+    const cvd1Total = v1.reduce((a,b)=>a+b.cvd,0);
+    const cvdUSD    = Math.max(0,cvd1Total*price);
 
-    const v1  = parseCVD(kl1m);
-    const v5  = parseCVD(kl5m);
-    const v15 = parseCVD(kl15m);
-    const v1h = parseCVD(kl1h);
+    // CVD 15m tendencia larga
+    const cvd15Total = v15.reduce((a,b)=>a+b.cvd,0);
 
-    const cvd1  = v1.reduce((a,b)=>a+b.cvd,0);
-    const cvd5  = v5.reduce((a,b)=>a+b.cvd,0);
-    const cvd15 = v15.reduce((a,b)=>a+b.cvd,0);
-    const cvdUSD = Math.max(0, cvd1*price);
-
-    // ── STOCÁSTICO APROXIMADO en 1h (14 períodos) ──
-    // Mide si estamos en sobrecompra extrema sin depender de Binance para indicadores
-    let stochK = 50;
+    /* ── ESTOCÁSTICO 1h — peso mayor en v4 ── */
+    let stochK=50;
     if(kl1h.length>=14){
-      const period=14;
-      const slice=kl1h.slice(-period);
-      const lowestL = Math.min(...slice.map(k=>parseFloat(k[3])));
-      const highestH= Math.max(...slice.map(k=>parseFloat(k[2])));
-      const lastC   = parseFloat(kl1h[kl1h.length-1][4]);
-      stochK = highestH>lowestL ? ((lastC-lowestL)/(highestH-lowestL))*100 : 50;
+      const sl=kl1h.slice(-14);
+      const loL=Math.min(...sl.map(k=>parseFloat(k[3])));
+      const hiH=Math.max(...sl.map(k=>parseFloat(k[2])));
+      const lC =parseFloat(kl1h[kl1h.length-1][4]);
+      stochK=hiH>loL?((lC-loL)/(hiH-loL))*100:50;
     }
-    const sobrecompra = stochK >= 85;
-    const sobrecompraExtrema = stochK >= 95;
+    const sobrecompra       = stochK>=85;
+    const sobrecompraExtrema= stochK>=95;
 
-    // ── ACELERACIÓN / DESACELERACIÓN CVD ──
-    const mid  = Math.floor(v1.length/2);
-    const cvdA = v1.slice(0,mid).reduce((a,b)=>a+b.cvd,0);
-    const cvdB = v1.slice(mid).reduce((a,b)=>a+b.cvd,0);
-    const acelerando    = cvdB>cvdA && cvdB>0;
-    const desacelerando = cvdA>0 && cvdB<cvdA*0.35;
-
-    // ── DIVERGENCIA CVD/PRECIO ──
-    // v3: umbral 90% (era 93% en v2) — detecta más temprano
-    const ultimas6   = v1.slice(-6);
-    const cvdUlt6Avg = ultimas6.reduce((a,b)=>a+b.cvd,0)/Math.max(ultimas6.length,1);
-    const primerMid  = v1.slice(0,mid);
-    const cvdPrimAvg = primerMid.reduce((a,b)=>a+b.cvd,0)/Math.max(primerMid.length,1);
+    /* ── DIVERGENCIA — basada en 5m (más estable) ── v4 cambio clave */
     const precioAlto = price>=high24*0.90;
-    const divergencia   = precioAlto && cvdUlt6Avg<cvdPrimAvg*0.5 && cvdPrimAvg>0;
 
-    // Divergencia 5m
-    const cvd5Last = v5.slice(-4).reduce((a,b)=>a+b.cvd,0)/4;
-    const cvd5Prev = v5.slice(0,-4).reduce((a,b)=>a+b.cvd,0)/Math.max(v5.length-4,1);
-    const divergencia5m = precioAlto && cvd5Last<cvd5Prev*0.5 && cvd5Prev>0;
+    // 5m divergencia
+    const cvd5Last4 = v5.slice(-4).reduce((a,b)=>a+b.cvd,0)/4;
+    const cvd5Prev  = v5.slice(0,-4).reduce((a,b)=>a+b.cvd,0)/Math.max(v5.length-4,1);
+    const divergencia5m = precioAlto && cvd5Last4<cvd5Prev*0.5 && cvd5Prev>0;
 
-    // Divergencia 15m
-    const cvd15Last = v15.slice(-3).reduce((a,b)=>a+b.cvd,0)/3;
+    // 15m divergencia
+    const cvd15Last3= v15.slice(-3).reduce((a,b)=>a+b.cvd,0)/3;
     const cvd15Prev = v15.slice(0,-3).reduce((a,b)=>a+b.cvd,0)/Math.max(v15.length-3,1);
-    const divergencia15m = precioAlto && cvd15Last<cvd15Prev*0.5 && cvd15Prev>0;
+    const divergencia15m= precioAlto && cvd15Last3<cvd15Prev*0.5 && cvd15Prev>0;
 
-    // ── VOLUMEN ──
-    const vol3   = v1.slice(-3).reduce((a,b)=>a+b.vol,0)/3;
-    const vol6   = v1.slice(-9,-3).reduce((a,b)=>a+b.vol,0)/6;
-    const volAvg = v1.reduce((a,b)=>a+b.vol,0)/Math.max(v1.length,1);
+    // 1m divergencia (menos peso, solo confirma)
+    const mid1 = Math.floor(v1.length/2);
+    const cvd1Last6Avg = v1.slice(-6).reduce((a,b)=>a+b.cvd,0)/6;
+    const cvd1PrimAvg  = v1.slice(0,mid1).reduce((a,b)=>a+b.cvd,0)/Math.max(mid1,1);
+    const divergencia1m= precioAlto && cvd1Last6Avg<cvd1PrimAvg*0.5 && cvd1PrimAvg>0;
+
+    const divgCount=[divergencia1m,divergencia5m,divergencia15m].filter(Boolean).length;
+
+    /* ── VOLUMEN ── */
+    const vol3  = v1.slice(-3).reduce((a,b)=>a+b.vol,0)/3;
+    const vol6  = v1.slice(-9,-3).reduce((a,b)=>a+b.vol,0)/6;
+    const volAvg= v1.reduce((a,b)=>a+b.vol,0)/Math.max(v1.length,1);
     const volCayendo       = vol6>0 && vol3<vol6*0.6;
     const volInstitucional = vol3>volAvg*1.5;
 
-    // ── ORDER BOOK ──
-    const dep  = depR.status==='fulfilled' ? depR.value : {asks:[],bids:[]};
+    /* ── ORDER BOOK ── */
+    const dep  = depR.status==='fulfilled'?depR.value:{asks:[],bids:[]};
     const RNG  = price*0.025;
     const asks = (dep.asks||[]).map(a=>({price:parseFloat(a[0]),usd:parseFloat(a[0])*parseFloat(a[1])})).filter(a=>a.price>=price);
     const bids = (dep.bids||[]).map(b=>({price:parseFloat(b[0]),usd:parseFloat(b[0])*parseFloat(b[1])})).filter(b=>b.price<=price);
-    const askUSD = asks.filter(a=>a.price<=price+RNG).reduce((s,a)=>s+a.usd,0);
-    const bidUSD = bids.filter(b=>b.price>=price-RNG).reduce((s,b)=>s+b.usd,0);
-    const ratio  = bidUSD>0 ? askUSD/bidUSD : 99;
-    const blkUSD = asks.filter(a=>a.price<=price+price*0.005).reduce((s,a)=>s+a.usd,0);
-    const absorb = blkUSD>0 ? Math.min(100,(cvdUSD/blkUSD)*100) : 0;
-    const sinLibro = absorb>60;
+    const askUSD=asks.filter(a=>a.price<=price+RNG).reduce((s,a)=>s+a.usd,0);
+    const bidUSD=bids.filter(b=>b.price>=price-RNG).reduce((s,b)=>s+b.usd,0);
+    const ratio =bidUSD>0?askUSD/bidUSD:99;
+    const blkUSD=asks.filter(a=>a.price<=price+price*0.005).reduce((s,a)=>s+a.usd,0);
+    const absorb=blkUSD>0?Math.min(100,(cvdUSD/blkUSD)*100):0;
+    const sinLibro    = absorb>60;
     const paredFuerte = ratio>2.5;
     const paredMedia  = ratio>1.5;
-    const topBid = bids[0];
-    const ballenaSoporte = topBid && bidUSD>0 && (topBid.usd/bidUSD)>0.25;
+    const topBid=bids[0];
+    const ballenaSoporte=topBid&&bidUSD>0&&(topBid.usd/bidUSD)>0.25;
 
-    // ── PUMP LOCAL (mínimo de las últimas 40 velas 1m) ──
+    /* ── PUMP ── */
     const minLocal     = Math.min(...v1.map(v=>v.low));
-    const pumpIntraday = minLocal>0 ? ((price-minLocal)/minLocal)*100 : 0;
+    const pumpIntraday = minLocal>0?((price-minLocal)/minLocal)*100:0;
+    const pumpEfectivo = Math.max(ch24,pumpIntraday*3);
 
-    // ── PUMP EFECTIVO — toma el mayor ──
-    // v3: intraday multiplica x3 (era x2) para casos como BTW donde el pump local es el real
-    const pumpEfectivo = Math.max(ch24, pumpIntraday*3);
+    /* ── SCORE v4 ──────────────────────────────────────────────────
+       Pump   30% (bajó — el pump solo no basta, leccion BTW)
+       Fund   25%
+       Divg   25% (subió — 5m+15m más estables)
+       Stoch  15% (subió — es el indicador más estable de todos)
+       Vol     5%
+       ------------------------------------------------------------ */
+    const scorePump  = Math.min(30,(pumpEfectivo/200)*30);
+    const scoreFund  = funding>0.3?25:funding>0.15?20:funding>0.1?15:funding>0.05?10:funding>0.01?5:0;
+    const scoreDivg  = divgCount===3?25:divgCount===2?18:divgCount===1?10:desacelerando5?5:0;
+    const scoreStoch = sobrecompraExtrema?15:sobrecompra?9:0;
+    const scoreVol   = volCayendo?5:0;
 
-    // ──────────────────────────────────────────────
-    // SCORE TECHO v3
-    // Nuevos pesos aprendidos de BTW y ESPORTS:
-    // Pump   35% (menos peso, el pump solo no basta)
-    // Fund   30% (igual, muy importante)
-    // Divg   20% (multi-TF ahora)
-    // Vol    10% (igual)
-    // Stoch   5% (NUEVO — sobrecompra 1h)
-    // ──────────────────────────────────────────────
-    const scorePump  = Math.min(35, (pumpEfectivo/200)*35);
+    const techoScore=Math.round(scorePump+scoreFund+scoreDivg+scoreStoch+scoreVol);
 
-    const scoreFund  = funding>0.3  ? 30 :
-                       funding>0.15 ? 24 :
-                       funding>0.1  ? 18 :
-                       funding>0.05 ? 12 :
-                       funding>0.01 ? 6  : 0;
+    const [fillColor,techoText]=
+      techoScore>=80?['var(--red)',   'ZONA DE TECHO']:
+      techoScore>=55?['var(--yellow)','SPIKE MADURO'] :
+      techoScore>=25?['var(--green)', 'SPIKE EN CURSO']:
+                     ['var(--muted)', 'INICIO'];
 
-    // Divergencia multi-TF: más señales = más score
-    const divgCount  = [divergencia, divergencia5m, divergencia15m].filter(Boolean).length;
-    const scoreDivg  = divgCount===3 ? 20 : divgCount===2 ? 14 : divgCount===1 ? 8 : desacelerando ? 4 : 0;
+    /* ── REGLAS ESPECIALES ── */
+    const techoExtremo    = funding>0.3 && sinLibro && (ch24>100||pumpIntraday>50);
+    const techoMedioSinDiv= ch24>100 && funding>0.15 && sinLibro && sobrecompra;
+    const cvdAunPositivo  = cvd5Total>0 && !volInstitucional && divgCount===0;
 
-    const scoreVol   = volCayendo ? 10 : 0;
-
-    // NUEVO v3 — Stoch 1h
-    const scoreStoch = sobrecompraExtrema ? 5 : sobrecompra ? 3 : 0;
-
-    const techoScore = Math.round(scorePump+scoreFund+scoreDivg+scoreVol+scoreStoch);
-
-    const [fillColor, techoText] =
-      techoScore>=80 ? ['var(--red)',    'ZONA DE TECHO'] :
-      techoScore>=55 ? ['var(--yellow)', 'SPIKE MADURO']  :
-      techoScore>=25 ? ['var(--green)',  'SPIKE EN CURSO']:
-                       ['var(--muted)',  'INICIO'];
-
-    // ──────────────────────────────────────────────
-    // REGLAS ESPECIALES v3
-    // ──────────────────────────────────────────────
-
-    // TECHO EXTREMO (aprendido de ESPORTS)
-    // Funding muy alto + absorción + pump grande = techo aunque no haya divergencia
-    const techoExtremo = funding>0.3 && sinLibro && (ch24>100||pumpIntraday>50);
-
-    // TECHO MEDIO SIN DIVERGENCIA (aprendido de BTW)
-    // Pump>100% + funding>0.15% + absorción + sobrecompra = precaución aunque CVD siga positivo
-    const techoMedioSinDiv = ch24>100 && funding>0.15 && sinLibro && sobrecompra && !divergencia && !divergencia5m;
-
-    // DEGRADAR si CVD positivo + sin vol institucional (aprendido del caso BTW donde siguió subiendo)
-    // Evita FALSOS CONFIRMADOS cuando el momentum comprador sigue presente
-    const cvdAunPositivo = cvd1>0 && !volInstitucional && !divergencia && !divergencia5m;
-
-    // ──────────────────────────────────────────────
-    // SEÑALES TOTALES (de 8)
-    // ──────────────────────────────────────────────
-    const señalesTecho = [
-      sinLibro && desacelerando,
-      divergencia,
+    /* ── SEÑALES (de 9) ── */
+    const señalesTecho=[
+      sinLibro && desacelerando5,
       divergencia5m,
       divergencia15m,
-      fundingLast>0.05 && desacelerando,
-      volCayendo && (divergencia||divergencia5m),
+      divergencia1m,
+      fundingLast>0.05 && desacelerando5,
+      volCayendo && divgCount>0,
       techoExtremo,
-      sobrecompraExtrema && sinLibro
+      sobrecompraExtrema && sinLibro,
+      ch24>100 && funding>0.15 && sobrecompra
     ].filter(Boolean).length;
 
-    // ── VEREDICTO v3 ──
-    let vCls, vTxt, vIcon;
-
-    if(techoExtremo || señalesTecho>=4){
+    /* ── VEREDICTO RAW ── */
+    let vCls,vTxt,vIcon;
+    if(techoExtremo||señalesTecho>=4){
       vCls='v-red';    vTxt='TECHO CONFIRMADO — ENTRADA SHORT'; vIcon='🔴';
-    } else if(techoMedioSinDiv || señalesTecho===3){
-      // v3: si CVD aún positivo sin vol institucional → bajar un nivel
+    } else if(techoMedioSinDiv&&!techoExtremo||señalesTecho===3){
       if(cvdAunPositivo){
-        vCls='v-orange'; vTxt='ZONA DE TECHO — CVD POSITIVO, ESPERAR DIVERGENCIA'; vIcon='🟠';
+        vCls='v-orange'; vTxt='ZONA DE TECHO — ESPERAR DIVERGENCIA 5M'; vIcon='🟠';
       } else {
-        vCls='v-yellow'; vTxt='ZONA DE TECHO — PRECAUCIÓN';  vIcon='⚠️';
+        vCls='v-yellow'; vTxt='ZONA DE TECHO — PRECAUCIÓN'; vIcon='⚠️';
       }
     } else if(señalesTecho===2){
-      vCls='v-yellow'; vTxt='SEÑALES INICIALES — VIGILAR';   vIcon='⚠️';
-    } else if(acelerando && !divergencia && !divergencia5m){
-      vCls='v-green';  vTxt='SIGUE CON FUERZA — ESPERAR';    vIcon='🟢';
+      vCls='v-yellow'; vTxt='SEÑALES INICIALES — VIGILAR'; vIcon='⚠️';
+    } else if(acelerando5&&divgCount===0){
+      vCls='v-green';  vTxt='SIGUE CON FUERZA — ESPERAR'; vIcon='🟢';
     } else {
-      vCls='v-gray';   vTxt='SIN SEÑAL CLARA';               vIcon='⬜';
+      vCls='v-gray';   vTxt='SIN SEÑAL CLARA'; vIcon='⬜';
     }
 
-    // ── LABELS ──
-    const libroTxt = paredFuerte?'PARED FUERTE':paredMedia?'PARED MEDIA':'LIVIANO';
-    const libroCls = paredFuerte?'b-red':paredMedia?'b-yellow':'b-gray';
-    const fundingCls = Math.abs(fundingLast)>0.3?'b-red':Math.abs(fundingLast)>0.05?'b-yellow':'b-gray';
-    const fundingTxt = (fundingLast>=0?'+':'')+fundingLast.toFixed(4)+'%';
-    const fundingLbl = fundingLast>0.3?'EUFORIA EXTREMA':fundingLast>0.15?'MUY ALTO':fundingLast>0.05?'RETAIL ATRAPADO':fundingLast>0.01?'ELEVADO':'NORMAL';
-    const cvdCls = cvd1>0?'b-green':'b-red';
-    const cvdTxt = (cvd1>=0?'+':'')+fmtBig(Math.abs(cvd1*price))+' USD';
-    const stochCls = sobrecompraExtrema?'b-red':sobrecompra?'b-yellow':'b-gray';
-    const stochTxt = stochK.toFixed(0)+'%';
-    const stochLbl = sobrecompraExtrema?'SOBRECOMPRA EXTREMA':sobrecompra?'SOBRECOMPRA':'OK';
+    /* ══════════════════════════════════════════════════════════════
+       MEMORIA DE SEÑAL v4
+       Si el nuevo veredicto es más bajo que el guardado Y
+       no ha expirado el lock Y el precio no superó el máximo+2%
+       → usar el veredicto guardado (no bajar de nivel)
+       ══════════════════════════════════════════════════════════════ */
+    const mem = memory[raw];
+    const now = Date.now();
+    let locked = false;
 
-    // Divergencias texto
-    const divgTxt = divgCount===3?'1M+5M+15M':divgCount===2?'2 TFs':divgCount===1?'1 TF':'NO';
-    const divgCls = divgCount>=2?'b-red':divgCount===1?'b-yellow':'b-gray';
+    if(mem){
+      const elapsed = (now-mem.ts)/1000;
+      const lockExpired = elapsed > LOCK_MINUTES*60;
+      const newSpikeUp  = price > mem.maxPrice*1.02; // subió 2% sobre máximo = nuevo spike
 
-    const now = new Date().toLocaleTimeString('es-AR');
+      if(!lockExpired && !newSpikeUp && levelNum(vCls)<levelNum(mem.vCls)){
+        // Mantener veredicto anterior — no bajar
+        vCls  = mem.vCls;
+        vTxt  = mem.vTxt;
+        vIcon = mem.vIcon;
+        locked= true;
+      }
+    }
 
-    document.getElementById('out').innerHTML = `
+    // Actualizar memoria si el nuevo nivel es más alto o expiró
+    if(!locked || !mem || levelNum(vCls)>levelNum(mem.vCls)){
+      memory[raw]={
+        level:levelNum(vCls),vCls,vTxt,vIcon,
+        score:techoScore,
+        maxPrice:mem?Math.max(price,mem.maxPrice):price,
+        ts: mem && locked ? mem.ts : now
+      };
+    } else if(mem){
+      // Actualizar maxPrice aunque esté locked
+      memory[raw].maxPrice=Math.max(price,mem.maxPrice);
+    }
+
+    // Actualizar display del lock
+    clearInterval(lockTimer);
+    if(locked){
+      updateLockDisplay(raw);
+      lockTimer=setInterval(()=>updateLockDisplay(raw),1000);
+    } else {
+      document.getElementById('lock-display').innerHTML='';
+    }
+
+    /* ── LABELS ── */
+    const libroTxt=paredFuerte?'PARED FUERTE':paredMedia?'PARED MEDIA':'LIVIANO';
+    const libroCls=paredFuerte?'b-red':paredMedia?'b-yellow':'b-gray';
+    const fundingCls=Math.abs(fundingLast)>0.3?'b-red':Math.abs(fundingLast)>0.05?'b-yellow':'b-gray';
+    const fundingTxt=(fundingLast>=0?'+':'')+fundingLast.toFixed(4)+'%';
+    const fundingLbl=fundingLast>0.3?'EUFORIA EXTREMA':fundingLast>0.15?'MUY ALTO':fundingLast>0.05?'RETAIL ATRAPADO':fundingLast>0.01?'ELEVADO':'NORMAL';
+    const stochCls=sobrecompraExtrema?'b-red':sobrecompra?'b-yellow':'b-gray';
+    const divgTxt=divgCount===3?'1M+5M+15M':divgCount===2?'2 TFs':divgCount===1?'1 TF':'NO';
+    const divgCls=divgCount>=2?'b-red':divgCount===1?'b-yellow':'b-gray';
+    const cvd5Cls=cvd5Total>0?'b-green':'b-red';
+    const cvd5Txt=(cvd5Total>=0?'+':'')+fmtBig(Math.abs(cvd5Total*price))+' USD';
+    const nowStr=new Date().toLocaleTimeString('es-AR');
+
+    /* ── RENDER ── */
+    document.getElementById('out').innerHTML=`
 
       <div class="price-row">
         <div class="price-num">${fmtP(price)}</div>
@@ -456,27 +465,14 @@ Subí el archivo a un servidor o usá: python -m http.server 8080</div>`;
           <span>pump local ${pumpIntraday.toFixed(1)}%</span>
           <span>fund ${fundingLast>=0?'+':''}${fundingLast.toFixed(4)}%</span>
           <span>stoch 1h ${stochK.toFixed(0)}%</span>
-          ${divgCount>0?`<span class="hi">⚡ divergencia ${divgTxt}</span>`:'<span>sin divergencia</span>'}
+          ${divgCount>0?`<span class="hi">⚡ divg ${divgTxt}</span>`:'<span>sin divergencia</span>'}
+          ${locked?'<span style="color:var(--accent)">🔒 locked</span>':''}
         </div>
       </div>
 
-      ${techoExtremo?`
-      <div class="alert alert-red">
-        <span class="alert-icon">🚨</span>
-        <span>TECHO EXTREMO — Funding &gt;0.3% + absorción 100% + pump &gt;100%. Techo confirmado sin divergencia necesaria.</span>
-      </div>`:''}
-
-      ${techoMedioSinDiv && !techoExtremo?`
-      <div class="alert alert-yellow">
-        <span class="alert-icon">⚠️</span>
-        <span>PRECAUCIÓN BTW-STYLE — Pump &gt;100% + funding alto + sobrecompra sin divergencia. CVD puede seguir positivo un tiempo más.</span>
-      </div>`:''}
-
-      ${cvdAunPositivo && señalesTecho>=2?`
-      <div class="alert alert-yellow">
-        <span class="alert-icon">🟠</span>
-        <span>CVD AÚN POSITIVO + SIN VOL INST. — El precio puede seguir subiendo. Esperar divergencia antes de entrar short.</span>
-      </div>`:''}
+      ${techoExtremo?`<div class="alert alert-red"><span class="alert-icon">🚨</span><span>TECHO EXTREMO — Funding &gt;0.3% + absorción + pump &gt;100%. Confirmado sin divergencia necesaria.</span></div>`:''}
+      ${techoMedioSinDiv&&!techoExtremo?`<div class="alert alert-yellow"><span class="alert-icon">⚠️</span><span>BTW-STYLE — Pump &gt;100% + funding alto + sobrecompra. CVD 5m puede seguir positivo un rato más.</span></div>`:''}
+      ${cvdAunPositivo&&señalesTecho>=2?`<div class="alert alert-yellow"><span class="alert-icon">🟠</span><span>CVD 5M POSITIVO + SIN VOL INST. — Esperar divergencia en 5m antes de entrar short.</span></div>`:''}
 
       <div class="veredicto ${vCls}">
         <span class="v-icon">${vIcon}</span>
@@ -492,7 +488,7 @@ Subí el archivo a un servidor o usá: python -m http.server 8080</div>`;
         </div>
         <div class="card">
           <div class="card-val" style="color:${señalesTecho>=4?'var(--red)':señalesTecho>=3?'var(--yellow)':señalesTecho>=2?'var(--orange)':'var(--muted)'}">
-            ${señalesTecho}/8
+            ${señalesTecho}/9
           </div>
           <div class="card-lbl">señales</div>
         </div>
@@ -516,7 +512,7 @@ Subí el archivo a un servidor o usá: python -m http.server 8080</div>`;
         <div class="q">
           <div class="q-left">
             <span class="q-txt">¿La ballena absorbió el libro?</span>
-            <span class="q-hint">CVD presión vs resistencia 1er bloque 0.5% · ${absorb.toFixed(0)}% absorbido</span>
+            <span class="q-hint">CVD 1m vs resistencia 1er bloque 0.5% · ${absorb.toFixed(0)}% absorbido</span>
           </div>
           <span class="badge ${sinLibro?'b-red':'b-gray'}">${sinLibro?'SÍ — '+absorb.toFixed(0)+'%':'NO — '+absorb.toFixed(0)+'%'}</span>
         </div>
@@ -524,17 +520,26 @@ Subí el archivo a un servidor o usá: python -m http.server 8080</div>`;
         <div class="q">
           <div class="q-left">
             <span class="q-txt">Divergencia CVD/precio (multi-TF)</span>
-            <span class="q-hint">1m · 5m · 15m · umbral 90% del máximo 24h · ${divgCount}/3 TFs</span>
+            <span class="q-hint">Principal: 5m · Confirma: 15m · Ruido: 1m · ${divgCount}/3 activos</span>
           </div>
           <span class="badge ${divgCls}">${divgTxt}</span>
         </div>
 
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">CVD acumulado (1m)</span>
-            <span class="q-hint">${acelerando?'Acelerando — momentum activo':desacelerando?'Desacelerando — fuerza compradora cae':'Neutro'}</span>
+            <span class="q-txt">CVD acumulado (5m) — principal</span>
+            <span class="q-hint">${acelerando5?'Acelerando — momentum activo':desacelerando5?'Desacelerando — fuerza cae':'Neutro'} · más estable que 1m</span>
           </div>
-          <span class="badge ${cvdCls}">${cvdTxt}</span>
+          <span class="badge ${cvd5Cls}">${cvd5Txt}</span>
+        </div>
+
+        <div class="q">
+          <div class="q-left">
+            <span class="q-txt">Stocástico 1h (14 períodos)</span>
+            <span class="q-hint">${sobrecompraExtrema?'EXTREMO >95%':sobrecompra?'SOBRECOMPRA >85%':'Normal'} · indicador más estable</span>
+            <div class="stoch-bar"><div class="stoch-fill" style="width:${stochK.toFixed(0)}%;background:${stochK>=95?'var(--red)':stochK>=85?'var(--yellow)':'var(--green)'}"></div></div>
+          </div>
+          <span class="badge ${stochCls}">${stochK.toFixed(0)}%</span>
         </div>
 
         <div class="q">
@@ -543,15 +548,6 @@ Subí el archivo a un servidor o usá: python -m http.server 8080</div>`;
             <span class="q-hint">Últimas 3 velas vs 6 anteriores (1m) — agotamiento comprador</span>
           </div>
           <span class="badge ${volCayendo?'b-yellow':'b-gray'}">${volCayendo?'CAYENDO':'SOSTENIDO'}</span>
-        </div>
-
-        <div class="q">
-          <div class="q-left">
-            <span class="q-txt">Stocástico 1h (14 períodos)</span>
-            <span class="q-hint">${stochLbl} · >85 sobrecompra · >95 extremo</span>
-            <div class="stoch-bar"><div class="stoch-fill" style="width:${stochK.toFixed(0)}%;background:${stochK>=95?'var(--red)':stochK>=85?'var(--yellow)':'var(--green)'}"></div></div>
-          </div>
-          <span class="badge ${stochCls}">${stochTxt}</span>
         </div>
 
         <div class="q">
@@ -573,7 +569,7 @@ Subí el archivo a un servidor o usá: python -m http.server 8080</div>`;
         <div class="q">
           <div class="q-left">
             <span class="q-txt">¿Volumen institucional presente?</span>
-            <span class="q-hint">Últimas 3 velas vs promedio 1m · >1.5x · ${(vol3/volAvg).toFixed(1)}x actual</span>
+            <span class="q-hint">Últimas 3 velas vs promedio 1m · ${(vol3/volAvg).toFixed(1)}x actual · >1.5x activa</span>
           </div>
           <span class="badge ${volInstitucional?'b-purple':'b-gray'}">${volInstitucional?'SÍ — '+(vol3/volAvg).toFixed(1)+'x':'NO — '+(vol3/volAvg).toFixed(1)+'x'}</span>
         </div>
@@ -588,29 +584,36 @@ Subí el archivo a un servidor o usá: python -m http.server 8080</div>`;
 
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">¿Techo extremo activo? (v3)</span>
-            <span class="q-hint">Funding >0.3% + absorción + pump >100% = confirmado sin divergencia</span>
+            <span class="q-txt">¿Techo extremo? (ESPORTS-style)</span>
+            <span class="q-hint">Funding >0.3% + absorción + pump >100% → confirmado sin divergencia</span>
           </div>
           <span class="badge ${techoExtremo?'b-red':'b-gray'}">${techoExtremo?'🚨 ACTIVO':'NO'}</span>
         </div>
 
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">¿Alerta BTW-style? (v3)</span>
-            <span class="q-hint">Pump >100% + fund >0.15% + sobrecompra sin divergencia = CVD puede seguir</span>
+            <span class="q-txt">¿Alerta BTW-style?</span>
+            <span class="q-hint">Pump >100% + fund >0.15% + sobrecompra → CVD puede seguir</span>
           </div>
           <span class="badge ${techoMedioSinDiv?'b-orange':'b-gray'}">${techoMedioSinDiv?'⚠️ ACTIVO':'NO'}</span>
+        </div>
+
+        <div class="q">
+          <div class="q-left">
+            <span class="q-txt">🔒 Memoria de señal activa</span>
+            <span class="q-hint">Lock ${LOCK_MINUTES}min — no baja de nivel si precio no supera máximo +2%</span>
+          </div>
+          <span class="badge ${locked?'b-red':'b-gray'}">${locked?'LOCKED':'LIBRE'}</span>
         </div>
 
       </div>
     `;
 
-    document.getElementById('bl').textContent = raw+'USDT · '+now;
+    document.getElementById('bl').textContent=raw+'USDT · '+nowStr;
 
   } catch(e){
     document.getElementById('out').innerHTML='<div class="err">ERROR: '+e.message+'</div>';
   }
-
   btn.disabled=false; btn.textContent='ANALIZAR';
 }
 </script>
