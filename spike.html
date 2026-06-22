@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPIKE TECHO v5 — Binance Futures</title>
+<title>SPIKE TECHO v6 — Binance Futures</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -30,27 +30,11 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .go:hover{opacity:.85;}.go:active{transform:scale(.97);}
 .go:disabled{background:var(--bg3);color:var(--muted);cursor:not-allowed;transform:none;}
 
-/* LOCK BAR */
 .lock-bar{display:flex;align-items:center;gap:10px;background:rgba(240,74,90,.07);border:1px solid rgba(240,74,90,.25);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--red);}
 .lock-icon{font-size:14px;flex-shrink:0;}
 .lock-bar .countdown{margin-left:auto;font-weight:700;font-size:13px;}
 .lock-bar.amarillo{background:rgba(245,200,66,.06);border-color:rgba(245,200,66,.25);color:var(--yellow);}
 
-/* ══ LIMIT BOX — nueva pieza v5 ══ */
-.limit-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden;}
-.limit-box::before{content:'';position:absolute;inset:0;border-left:3px solid var(--cyan);border-radius:10px;pointer-events:none;}
-.limit-hdr{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
-.limit-hdr .badge-cyan{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;color:var(--cyan);background:rgba(34,211,238,.1);padding:2px 7px;border-radius:3px;letter-spacing:1px;}
-.limit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.limit-item{background:var(--bg3);border-radius:7px;padding:10px 12px;}
-.limit-item .lval{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;line-height:1;margin-bottom:3px;}
-.limit-item .llbl{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;}
-.limit-item .lsub{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:4px;}
-.limit-full{grid-column:1/-1;}
-.liq-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:8px;}
-.liq-fill{height:100%;border-radius:3px;transition:width 1s ease;}
-
-/* PRICE ROW */
 .price-row{margin-bottom:18px;}
 .price-num{font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:700;color:#fff;letter-spacing:-1px;line-height:1;}
 .price-meta{font-size:12px;color:var(--muted);margin-top:6px;font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;display:flex;gap:10px;flex-wrap:wrap;}
@@ -66,12 +50,55 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .techo-sub span{background:var(--bg3);padding:2px 7px;border-radius:3px;}
 .techo-sub .hi{color:var(--red);background:rgba(240,74,90,.1);}
 .techo-sub .bull{color:var(--green);background:rgba(0,201,122,.1);}
+.techo-sub .cy{color:var(--cyan);background:rgba(34,211,238,.1);}
+
+/* ══ LIQUIDEZ BOX v6 ══ */
+.liq-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden;}
+.liq-box::before{content:'';position:absolute;inset:0;border-left:3px solid var(--purple);border-radius:10px;pointer-events:none;}
+.liq-box-hdr{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+
+/* Mapa visual de liquidaciones */
+.liqmap{position:relative;height:80px;background:var(--bg3);border-radius:7px;overflow:hidden;margin-bottom:10px;}
+.liqmap-bar{position:absolute;bottom:0;width:3px;border-radius:2px 2px 0 0;transition:height .6s ease;}
+.liqmap-price{position:absolute;top:50%;transform:translateY(-50%);width:2px;background:rgba(255,255,255,.6);height:100%;}
+.liqmap-label{position:absolute;font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);top:3px;}
+
+.liq-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.liq-item{background:var(--bg3);border-radius:7px;padding:10px 12px;}
+.liq-item .lval{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700;line-height:1;margin-bottom:3px;}
+.liq-item .llbl{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;}
+.liq-item .lsub{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:3px;}
+
+/* Ballena status */
+.ballena-status{border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;font-family:'IBM Plex Mono',monospace;font-size:12px;}
+.ballena-icon{font-size:22px;flex-shrink:0;}
+.ballena-txt .btitle{font-weight:700;font-size:13px;margin-bottom:2px;}
+.ballena-txt .bsub{font-size:10px;color:var(--muted);}
+.b-buscando{background:rgba(0,201,122,.08);border:1px solid rgba(0,201,122,.3);color:var(--green);}
+.b-llenando{background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.25);color:var(--yellow);}
+.b-llena{background:rgba(240,74,90,.08);border:1px solid rgba(240,74,90,.3);color:var(--red);}
+.b-unknown{background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
+
+/* LIMIT BOX */
+.limit-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden;}
+.limit-box::before{content:'';position:absolute;inset:0;border-left:3px solid var(--cyan);border-radius:10px;pointer-events:none;}
+.limit-hdr{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+.limit-hdr .badge-cyan{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;color:var(--cyan);background:rgba(34,211,238,.1);padding:2px 7px;border-radius:3px;letter-spacing:1px;}
+.limit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.limit-item{background:var(--bg3);border-radius:7px;padding:10px 12px;}
+.limit-item .lval{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;line-height:1;margin-bottom:3px;}
+.limit-item .llbl{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;}
+.limit-item .lsub{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:4px;}
+.limit-full{grid-column:1/-1;}
+.depth-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:8px;}
+.depth-fill{height:100%;border-radius:3px;transition:width 1s ease;}
 
 .alert{border-radius:8px;padding:12px 16px;margin-bottom:12px;font-size:12px;font-family:'IBM Plex Mono',monospace;letter-spacing:.4px;display:flex;align-items:flex-start;gap:10px;line-height:1.6;}
 .alert-red{background:rgba(240,74,90,.08);border:1px solid rgba(240,74,90,.3);color:var(--red);}
 .alert-yellow{background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.25);color:var(--yellow);}
 .alert-green{background:rgba(0,201,122,.06);border:1px solid rgba(0,201,122,.25);color:var(--green);}
 .alert-cyan{background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.25);color:var(--cyan);}
+.alert-purple{background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.25);color:var(--purple);}
 .alert-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
 
 .veredicto{padding:16px 20px;border-radius:9px;font-size:15px;font-weight:600;letter-spacing:.5px;margin-bottom:18px;border-left:3px solid transparent;display:flex;align-items:center;gap:10px;}
@@ -104,26 +131,26 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .b-cyan{background:rgba(34,211,238,.15);color:var(--cyan);}
 
 .stoch-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:5px;width:70px;}
-.stoch-fill{height:100%;border-radius:3px;transition:width .8s ease;}
+.stoch-fill{height:100%;border-radius:3px;}
 
 .miss{padding:60px 0;text-align:center;color:var(--muted);font-size:12px;line-height:3;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;}
 .err{padding:16px 18px;border:1px solid rgba(240,74,90,.3);border-radius:8px;color:var(--red);font-size:12px;line-height:2;font-family:'IBM Plex Mono',monospace;background:rgba(240,74,90,.05);}
 .bottom{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;display:flex;justify-content:space-between;margin-top:24px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap;gap:6px;}
 
-@media(max-width:420px){.price-num{font-size:32px;}.cards{grid-template-columns:repeat(2,1fr);}.techo-label{font-size:22px;}.limit-grid{grid-template-columns:1fr;}}
-@media(prefers-reduced-motion:reduce){.dot{animation:none;}.techo-fill,.liq-fill{transition:none;}}
+@media(max-width:420px){.price-num{font-size:32px;}.cards{grid-template-columns:repeat(2,1fr);}.techo-label{font-size:22px;}.limit-grid,.liq-grid{grid-template-columns:1fr;}}
+@media(prefers-reduced-motion:reduce){.dot{animation:none;}.techo-fill,.depth-fill{transition:none;}}
 </style>
 </head>
 <body>
 
 <div class="hdr">
   <span class="logo"><span class="dot"></span>SPIKE TECHO</span>
-  <span class="ver">v5</span>
+  <span class="ver">v6</span>
   <span class="ts" id="ts">—</span>
 </div>
 
 <div class="bar">
-  <input class="sym" id="sym" placeholder="TOKEN · EJ: BTW" maxlength="12">
+  <input class="sym" id="sym" placeholder="TOKEN · EJ: SYN" maxlength="12">
   <select class="sel" id="auto">
     <option value="0">MANUAL</option>
     <option value="30">30s</option>
@@ -135,12 +162,12 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
 <div id="lock-display"></div>
 <div id="out">
-  <div class="miss">Ingresá el token<br>AGT · BTW · ESPORTS · BICO</div>
+  <div class="miss">Ingresá el token<br>SYN · AGT · BTW · ESPORTS · BICO</div>
 </div>
 
 <div class="bottom">
   <span id="bl">—</span>
-  <span>BINANCE FUTURES · SPIKE TECHO v5</span>
+  <span>BINANCE FUTURES · SPIKE TECHO v6</span>
 </div>
 
 <script>
@@ -148,8 +175,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
 const LOCK_MINUTES = 15;
 const memory = {};
-let autoT = null;
-let lockTimer = null;
+let autoT = null, lockTimer = null;
 
 function fmtP(p){
   if(!p||isNaN(p)) return '—';
@@ -175,13 +201,12 @@ setInterval(tick,1000); tick();
 function updateLockDisplay(token){
   const m = memory[token];
   const el = document.getElementById('lock-display');
-  if(!m || levelNum(m.vCls)<3){ el.innerHTML=''; return; }
+  if(!m||levelNum(m.vCls)<3){ el.innerHTML=''; return; }
   const elapsed = (Date.now()-m.ts)/1000;
   const remaining = Math.max(0, LOCK_MINUTES*60 - elapsed);
   if(remaining<=0){ el.innerHTML=''; return; }
-  const min = Math.floor(remaining/60);
-  const sec = Math.floor(remaining%60);
-  const isRed = m.vCls==='v-red';
+  const min=Math.floor(remaining/60), sec=Math.floor(remaining%60);
+  const isRed=m.vCls==='v-red';
   el.innerHTML=`<div class="lock-bar ${isRed?'':'amarillo'}">
     <span class="lock-icon">${isRed?'🔒':'⚠️'}</span>
     <span>SEÑAL BLOQUEADA — ${m.vTxt}</span>
@@ -206,56 +231,226 @@ function parseCVD(klines){
 }
 
 /* ══════════════════════════════════════════════════════════
-   CÁLCULO DE LÍMITE / PRECIO OBJETIVO
-   Lógica: el techo natural de un spike por liquidez ocurre donde:
-   1. La resistencia más densa del libro (cluster de asks)
-   2. El ATR proyectado desde el mínimo local (volatilidad real)
-   3. La zona de liquidaciones (estimación por OI + pump)
-   Se toma el promedio ponderado de los tres.
+   ANÁLISIS DE LIQUIDEZ — lee directamente de Binance API
+   
+   Fuentes:
+   1. allForceOrders  → liquidaciones reales ejecutadas (precio + monto)
+   2. globalLongShortAccountRatio → % cuentas long vs short AHORA
+   3. takerlongshortRatio → presión real de takers (quién está comprando)
+   4. openInterestHist → evolución del OI (subiendo con precio = bullish)
+   5. topLongShortPositionRatio → qué hacen los traders grandes
+   
+   Lógica ballena:
+   - Si liquidaciones recientes son mayoritariamente SHORT → la ballena
+     está cazando shorts (squeeze en curso, panza no llena)
+   - Si liquidaciones recientes son mayoritariamente LONG → la ballena
+     ya distribuyó y los compradores están siendo liquidados (techo)
+   - OI cae con precio subiendo → distribución (ballena vendiendo)
+   - OI sube con precio → nuevos longs entrando (puede seguir)
    ══════════════════════════════════════════════════════════ */
-function calcLimit(price, asks, high24, minLocal, oi, vol24, kl1h){
-  // 1. RESISTENCIA LIBRO — bloque más denso de asks en ±5%
+async function fetchLiquidez(pair, price, high24){
+  const base = 'https://fapi.binance.com/futures/data/';
+  const base1 = 'https://fapi.binance.com/fapi/v1/';
+
+  const [forceR, lsRatioR, takerR, oiHistR, topLSR] = await Promise.allSettled([
+    fetch(base1+'allForceOrders?symbol='+pair+'&limit=100').then(r=>r.json()),
+    fetch(base+'globalLongShortAccountRatio?symbol='+pair+'&period=5m&limit=6').then(r=>r.json()),
+    fetch(base+'takerlongshortRatio?symbol='+pair+'&period=5m&limit=6').then(r=>r.json()),
+    fetch(base+'openInterestHist?symbol='+pair+'&period=5m&limit=12').then(r=>r.json()),
+    fetch(base+'topLongShortPositionRatio?symbol='+pair+'&period=5m&limit=6').then(r=>r.json()),
+  ]);
+
+  // ── 1. LIQUIDACIONES FORZADAS ──
+  const forceOrders = forceR.status==='fulfilled' && Array.isArray(forceR.value) ? forceR.value : [];
+  let liqShortUSD=0, liqLongUSD=0, liqShortCount=0, liqLongCount=0;
+  let liqZonas = {}; // precio → usd liquidado
+
+  forceOrders.forEach(o => {
+    const qty = parseFloat(o.origQty) * parseFloat(o.price);
+    const bucket = (Math.round(parseFloat(o.price) / (price*0.005)) * (price*0.005)).toFixed(6);
+    if(!liqZonas[bucket]) liqZonas[bucket] = {long:0, short:0};
+    // side BUY = liquidación de SHORT (el exchange compra para cerrar short)
+    // side SELL = liquidación de LONG (el exchange vende para cerrar long)
+    if(o.side === 'BUY'){
+      liqShortUSD += qty; liqShortCount++;
+      liqZonas[bucket].short += qty;
+    } else {
+      liqLongUSD += qty; liqLongCount++;
+      liqZonas[bucket].long += qty;
+    }
+  });
+
+  const totalLiqUSD = liqShortUSD + liqLongUSD;
+  const pctShortLiq = totalLiqUSD > 0 ? (liqShortUSD/totalLiqUSD)*100 : 50;
+
+  // Zonas de mayor liquidación (para el mapa)
+  const zonasArr = Object.entries(liqZonas)
+    .map(([p,v]) => ({price:parseFloat(p), total:v.long+v.short, long:v.long, short:v.short}))
+    .sort((a,b) => b.total-a.total)
+    .slice(0, 15);
+
+  // ── 2. RATIO LONG/SHORT GLOBAL ──
+  const lsData = lsRatioR.status==='fulfilled' && Array.isArray(lsRatioR.value) ? lsRatioR.value : [];
+  const lsActual = lsData.length > 0 ? parseFloat(lsData[lsData.length-1].longShortRatio) : 1;
+  const lsAnterior = lsData.length > 1 ? parseFloat(lsData[0].longShortRatio) : lsActual;
+  const lsCreciendo = lsActual > lsAnterior * 1.05; // más longs que antes
+  const lsCayendo   = lsActual < lsAnterior * 0.95; // menos longs (más shorts)
+  const pctLong = lsData.length > 0 ? parseFloat(lsData[lsData.length-1].longAccount)*100 : 50;
+
+  // ── 3. TAKER RATIO ──
+  const takerData = takerR.status==='fulfilled' && Array.isArray(takerR.value) ? takerR.value : [];
+  const takerActual = takerData.length > 0 ? parseFloat(takerData[takerData.length-1].buySellRatio) : 1;
+  const takerAnterior = takerData.length > 1 ? parseFloat(takerData[0].buySellRatio) : takerActual;
+  // >1 = más takers comprando; <1 = más vendiendo
+  const takerBullish  = takerActual > 1.1;
+  const takerBearish  = takerActual < 0.9;
+  const takerCayendo  = takerActual < takerAnterior * 0.85; // takers compradores cayendo
+
+  // ── 4. OI HISTÓRICO — ¿subiendo o bajando con el precio? ──
+  const oiHist = oiHistR.status==='fulfilled' && Array.isArray(oiHistR.value) ? oiHistR.value : [];
+  let oiDelta = 0, oiTendencia = 'neutral';
+  if(oiHist.length >= 3){
+    const oiFirst = parseFloat(oiHist[0].sumOpenInterest);
+    const oiLast  = parseFloat(oiHist[oiHist.length-1].sumOpenInterest);
+    oiDelta = ((oiLast - oiFirst) / oiFirst) * 100;
+    // OI sube + precio sube = nuevos longs, bullish para continuar
+    // OI baja + precio sube = cierres / distribución = bearish
+    oiTendencia = oiDelta > 2 ? 'subiendo' : oiDelta < -2 ? 'bajando' : 'estable';
+  }
+  const oiDistribucion = oiTendencia === 'bajando'; // precio sube pero OI baja = distribución
+
+  // ── 5. TOP TRADERS RATIO ──
+  const topLS = topLSR.status==='fulfilled' && Array.isArray(topLSR.value) ? topLSR.value : [];
+  const topRatio = topLS.length > 0 ? parseFloat(topLS[topLS.length-1].longShortRatio) : 1;
+  // >1 top traders más long, <1 más short
+  const topShortBias = topRatio < 0.8; // grandes traders apuestan a baja
+
+  // ── CONCLUSIÓN BALLENA ──
+  // La ballena "llenó la panza" cuando:
+  // - Liquidaciones de SHORT dominan (>65%) → squeeze activo, sigue comprando
+  // - Pero si OI empieza a bajar mientras precio sigue = está distribuyendo
+  // - Si takers caen + OI baja + liq LONG empieza a crecer → terminó
+
+  let ballenaEstado, ballenaClase, ballenaIcon, ballenaTxt;
+
+  const squeezeFuel = pctShortLiq > 65 && !oiDistribucion;
+  const distribucion = oiDistribucion && (takerBearish || takerCayendo);
+  const liqLongDominante = pctShortLiq < 35;
+
+  if(liqLongDominante && oiDistribucion){
+    ballenaEstado = 'PANZA LLENA — DISTRIBUYENDO';
+    ballenaClase  = 'b-llena';
+    ballenaIcon   = '🐋💨';
+    ballenaTxt    = `Liquidaciones LONG dominan (${(100-pctShortLiq).toFixed(0)}%). OI cae. La ballena ya vendió.`;
+  } else if(distribucion && !squeezeFuel){
+    ballenaEstado = 'POSIBLE TECHO — OI CAYENDO';
+    ballenaClase  = 'b-llenando';
+    ballenaIcon   = '🐋⚠️';
+    ballenaTxt    = `OI ${oiDelta.toFixed(1)}% mientras precio sube. Takers ${takerActual.toFixed(2)}x. Señal de distribución.`;
+  } else if(squeezeFuel){
+    ballenaEstado = 'CAZANDO SHORTS — SIGUE';
+    ballenaClase  = 'b-buscando';
+    ballenaIcon   = '🐋🎣';
+    ballenaTxt    = `${pctShortLiq.toFixed(0)}% liquidaciones son SHORTS. OI estable. La ballena sigue apretando.`;
+  } else {
+    ballenaEstado = 'SIN SEÑAL CLARA';
+    ballenaClase  = 'b-unknown';
+    ballenaIcon   = '🐋❓';
+    ballenaTxt    = `Liq shorts ${pctShortLiq.toFixed(0)}% · OI ${oiDelta.toFixed(1)}% · Takers ${takerActual.toFixed(2)}x`;
+  }
+
+  return {
+    liqShortUSD, liqLongUSD, liqShortCount, liqLongCount,
+    pctShortLiq, totalLiqUSD, zonasArr,
+    pctLong, lsActual, lsCreciendo, lsCayendo,
+    takerActual, takerBullish, takerBearish, takerCayendo,
+    oiDelta, oiTendencia, oiDistribucion,
+    topRatio, topShortBias,
+    ballenaEstado, ballenaClase, ballenaIcon, ballenaTxt,
+    squeezeFuel, distribucion, liqLongDominante
+  };
+}
+
+function calcLimit(price, asks, high24, minLocal, oi, vol24, kl1h, liqData){
   const rng5 = price * 0.05;
   const asksNear = asks.filter(a => a.price <= price + rng5 && a.price > price);
-  let resistLevel = price * 1.02; // fallback
+  let resistLevel = price * 1.02;
   if(asksNear.length > 0){
-    // agrupar en buckets de 0.5%
     const bucketSize = price * 0.005;
     const buckets = {};
     asksNear.forEach(a => {
       const b = Math.floor((a.price - price) / bucketSize);
-      if(!buckets[b]) buckets[b] = {price: a.price, usd: 0, count: 0};
+      if(!buckets[b]) buckets[b] = {price: a.price, usd: 0};
       buckets[b].usd += a.usd;
-      buckets[b].count++;
     });
-    const topBucket = Object.values(buckets).sort((a,b) => b.usd - a.usd)[0];
-    if(topBucket) resistLevel = topBucket.price;
+    const top = Object.values(buckets).sort((a,b)=>b.usd-a.usd)[0];
+    if(top) resistLevel = top.price;
   }
 
-  // 2. ATR PROYECTADO desde mínimo local
   let atr = 0;
   if(kl1h && kl1h.length >= 5){
     const last5 = kl1h.slice(-5);
-    atr = last5.reduce((s,k) => s + parseFloat(k[2]) - parseFloat(k[3]), 0) / 5;
+    atr = last5.reduce((s,k)=>s+parseFloat(k[2])-parseFloat(k[3]),0)/5;
   }
-  const atrTarget = minLocal > 0 && atr > 0 ? minLocal + atr * 2.5 : price * 1.03;
+  const atrTarget = minLocal>0&&atr>0 ? minLocal+atr*2.5 : price*1.03;
 
-  // 3. ZONA DE LIQUIDACIONES estimada
-  // En spikes de bajo OI, el precio suele ir hasta donde hay más shorts atrapados
-  // Estimación conservadora: high24 + 2-5% si hay pump activo
-  const liqTarget = high24 > price ? high24 * 1.02 : price * 1.04;
+  // Zona de liquidaciones: usar las liquidaciones reales de la API si las hay
+  let liqTarget = high24>price ? high24*1.02 : price*1.04;
+  if(liqData && liqData.zonasArr && liqData.zonasArr.length > 0){
+    // Zona con más shorts por liquidar ARRIBA del precio actual
+    const zonaArriba = liqData.zonasArr
+      .filter(z => z.price > price && z.short > z.long)
+      .sort((a,b) => b.short-a.short)[0];
+    if(zonaArriba) liqTarget = zonaArriba.price;
+  }
 
-  // Ponderación: libro 50% / atr 30% / liq 20%
-  const limit = resistLevel * 0.5 + atrTarget * 0.3 + liqTarget * 0.2;
+  const limit = resistLevel*0.45 + atrTarget*0.25 + liqTarget*0.30;
+  const totalAskUSD = asksNear.reduce((s,a)=>s+a.usd,0);
+  const liquidezLibre = totalAskUSD>0 ? Math.min(100,Math.max(0,100-(totalAskUSD/(vol24*0.001))*100)) : 50;
+  const distPct = ((limit-price)/price)*100;
 
-  // Profundidad de liquidez — % del libro que queda libre
-  const totalAskUSD = asksNear.reduce((s,a) => s+a.usd, 0);
-  const liquidezLibre = totalAskUSD > 0 ? Math.min(100, Math.max(0, 100 - (totalAskUSD / (vol24 * 0.001)) * 100)) : 50;
+  return {limit, resistLevel, atrTarget, liqTarget, distPct, liquidezLibre};
+}
 
-  // Distancia al límite
-  const distPct = ((limit - price) / price) * 100;
+/* ── RENDER DEL MAPA DE LIQUIDACIONES ── */
+function renderLiqMap(zonasArr, price){
+  if(!zonasArr || zonasArr.length===0) return '<div style="text-align:center;color:var(--muted);font-size:10px;padding:20px;font-family:\'IBM Plex Mono\',monospace;">Sin datos de liquidaciones recientes</div>';
 
-  return { limit, resistLevel, atrTarget, liqTarget, distPct, liquidezLibre };
+  const allPrices = zonasArr.map(z=>z.price);
+  const minP = Math.min(...allPrices, price*0.97);
+  const maxP = Math.max(...allPrices, price*1.03);
+  const range = maxP - minP || 1;
+  const maxTotal = Math.max(...zonasArr.map(z=>z.total));
+
+  const W = 280; // ancho del mapa en px
+  let bars = '';
+  zonasArr.forEach(z => {
+    const x = ((z.price - minP) / range) * (W-4);
+    const h = Math.max(4, (z.total / maxTotal) * 70);
+    const isShort = z.short > z.long;
+    const col = isShort ? 'rgba(0,201,122,.7)' : 'rgba(240,74,90,.7)';
+    bars += `<div class="liqmap-bar" style="left:${x.toFixed(1)}px;height:${h}px;background:${col};"></div>`;
+  });
+
+  // Línea del precio actual
+  const priceX = ((price - minP) / range) * (W-4);
+  const minLabel = fmtP(minP);
+  const maxLabel = fmtP(maxP);
+  const priceLabel = fmtP(price);
+
+  return `
+    <div style="position:relative;">
+      <div class="liqmap" style="width:100%;">
+        ${bars}
+        <div class="liqmap-price" style="left:${priceX.toFixed(1)}px;"></div>
+        <div class="liqmap-label" style="left:2px;">${minLabel}</div>
+        <div class="liqmap-label" style="right:2px;left:auto;">${maxLabel}</div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);display:flex;gap:14px;margin-top:5px;">
+        <span style="color:var(--green);">▮ shorts liquidados (squeeze fuel)</span>
+        <span style="color:var(--red);">▮ longs liquidados (techo)</span>
+      </div>
+    </div>`;
 }
 
 async function run(){
@@ -296,182 +491,167 @@ async function run(){
     const high24  = parseFloat(tk.highPrice);
     const oi      = oiR.status==='fulfilled'&&oiR.value.openInterest?parseFloat(oiR.value.openInterest)*price:0;
 
-    // ── FUNDING CORREGIDO v5 ──────────────────────────────────────
-    // funding POSITIVO  → longs pagan a shorts → mercado alcista → combustible se agota → bearish
-    // funding NEGATIVO  → shorts pagan a longs → hay más shorts abiertos → squeeze fuel → bullish para spike
+    // Fetch liquidez (paralelo, no bloquea si falla)
+    const liqData = await fetchLiquidez(pair, price, high24).catch(()=>null);
+
     const frArr   = frR.status==='fulfilled'?frR.value:[];
     const funding = frArr.length>0?frArr.reduce((a,b)=>a+parseFloat(b.fundingRate),0)/frArr.length*100:0;
     const fundingLast=frArr.length>0?parseFloat(frArr[0].fundingRate)*100:0;
+    const fundingBullSqueeze = fundingLast < -0.05;
 
-    // Para el score: funding positivo alto = señal de techo (longs atrapados pagando)
-    //               funding negativo = shorts atrapados = combustible para más pump
-    const fundingBearish = fundingLast > 0;  // positivo = longs dominan = señal de techo
-    const fundingExtreme = fundingLast > 0.3; // euforia extrema
-    const fundingBullSqueeze = fundingLast < -0.05; // shorts pagando = más pump posible
-
-    // VELAS
     const v1  = parseCVD(kl1R.status==='fulfilled'?kl1R.value:[]);
     const v5  = parseCVD(kl5R.status==='fulfilled'?kl5R.value:[]);
     const v15 = parseCVD(kl15R.status==='fulfilled'?kl15R.value:[]);
     const kl1h= kl1hR.status==='fulfilled'?kl1hR.value:[];
 
-    // CVD 5m (principal)
-    const cvd5Total = v5.reduce((a,b)=>a+b.cvd,0);
-    const mid5  = Math.floor(v5.length/2);
-    const cvd5A = v5.slice(0,mid5).reduce((a,b)=>a+b.cvd,0);
-    const cvd5B = v5.slice(mid5).reduce((a,b)=>a+b.cvd,0);
+    const cvd5Total=v5.reduce((a,b)=>a+b.cvd,0);
+    const mid5=Math.floor(v5.length/2);
+    const cvd5A=v5.slice(0,mid5).reduce((a,b)=>a+b.cvd,0);
+    const cvd5B=v5.slice(mid5).reduce((a,b)=>a+b.cvd,0);
     const acelerando5    = cvd5B>cvd5A && cvd5B>0;
     const desacelerando5 = cvd5A>0 && cvd5B<cvd5A*0.35;
 
-    const cvd1Total = v1.reduce((a,b)=>a+b.cvd,0);
-    const cvdUSD    = Math.max(0,cvd1Total*price);
-    const cvd15Total = v15.reduce((a,b)=>a+b.cvd,0);
+    const cvd1Total=v1.reduce((a,b)=>a+b.cvd,0);
+    const cvdUSD=Math.max(0,cvd1Total*price);
 
-    // Estocástico 1h
     let stochK=50;
     if(kl1h.length>=14){
       const sl=kl1h.slice(-14);
       const loL=Math.min(...sl.map(k=>parseFloat(k[3])));
       const hiH=Math.max(...sl.map(k=>parseFloat(k[2])));
-      const lC =parseFloat(kl1h[kl1h.length-1][4]);
+      const lC=parseFloat(kl1h[kl1h.length-1][4]);
       stochK=hiH>loL?((lC-loL)/(hiH-loL))*100:50;
     }
-    const sobrecompra       = stochK>=85;
-    const sobrecompraExtrema= stochK>=95;
+    const sobrecompra=stochK>=85, sobrecompraExtrema=stochK>=95;
 
-    // Divergencias (5m principal)
-    const precioAlto = price>=high24*0.90;
-    const cvd5Last4 = v5.slice(-4).reduce((a,b)=>a+b.cvd,0)/4;
-    const cvd5Prev  = v5.slice(0,-4).reduce((a,b)=>a+b.cvd,0)/Math.max(v5.length-4,1);
-    const divergencia5m = precioAlto && cvd5Last4<cvd5Prev*0.5 && cvd5Prev>0;
+    const precioAlto=price>=high24*0.90;
+    const cvd5Last4=v5.slice(-4).reduce((a,b)=>a+b.cvd,0)/4;
+    const cvd5Prev=v5.slice(0,-4).reduce((a,b)=>a+b.cvd,0)/Math.max(v5.length-4,1);
+    const divergencia5m=precioAlto&&cvd5Last4<cvd5Prev*0.5&&cvd5Prev>0;
 
-    const cvd15Last3= v15.slice(-3).reduce((a,b)=>a+b.cvd,0)/3;
-    const cvd15Prev = v15.slice(0,-3).reduce((a,b)=>a+b.cvd,0)/Math.max(v15.length-3,1);
-    const divergencia15m= precioAlto && cvd15Last3<cvd15Prev*0.5 && cvd15Prev>0;
+    const cvd15Last3=v15.slice(-3).reduce((a,b)=>a+b.cvd,0)/3;
+    const cvd15Prev=v15.slice(0,-3).reduce((a,b)=>a+b.cvd,0)/Math.max(v15.length-3,1);
+    const divergencia15m=precioAlto&&cvd15Last3<cvd15Prev*0.5&&cvd15Prev>0;
 
-    const mid1 = Math.floor(v1.length/2);
-    const cvd1Last6Avg = v1.slice(-6).reduce((a,b)=>a+b.cvd,0)/6;
-    const cvd1PrimAvg  = v1.slice(0,mid1).reduce((a,b)=>a+b.cvd,0)/Math.max(mid1,1);
-    const divergencia1m= precioAlto && cvd1Last6Avg<cvd1PrimAvg*0.5 && cvd1PrimAvg>0;
-
+    const mid1=Math.floor(v1.length/2);
+    const cvd1Last6Avg=v1.slice(-6).reduce((a,b)=>a+b.cvd,0)/6;
+    const cvd1PrimAvg=v1.slice(0,mid1).reduce((a,b)=>a+b.cvd,0)/Math.max(mid1,1);
+    const divergencia1m=precioAlto&&cvd1Last6Avg<cvd1PrimAvg*0.5&&cvd1PrimAvg>0;
     const divgCount=[divergencia1m,divergencia5m,divergencia15m].filter(Boolean).length;
 
-    // Volumen
-    const vol3  = v1.slice(-3).reduce((a,b)=>a+b.vol,0)/3;
-    const vol6  = v1.slice(-9,-3).reduce((a,b)=>a+b.vol,0)/6;
-    const volAvg= v1.reduce((a,b)=>a+b.vol,0)/Math.max(v1.length,1);
-    const volCayendo       = vol6>0 && vol3<vol6*0.6;
-    const volInstitucional = vol3>volAvg*1.5;
+    const vol3=v1.slice(-3).reduce((a,b)=>a+b.vol,0)/3;
+    const vol6=v1.slice(-9,-3).reduce((a,b)=>a+b.vol,0)/6;
+    const volAvg=v1.reduce((a,b)=>a+b.vol,0)/Math.max(v1.length,1);
+    const volCayendo=vol6>0&&vol3<vol6*0.6;
+    const volInstitucional=vol3>volAvg*1.5;
 
-    // Order Book
-    const dep  = depR.status==='fulfilled'?depR.value:{asks:[],bids:[]};
-    const RNG  = price*0.025;
-    const asks = (dep.asks||[]).map(a=>({price:parseFloat(a[0]),usd:parseFloat(a[0])*parseFloat(a[1])})).filter(a=>a.price>=price);
-    const bids = (dep.bids||[]).map(b=>({price:parseFloat(b[0]),usd:parseFloat(b[0])*parseFloat(b[1])})).filter(b=>b.price<=price);
+    const dep=depR.status==='fulfilled'?depR.value:{asks:[],bids:[]};
+    const RNG=price*0.025;
+    const asks=(dep.asks||[]).map(a=>({price:parseFloat(a[0]),usd:parseFloat(a[0])*parseFloat(a[1])})).filter(a=>a.price>=price);
+    const bids=(dep.bids||[]).map(b=>({price:parseFloat(b[0]),usd:parseFloat(b[0])*parseFloat(b[1])})).filter(b=>b.price<=price);
     const askUSD=asks.filter(a=>a.price<=price+RNG).reduce((s,a)=>s+a.usd,0);
     const bidUSD=bids.filter(b=>b.price>=price-RNG).reduce((s,b)=>s+b.usd,0);
-    const ratio =bidUSD>0?askUSD/bidUSD:99;
+    const ratio=bidUSD>0?askUSD/bidUSD:99;
     const blkUSD=asks.filter(a=>a.price<=price+price*0.005).reduce((s,a)=>s+a.usd,0);
     const absorb=blkUSD>0?Math.min(100,(cvdUSD/blkUSD)*100):0;
-    const sinLibro    = absorb>60;
-    const paredFuerte = ratio>2.5;
-    const paredMedia  = ratio>1.5;
+    const sinLibro=absorb>60, paredFuerte=ratio>2.5, paredMedia=ratio>1.5;
     const topBid=bids[0];
     const ballenaSoporte=topBid&&bidUSD>0&&(topBid.usd/bidUSD)>0.25;
 
-    // Pump
-    const minLocal     = Math.min(...v1.map(v=>v.low));
-    const pumpIntraday = minLocal>0?((price-minLocal)/minLocal)*100:0;
-    const pumpEfectivo = Math.max(ch24,pumpIntraday*3);
+    const minLocal=Math.min(...v1.map(v=>v.low));
+    const pumpIntraday=minLocal>0?((price-minLocal)/minLocal)*100:0;
+    const pumpEfectivo=Math.max(ch24,pumpIntraday*3);
 
-    // ── LÍMITE v5 ──
-    const lim = calcLimit(price, asks, high24, minLocal, oi, vol24, kl1h);
+    // LIMIT
+    const lim=calcLimit(price, asks, high24, minLocal, oi, vol24, kl1h, liqData);
 
-    /* ── SCORE v5 ──────────────────────────────────────────────────
-       CORRECCIÓN FUNDING:
-       - Positivo alto (>0.3%) → señal fuerte de techo = +25pts
-       - Positivo medio (>0.05%) → señal moderada
-       - Negativo (shorts pagando) → descuenta puntos (hay squeeze fuel)
-       ─────────────────────────────────────────────────────────── */
-    const scorePump  = Math.min(30,(pumpEfectivo/200)*30);
+    // SCORE v6 — incorpora señales de liquidez
+    const scorePump=Math.min(30,(pumpEfectivo/200)*30);
+    let scoreFund=0;
+    if(fundingLast>0.3) scoreFund=25;
+    else if(fundingLast>0.15) scoreFund=20;
+    else if(fundingLast>0.1)  scoreFund=15;
+    else if(fundingLast>0.05) scoreFund=10;
+    else if(fundingLast>0.01) scoreFund=5;
+    else if(fundingLast<-0.05) scoreFund=-10;
+    else if(fundingLast<-0.01) scoreFund=-5;
 
-    let scoreFund = 0;
-    if(fundingLast > 0.3)       scoreFund = 25;
-    else if(fundingLast > 0.15) scoreFund = 20;
-    else if(fundingLast > 0.1)  scoreFund = 15;
-    else if(fundingLast > 0.05) scoreFund = 10;
-    else if(fundingLast > 0.01) scoreFund = 5;
-    else if(fundingLast < -0.05) scoreFund = -10; // shorts atrapados = más pump posible
-    else if(fundingLast < -0.01) scoreFund = -5;
+    const scoreDivg=divgCount===3?25:divgCount===2?18:divgCount===1?10:desacelerando5?5:0;
+    const scoreStoch=sobrecompraExtrema?15:sobrecompra?9:0;
+    const scoreVol=volCayendo?5:0;
 
-    const scoreDivg  = divgCount===3?25:divgCount===2?18:divgCount===1?10:desacelerando5?5:0;
-    const scoreStoch = sobrecompraExtrema?15:sobrecompra?9:0;
-    const scoreVol   = volCayendo?5:0;
+    // Liquidez score: si ballena distribuyendo suma puntos de techo
+    let scoreLiq=0;
+    if(liqData){
+      if(liqData.liqLongDominante && liqData.oiDistribucion) scoreLiq=15; // techo confirmado por liquidez
+      else if(liqData.distribucion) scoreLiq=10;
+      else if(liqData.oiDistribucion) scoreLiq=7;
+      else if(liqData.squeezeFuel) scoreLiq=-8; // sigue el squeeze
+    }
 
-    const techoScore=Math.max(0,Math.round(scorePump+scoreFund+scoreDivg+scoreStoch+scoreVol));
+    const techoScore=Math.max(0,Math.round(scorePump+scoreFund+scoreDivg+scoreStoch+scoreVol+scoreLiq));
 
     const [fillColor,techoText]=
-      techoScore>=80?['var(--red)',   'ZONA DE TECHO']:
-      techoScore>=55?['var(--yellow)','SPIKE MADURO'] :
-      techoScore>=25?['var(--green)', 'SPIKE EN CURSO']:
-                     ['var(--muted)', 'INICIO'];
+      techoScore>=80?['var(--red)','ZONA DE TECHO']:
+      techoScore>=55?['var(--yellow)','SPIKE MADURO']:
+      techoScore>=25?['var(--green)','SPIKE EN CURSO']:
+                     ['var(--muted)','INICIO'];
 
-    // Reglas especiales
-    const techoExtremo    = fundingLast>0.3 && sinLibro && (ch24>100||pumpIntraday>50);
-    const techoMedioSinDiv= ch24>100 && fundingLast>0.15 && sinLibro && sobrecompra;
-    const cvdAunPositivo  = cvd5Total>0 && !volInstitucional && divgCount===0;
-    const squeezeActivo   = fundingBullSqueeze && cvd5Total>0 && pumpIntraday<20;
+    const techoExtremo=fundingLast>0.3&&sinLibro&&(ch24>100||pumpIntraday>50);
+    const techoMedioSinDiv=ch24>100&&fundingLast>0.15&&sinLibro&&sobrecompra;
+    const cvdAunPositivo=cvd5Total>0&&!volInstitucional&&divgCount===0;
+    const squeezeActivo=fundingBullSqueeze&&cvd5Total>0&&pumpIntraday<20;
+    const ballenaDistrib=liqData&&(liqData.liqLongDominante||liqData.distribucion);
 
-    // Señales (de 9)
     const señalesTecho=[
-      sinLibro && desacelerando5,
+      sinLibro&&desacelerando5,
       divergencia5m,
       divergencia15m,
       divergencia1m,
-      fundingLast>0.05 && desacelerando5,  // CORREGIDO: solo funding positivo
-      volCayendo && divgCount>0,
+      fundingLast>0.05&&desacelerando5,
+      volCayendo&&divgCount>0,
       techoExtremo,
-      sobrecompraExtrema && sinLibro,
-      ch24>100 && fundingLast>0.15 && sobrecompra
+      sobrecompraExtrema&&sinLibro,
+      ch24>100&&fundingLast>0.15&&sobrecompra,
+      // v6: señales de liquidez
+      liqData&&liqData.liqLongDominante&&liqData.oiDistribucion,
+      liqData&&liqData.oiDistribucion&&liqData.takerBearish
     ].filter(Boolean).length;
 
-    // Veredicto raw
     let vCls,vTxt,vIcon;
-    if(techoExtremo||señalesTecho>=4){
-      vCls='v-red';    vTxt='TECHO CONFIRMADO — ENTRADA SHORT'; vIcon='🔴';
-    } else if((techoMedioSinDiv&&!techoExtremo)||señalesTecho===3){
-      if(cvdAunPositivo){
+    if(techoExtremo||(ballenaDistrib&&señalesTecho>=4)||señalesTecho>=5){
+      vCls='v-red'; vTxt='TECHO CONFIRMADO — ENTRADA SHORT'; vIcon='🔴';
+    } else if((techoMedioSinDiv&&!techoExtremo)||señalesTecho===3||señalesTecho===4){
+      if(cvdAunPositivo&&!ballenaDistrib){
         vCls='v-orange'; vTxt='ZONA DE TECHO — ESPERAR DIVERGENCIA 5M'; vIcon='🟠';
       } else {
         vCls='v-yellow'; vTxt='ZONA DE TECHO — PRECAUCIÓN'; vIcon='⚠️';
       }
     } else if(señalesTecho===2){
       vCls='v-yellow'; vTxt='SEÑALES INICIALES — VIGILAR'; vIcon='⚠️';
-    } else if(squeezeActivo){
-      vCls='v-green';  vTxt='SHORT SQUEEZE ACTIVO — NO SHORT'; vIcon='🟢';
+    } else if(squeezeActivo||(liqData&&liqData.squeezeFuel&&!ballenaDistrib)){
+      vCls='v-green'; vTxt='SHORT SQUEEZE ACTIVO — NO SHORT'; vIcon='🟢';
     } else if(acelerando5&&divgCount===0){
-      vCls='v-green';  vTxt='SIGUE CON FUERZA — ESPERAR'; vIcon='🟢';
+      vCls='v-green'; vTxt='SIGUE CON FUERZA — ESPERAR'; vIcon='🟢';
     } else {
-      vCls='v-gray';   vTxt='SIN SEÑAL CLARA'; vIcon='⬜';
+      vCls='v-gray'; vTxt='SIN SEÑAL CLARA'; vIcon='⬜';
     }
 
-    // ── MEMORIA ──
-    const mem = memory[raw];
-    const now = Date.now();
-    let locked = false;
+    // Memoria
+    const mem=memory[raw];
+    const now=Date.now();
+    let locked=false;
     if(mem){
-      const elapsed = (now-mem.ts)/1000;
-      const lockExpired = elapsed > LOCK_MINUTES*60;
-      const newSpikeUp  = price > mem.maxPrice*1.02;
-      if(!lockExpired && !newSpikeUp && levelNum(vCls)<levelNum(mem.vCls)){
+      const elapsed=(now-mem.ts)/1000;
+      const lockExpired=elapsed>LOCK_MINUTES*60;
+      const newSpikeUp=price>mem.maxPrice*1.02;
+      if(!lockExpired&&!newSpikeUp&&levelNum(vCls)<levelNum(mem.vCls)){
         vCls=mem.vCls; vTxt=mem.vTxt; vIcon=mem.vIcon; locked=true;
       }
     }
-    if(!locked || !mem || levelNum(vCls)>levelNum(mem.vCls)){
+    if(!locked||!mem||levelNum(vCls)>levelNum(mem.vCls)){
       memory[raw]={level:levelNum(vCls),vCls,vTxt,vIcon,score:techoScore,maxPrice:mem?Math.max(price,mem.maxPrice):price,ts:mem&&locked?mem.ts:now};
-    } else if(mem){
-      memory[raw].maxPrice=Math.max(price,mem.maxPrice);
-    }
+    } else if(mem){ memory[raw].maxPrice=Math.max(price,mem.maxPrice); }
     clearInterval(lockTimer);
     if(locked){ updateLockDisplay(raw); lockTimer=setInterval(()=>updateLockDisplay(raw),1000); }
     else { document.getElementById('lock-display').innerHTML=''; }
@@ -481,35 +661,22 @@ async function run(){
     const libroCls=paredFuerte?'b-red':paredMedia?'b-yellow':'b-gray';
     const fundingCls=fundingLast>0.3?'b-red':fundingLast>0.05?'b-yellow':fundingLast<-0.05?'b-green':'b-gray';
     const fundingTxt=(fundingLast>=0?'+':'')+fundingLast.toFixed(4)+'%';
-
-    // LABEL de funding corregido
-    let fundingLbl, fundingSentido;
-    if(fundingLast > 0.3){
-      fundingLbl='EUFORIA EXTREMA'; fundingSentido='longs pagan — agotamiento';
-    } else if(fundingLast > 0.15){
-      fundingLbl='MUY ALTO'; fundingSentido='longs pagan — señal techo';
-    } else if(fundingLast > 0.05){
-      fundingLbl='ELEVADO'; fundingSentido='longs pagan — precaución';
-    } else if(fundingLast > 0.01){
-      fundingLbl='NORMAL+'; fundingSentido='neutro leve alcista';
-    } else if(fundingLast < -0.1){
-      fundingLbl='SQUEEZE FUEL'; fundingSentido='shorts pagan — pump posible';
-    } else if(fundingLast < -0.05){
-      fundingLbl='SHORTS ATRAPADOS'; fundingSentido='shorts pagan — cuidado short';
-    } else {
-      fundingLbl='NORMAL'; fundingSentido='neutro';
-    }
-
+    let fundingSentido='';
+    if(fundingLast>0.3) fundingSentido='longs pagan — agotamiento';
+    else if(fundingLast>0.05) fundingSentido='longs pagan — señal techo';
+    else if(fundingLast<-0.05) fundingSentido='shorts pagan — squeeze fuel';
+    else fundingSentido='neutro';
     const stochCls=sobrecompraExtrema?'b-red':sobrecompra?'b-yellow':'b-gray';
     const divgTxt=divgCount===3?'1M+5M+15M':divgCount===2?'2 TFs':divgCount===1?'1 TF':'NO';
     const divgCls=divgCount>=2?'b-red':divgCount===1?'b-yellow':'b-gray';
     const cvd5Cls=cvd5Total>0?'b-green':'b-red';
     const cvd5Txt=(cvd5Total>=0?'+':'')+fmtBig(Math.abs(cvd5Total*price))+' USD';
+    const limColor=lim.distPct>10?'var(--green)':lim.distPct>4?'var(--yellow)':'var(--red)';
+    const limLabel=lim.distPct>10?'LEJOS':lim.distPct>4?'CERCANO':'MUY CERCA';
     const nowStr=new Date().toLocaleTimeString('es-AR');
 
-    // Color del límite según distancia
-    const limColor = lim.distPct > 10 ? 'var(--green)' : lim.distPct > 4 ? 'var(--yellow)' : 'var(--red)';
-    const limLabel = lim.distPct > 10 ? 'LEJOS' : lim.distPct > 4 ? 'CERCANO' : 'MUY CERCA';
+    // Render mapa liq
+    const liqMapHTML = liqData ? renderLiqMap(liqData.zonasArr, price) : '<div style="text-align:center;color:var(--muted);font-size:10px;padding:20px;font-family:\'IBM Plex Mono\',monospace;">Cargando liquidaciones...</div>';
 
     document.getElementById('out').innerHTML=`
 
@@ -536,15 +703,57 @@ async function run(){
         <div class="techo-sub">
           <span>pump 24h ${ch24.toFixed(1)}%</span>
           <span>pump local ${pumpIntraday.toFixed(1)}%</span>
-          <span>fund ${fundingLast>=0?'+':''}${fundingLast.toFixed(4)}%</span>
+          <span>fund ${fundingTxt}</span>
           <span>stoch 1h ${stochK.toFixed(0)}%</span>
-          ${divgCount>0?`<span class="hi">⚡ divg ${divgTxt}</span>`:'<span>sin divergencia</span>'}
-          ${fundingBullSqueeze?`<span class="bull">🔥 squeeze fuel</span>`:''}
+          ${divgCount>0?`<span class="hi">⚡ divg ${divgTxt}</span>`:'<span>sin div</span>'}
+          ${liqData&&liqData.squeezeFuel?`<span class="bull">🎣 squeeze</span>`:''}
+          ${liqData&&liqData.oiDistribucion?`<span class="hi">📉 OI cae</span>`:''}
           ${locked?'<span style="color:var(--accent)">🔒 locked</span>':''}
         </div>
       </div>
 
-      <!-- ══ LIMIT BOX v5 ══ -->
+      <!-- ══ LIQUIDEZ BOX v6 ══ -->
+      <div class="liq-box">
+        <div class="liq-box-hdr">
+          <span>🐋 ANÁLISIS DE LIQUIDEZ — BINANCE API</span>
+          ${liqData?`<span style="font-size:9px;color:var(--green);font-family:'IBM Plex Mono',monospace;">LIVE</span>`:'<span style="font-size:9px;color:var(--muted);">N/A</span>'}
+        </div>
+
+        ${liqMapHTML}
+
+        <div class="liq-grid" style="margin-top:10px;">
+          <div class="liq-item">
+            <div class="lval" style="color:var(--green)">${liqData?fmtBig(liqData.liqShortUSD):'—'}</div>
+            <div class="llbl">shorts liquidados</div>
+            <div class="lsub">${liqData?liqData.liqShortCount+' órdenes':''}</div>
+          </div>
+          <div class="liq-item">
+            <div class="lval" style="color:var(--red)">${liqData?fmtBig(liqData.liqLongUSD):'—'}</div>
+            <div class="llbl">longs liquidados</div>
+            <div class="lsub">${liqData?liqData.liqLongCount+' órdenes':''}</div>
+          </div>
+          <div class="liq-item">
+            <div class="lval" style="color:${liqData&&liqData.takerBullish?'var(--green)':liqData&&liqData.takerBearish?'var(--red)':'var(--muted)'}">${liqData?liqData.takerActual.toFixed(2)+'x':'—'}</div>
+            <div class="llbl">taker buy/sell</div>
+            <div class="lsub">${liqData?liqData.takerBullish?'compradores dominan':liqData.takerBearish?'vendedores dominan':'neutro':''}</div>
+          </div>
+          <div class="liq-item">
+            <div class="lval" style="color:${liqData&&liqData.oiTendencia==='subiendo'?'var(--green)':liqData&&liqData.oiTendencia==='bajando'?'var(--red)':'var(--muted)'}">${liqData?(liqData.oiDelta>=0?'+':'')+liqData.oiDelta.toFixed(1)+'%':'—'}</div>
+            <div class="llbl">OI delta (5m)</div>
+            <div class="lsub">${liqData?liqData.oiTendencia:''}</div>
+          </div>
+        </div>
+
+        <div class="ballena-status ${liqData?liqData.ballenaClase:'b-unknown'}" style="margin-top:10px;">
+          <span class="ballena-icon">${liqData?liqData.ballenaIcon:'🐋❓'}</span>
+          <div class="ballena-txt">
+            <div class="btitle">${liqData?liqData.ballenaEstado:'SIN DATOS'}</div>
+            <div class="bsub">${liqData?liqData.ballenaTxt:'Verificar conexión a Binance'}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIMIT BOX -->
       <div class="limit-box">
         <div class="limit-hdr">
           <span>PRECIO LÍMITE — ZONA DE TECHO ESTIMADA</span>
@@ -554,7 +763,7 @@ async function run(){
           <div class="limit-item">
             <div class="lval" style="color:${limColor}">${fmtP(lim.limit)}</div>
             <div class="llbl">límite estimado</div>
-            <div class="lsub">+${lim.distPct.toFixed(1)}% desde precio actual</div>
+            <div class="lsub">+${lim.distPct.toFixed(1)}% desde ahora</div>
           </div>
           <div class="limit-item">
             <div class="lval" style="color:var(--muted)">${fmtP(lim.resistLevel)}</div>
@@ -564,28 +773,28 @@ async function run(){
           <div class="limit-item">
             <div class="lval" style="color:var(--muted)">${fmtP(lim.atrTarget)}</div>
             <div class="llbl">ATR proyectado</div>
-            <div class="lsub">mínimo local + 2.5x ATR</div>
+            <div class="lsub">min local + 2.5x ATR</div>
           </div>
           <div class="limit-item">
-            <div class="lval" style="color:var(--muted)">${fmtP(lim.liqTarget)}</div>
-            <div class="llbl">zona liquidaciones</div>
-            <div class="lsub">high24 + buffer</div>
+            <div class="lval" style="color:var(--purple)">${fmtP(lim.liqTarget)}</div>
+            <div class="llbl">zona liq. shorts</div>
+            <div class="lsub">${liqData&&liqData.zonasArr.length>0?'de API real':'high24 + buffer'}</div>
           </div>
           <div class="limit-item limit-full">
-            <div class="llbl" style="margin-bottom:6px">liquidez disponible arriba</div>
-            <div class="liq-bar">
-              <div class="liq-fill" style="width:${lim.liquidezLibre.toFixed(0)}%;background:${lim.liquidezLibre>60?'var(--green)':lim.liquidezLibre>30?'var(--yellow)':'var(--red)'}"></div>
+            <div class="llbl" style="margin-bottom:6px">liquidez disponible arriba (libro)</div>
+            <div class="depth-bar">
+              <div class="depth-fill" style="width:${lim.liquidezLibre.toFixed(0)}%;background:${lim.liquidezLibre>60?'var(--green)':lim.liquidezLibre>30?'var(--yellow)':'var(--red)'}"></div>
             </div>
             <div class="lsub" style="margin-top:4px">${lim.liquidezLibre.toFixed(0)}% libre — ${lim.liquidezLibre>60?'camino despejado':lim.liquidezLibre>30?'resistencia moderada':'libro denso — techo cercano'}</div>
           </div>
         </div>
       </div>
 
-      ${techoExtremo?`<div class="alert alert-red"><span class="alert-icon">🚨</span><span>TECHO EXTREMO — Funding &gt;0.3% (longs pagan) + absorción + pump &gt;100%.</span></div>`:''}
-      ${squeezeActivo?`<div class="alert alert-green"><span class="alert-icon">🔥</span><span>SHORT SQUEEZE — Funding negativo: los shorts están pagando a los longs. El precio puede seguir subiendo antes del techo.</span></div>`:''}
-      ${fundingBullSqueeze&&!squeezeActivo?`<div class="alert alert-cyan"><span class="alert-icon">ℹ️</span><span>FUNDING NEGATIVO — Shorts pagan a longs. El mercado tiene combustible de squeeze. Esperá señales de agotamiento antes de shortear.</span></div>`:''}
-      ${techoMedioSinDiv&&!techoExtremo?`<div class="alert alert-yellow"><span class="alert-icon">⚠️</span><span>BTW-STYLE — Pump &gt;100% + funding positivo alto + sobrecompra.</span></div>`:''}
-      ${cvdAunPositivo&&señalesTecho>=2?`<div class="alert alert-yellow"><span class="alert-icon">🟠</span><span>CVD 5M POSITIVO — Esperar divergencia antes de entrar short.</span></div>`:''}
+      ${techoExtremo?`<div class="alert alert-red"><span class="alert-icon">🚨</span><span>TECHO EXTREMO — Funding alto positivo + absorción + pump >100%.</span></div>`:''}
+      ${liqData&&liqData.liqLongDominante&&liqData.oiDistribucion?`<div class="alert alert-red"><span class="alert-icon">🐋💨</span><span>BALLENA DISTRIBUYENDO — Longs siendo liquidados (${(100-liqData.pctShortLiq).toFixed(0)}%) y OI cae. La ballena ya llenó la panza.</span></div>`:''}
+      ${liqData&&liqData.squeezeFuel?`<div class="alert alert-green"><span class="alert-icon">🎣</span><span>CAZANDO SHORTS — ${liqData.pctShortLiq.toFixed(0)}% de las liquidaciones son shorts. OI estable. La ballena sigue apretando.</span></div>`:''}
+      ${liqData&&liqData.oiDistribucion&&!liqData.liqLongDominante?`<div class="alert alert-yellow"><span class="alert-icon">📉</span><span>OI CAYENDO con precio subiendo — señal de distribución. Monitorear takers.</span></div>`:''}
+      ${fundingBullSqueeze&&!liqData?.liqLongDominante?`<div class="alert alert-cyan"><span class="alert-icon">ℹ️</span><span>FUNDING NEGATIVO — Shorts pagan a longs. Esperar agotamiento antes de shortear.</span></div>`:''}
 
       <div class="veredicto ${vCls}">
         <span class="v-icon">${vIcon}</span>
@@ -594,131 +803,110 @@ async function run(){
 
       <div class="cards">
         <div class="card">
-          <div class="card-val" style="color:${techoScore>=80?'var(--red)':techoScore>=55?'var(--yellow)':techoScore>=25?'var(--green)':'var(--muted)'}">
-            ${techoScore}%
-          </div>
+          <div class="card-val" style="color:${techoScore>=80?'var(--red)':techoScore>=55?'var(--yellow)':techoScore>=25?'var(--green)':'var(--muted)'}">${techoScore}%</div>
           <div class="card-lbl">score</div>
         </div>
         <div class="card">
-          <div class="card-val" style="color:${señalesTecho>=4?'var(--red)':señalesTecho>=3?'var(--yellow)':señalesTecho>=2?'var(--orange)':'var(--muted)'}">
-            ${señalesTecho}/9
-          </div>
+          <div class="card-val" style="color:${señalesTecho>=5?'var(--red)':señalesTecho>=3?'var(--yellow)':señalesTecho>=2?'var(--orange)':'var(--muted)'}">${señalesTecho}/11</div>
           <div class="card-lbl">señales</div>
         </div>
         <div class="card">
-          <div class="card-val" style="color:${stochK>=95?'var(--red)':stochK>=85?'var(--yellow)':'var(--muted)'}">
-            ${stochK.toFixed(0)}%
-          </div>
+          <div class="card-val" style="color:${stochK>=95?'var(--red)':stochK>=85?'var(--yellow)':'var(--muted)'}">${stochK.toFixed(0)}%</div>
           <div class="card-lbl">stoch 1h</div>
         </div>
         <div class="card">
-          <div class="card-val" style="color:${divgCount>=2?'var(--red)':divgCount===1?'var(--yellow)':'var(--muted)'}">
-            ${divgCount}/3
-          </div>
-          <div class="card-lbl">divg TFs</div>
+          <div class="card-val" style="color:${liqData&&liqData.liqLongDominante?'var(--red)':liqData&&liqData.squeezeFuel?'var(--green)':'var(--muted)'}">${liqData?liqData.pctShortLiq.toFixed(0)+'%':'—'}</div>
+          <div class="card-lbl">liq shorts</div>
         </div>
       </div>
 
       <p class="section-title">SEÑALES DE TECHO</p>
       <div class="qs">
-
         <div class="q">
           <div class="q-left">
             <span class="q-txt">¿La ballena absorbió el libro?</span>
-            <span class="q-hint">CVD 1m vs resistencia 1er bloque 0.5% · ${absorb.toFixed(0)}% absorbido</span>
+            <span class="q-hint">CVD 1m vs resistencia · ${absorb.toFixed(0)}% absorbido</span>
           </div>
           <span class="badge ${sinLibro?'b-red':'b-gray'}">${sinLibro?'SÍ — '+absorb.toFixed(0)+'%':'NO — '+absorb.toFixed(0)+'%'}</span>
         </div>
-
         <div class="q">
           <div class="q-left">
             <span class="q-txt">Divergencia CVD/precio (multi-TF)</span>
-            <span class="q-hint">Principal: 5m · Confirma: 15m · Ruido: 1m · ${divgCount}/3 activos</span>
+            <span class="q-hint">5m principal · 15m confirma · 1m ruido</span>
           </div>
           <span class="badge ${divgCls}">${divgTxt}</span>
         </div>
-
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">CVD acumulado (5m) — principal</span>
-            <span class="q-hint">${acelerando5?'Acelerando — momentum activo':desacelerando5?'Desacelerando — fuerza cae':'Neutro'}</span>
+            <span class="q-txt">CVD acumulado 5m</span>
+            <span class="q-hint">${acelerando5?'Acelerando':desacelerando5?'Desacelerando':'Neutro'}</span>
           </div>
           <span class="badge ${cvd5Cls}">${cvd5Txt}</span>
         </div>
-
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">Stocástico 1h (14 períodos)</span>
+            <span class="q-txt">Stocástico 1h</span>
             <span class="q-hint">${sobrecompraExtrema?'EXTREMO >95%':sobrecompra?'SOBRECOMPRA >85%':'Normal'}</span>
             <div class="stoch-bar"><div class="stoch-fill" style="width:${stochK.toFixed(0)}%;background:${stochK>=95?'var(--red)':stochK>=85?'var(--yellow)':'var(--green)'}"></div></div>
           </div>
           <span class="badge ${stochCls}">${stochK.toFixed(0)}%</span>
         </div>
-
         <div class="q">
           <div class="q-left">
             <span class="q-txt">¿Volumen de compra cayendo?</span>
-            <span class="q-hint">Últimas 3 velas vs 6 anteriores (1m) — agotamiento comprador</span>
+            <span class="q-hint">Últimas 3 vs 6 velas anteriores (1m)</span>
           </div>
           <span class="badge ${volCayendo?'b-yellow':'b-gray'}">${volCayendo?'CAYENDO':'SOSTENIDO'}</span>
         </div>
-
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">Funding — dirección correcta v5</span>
-            <span class="q-hint">${fundingSentido} · ${fundingLbl}</span>
+            <span class="q-txt">Funding — dirección</span>
+            <span class="q-hint">${fundingSentido}</span>
           </div>
           <span class="badge ${fundingCls}">${fundingTxt}</span>
         </div>
-
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">¿Hay pared activa arriba?</span>
-            <span class="q-hint">Ratio asks/bids en rango ±2.5% · ${ratio.toFixed(1)}x</span>
+            <span class="q-txt">¿Pared activa arriba?</span>
+            <span class="q-hint">Ratio asks/bids ±2.5% · ${ratio.toFixed(1)}x</span>
           </div>
           <span class="badge ${libroCls}">${libroTxt}</span>
         </div>
-
+        <div class="q">
+          <div class="q-left">
+            <span class="q-txt">Takers — presión real de mercado</span>
+            <span class="q-hint">Buy/sell ratio último periodo 5m</span>
+          </div>
+          <span class="badge ${liqData?liqData.takerBullish?'b-green':liqData.takerBearish?'b-red':'b-gray':'b-gray'}">${liqData?liqData.takerActual.toFixed(2)+'x':'—'}</span>
+        </div>
+        <div class="q">
+          <div class="q-left">
+            <span class="q-txt">OI histórico — ¿subiendo con precio?</span>
+            <span class="q-hint">Baja con precio sube = distribución ballena</span>
+          </div>
+          <span class="badge ${liqData?liqData.oiDistribucion?'b-red':liqData.oiTendencia==='subiendo'?'b-green':'b-gray':'b-gray'}">${liqData?(liqData.oiDelta>=0?'+':'')+liqData.oiDelta.toFixed(1)+'% '+liqData.oiTendencia:'—'}</span>
+        </div>
+        <div class="q">
+          <div class="q-left">
+            <span class="q-txt">🐋 ¿Ballena llenó la panza?</span>
+            <span class="q-hint">Liq shorts vs longs + OI + takers</span>
+          </div>
+          <span class="badge ${liqData?liqData.liqLongDominante?'b-red':liqData.squeezeFuel?'b-green':'b-gray':'b-gray'}">${liqData?liqData.liqLongDominante?'PANZA LLENA':liqData.squeezeFuel?'SIGUE CAZANDO':'NEUTRO':'—'}</span>
+        </div>
         <div class="q">
           <div class="q-left">
             <span class="q-txt">¿Volumen institucional presente?</span>
-            <span class="q-hint">Últimas 3 velas vs promedio 1m · ${(vol3/volAvg).toFixed(1)}x</span>
+            <span class="q-hint">${(vol3/volAvg).toFixed(1)}x actual · >1.5x activa</span>
           </div>
-          <span class="badge ${volInstitucional?'b-purple':'b-gray'}">${volInstitucional?'SÍ — '+(vol3/volAvg).toFixed(1)+'x':'NO — '+(vol3/volAvg).toFixed(1)+'x'}</span>
+          <span class="badge ${volInstitucional?'b-purple':'b-gray'}">${volInstitucional?'SÍ — '+(vol3/volAvg).toFixed(1)+'x':'NO'}</span>
         </div>
-
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">¿Aparece ballena de soporte?</span>
-            <span class="q-hint">Bid dominante >25% del libro</span>
-          </div>
-          <span class="badge ${ballenaSoporte?'b-green':'b-gray'}">${ballenaSoporte?'SÍ — $'+fmtBig(topBid.usd):'NO'}</span>
-        </div>
-
-        <div class="q">
-          <div class="q-left">
-            <span class="q-txt">¿Techo extremo? (ESPORTS-style)</span>
-            <span class="q-hint">Funding >0.3% positivo + absorción + pump >100%</span>
-          </div>
-          <span class="badge ${techoExtremo?'b-red':'b-gray'}">${techoExtremo?'🚨 ACTIVO':'NO'}</span>
-        </div>
-
-        <div class="q">
-          <div class="q-left">
-            <span class="q-txt">¿Short squeeze activo?</span>
-            <span class="q-hint">Funding negativo + CVD positivo + pump &lt;20% — peligro shortear</span>
-          </div>
-          <span class="badge ${squeezeActivo?'b-green':'b-gray'}">${squeezeActivo?'🔥 SQUEEZE':'NO'}</span>
-        </div>
-
-        <div class="q">
-          <div class="q-left">
-            <span class="q-txt">🔒 Memoria de señal activa</span>
-            <span class="q-hint">Lock ${LOCK_MINUTES}min — no baja de nivel si precio no supera máximo +2%</span>
+            <span class="q-txt">🔒 Memoria de señal</span>
+            <span class="q-hint">Lock ${LOCK_MINUTES}min — no baja si precio no sube +2%</span>
           </div>
           <span class="badge ${locked?'b-red':'b-gray'}">${locked?'LOCKED':'LIBRE'}</span>
         </div>
-
       </div>
     `;
 
