@@ -625,7 +625,7 @@ function renderLibroVisual(asks, bids, price){
                Ajustado por % del tamaño del movimiento esperado
    - LEVERAGE = máximo recomendado según nivel y R/R
    ══════════════════════════════════════════════════ */
-function calcDisparo(price, techoScore, señalesTecho, liqData, lim, asks, bids, adx, fundingLast, divgCount, sobrecompra){
+function calcDisparo(price, techoScore, señalesTecho, liqData, lim, asks, bids, adx, fundingLast, divgCount, sobrecompra, sinLibro){
 
   // ── Soporte más fuerte abajo (TP base) ──
   const RNG_TP = price * 0.10;
@@ -649,8 +649,8 @@ function calcDisparo(price, techoScore, señalesTecho, liqData, lim, asks, bids,
   const esN2 = !esN3 && (techoScore >= 55 ||
                (techoScore >= 25 && señalesTecho >= 3 && sobrecompra));
 
-  const esN1 = !esN3 && !esN2 && techoScore >= 25 &&
-               liqData && (liqData.absorcionCVD || liqData.retailAtrapado || liqData.agotamiento);
+  const esN1 = !esN3 && !esN2 && techoScore >= 15 &&
+               (liqData && (liqData.absorcionCVD || liqData.retailAtrapado || liqData.agotamiento) || sinLibro);
 
   if(!esN3 && !esN2 && !esN1) return null; // Sin nivel activo
 
@@ -693,11 +693,11 @@ function calcDisparo(price, techoScore, señalesTecho, liqData, lim, asks, bids,
     entradaOffset = 0.008;    // Entrada 0.8% por debajo (muy conservador)
     stopBuffer   = 0.05;      // SL 5% arriba
     condiciones  = [
-      {txt:'Score ≥25%', ok: techoScore>=25},
+      {txt:'Score ≥15%', ok: techoScore>=15},
       {txt:'Absorción CVD', ok: liqData&&liqData.absorcionCVD},
+      {txt:'Libro absorbido', ok: sinLibro},
       {txt:'Retail atrapado', ok: liqData&&liqData.retailAtrapado},
       {txt:'Pared en libro', ok: entradaBase > price*1.005},
-      {txt:'Funding positivo', ok: fundingLast>0.01},
     ];
   }
 
@@ -940,7 +940,7 @@ async function run(){
     else { document.getElementById('lock-display').innerHTML=''; }
 
     // ── DISPARO N1/N2/N3 ──
-    const disparo = calcDisparo(price, techoScore, señalesTecho, liqData, lim, asks, bids, adx, fundingLast, divgCount, sobrecompra);
+    const disparo = calcDisparo(price, techoScore, señalesTecho, liqData, lim, asks, bids, adx, fundingLast, divgCount, sobrecompra, sinLibro);
 
     // Labels
     const libroTxt=paredFuerte?'PARED FUERTE':paredMedia?'PARED MEDIA':'LIVIANO';
