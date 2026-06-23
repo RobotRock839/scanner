@@ -213,6 +213,57 @@ document.getElementById('auto').addEventListener('change', function(){
   if(v>0) autoT=setInterval(run,v*1000);
 });
 
+/* ══ ADX DE WILDER — v6.2 ══
+   Calcula ADX/+DI/-DI desde klines de Binance.
+   ADX>25 = tendencia, >50 = fuerte, >75 = clímax absoluto.
+   Necesita al menos period*2+1 velas para ser preciso.
+*/
+function calcADX(klines, period=14){
+  if(!klines || klines.length < period*2+1) return {adx:0, diPlus:0, diMinus:0};
+  const highs  = klines.map(k=>parseFloat(k[2]));
+  const lows   = klines.map(k=>parseFloat(k[3]));
+  const closes = klines.map(k=>parseFloat(k[4]));
+
+  const trArr=[], dmpArr=[], dmmArr=[];
+  for(let i=1;i<klines.length;i++){
+    const h=highs[i],l=lows[i],pc=closes[i-1];
+    const tr=Math.max(h-l,Math.abs(h-pc),Math.abs(l-pc));
+    const up=h-highs[i-1], dn=lows[i-1]-l;
+    trArr.push(tr);
+    dmpArr.push(up>dn&&up>0?up:0);
+    dmmArr.push(dn>up&&dn>0?dn:0);
+  }
+
+  // Wilder smoothing inicial
+  function wilderSmooth(arr,p){
+    const res=[arr.slice(0,p).reduce((a,b)=>a+b,0)];
+    for(let i=p;i<arr.length;i++) res.push(res[res.length-1]-res[res.length-1]/p+arr[i]);
+    return res;
+  }
+
+  const atr14=wilderSmooth(trArr,period);
+  const dmp14=wilderSmooth(dmpArr,period);
+  const dmm14=wilderSmooth(dmmArr,period);
+
+  const dxArr=[];
+  for(let i=0;i<atr14.length;i++){
+    if(atr14[i]===0){dxArr.push(0);continue;}
+    const pdi=(dmp14[i]/atr14[i])*100;
+    const mdi=(dmm14[i]/atr14[i])*100;
+    const dx=(pdi+mdi)>0?Math.abs(pdi-mdi)/(pdi+mdi)*100:0;
+    dxArr.push(dx);
+  }
+
+  let adx=dxArr.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  for(let i=period;i<dxArr.length;i++) adx=(adx*(period-1)+dxArr[i])/period;
+
+  const lastI=atr14.length-1;
+  const pdi=atr14[lastI]>0?(dmp14[lastI]/atr14[lastI])*100:0;
+  const mdi=atr14[lastI]>0?(dmm14[lastI]/atr14[lastI])*100:0;
+
+  return {adx:Math.round(adx*10)/10, diPlus:Math.round(pdi*10)/10, diMinus:Math.round(mdi*10)/10};
+}
+
 function parseCVD(klines){
   return klines.map(k=>{
     const o=parseFloat(k[1]),h=parseFloat(k[2]),l=parseFloat(k[3]),c=parseFloat(k[4]),v=parseFloat(k[5]);
@@ -288,25 +339,55 @@ async function fetchLiquidez(pair, price, high24){
   const topShortBias = topRatio < 0.8;
 
   let ballenaEstado, ballenaClase, ballenaIcon, ballenaTxt;
-  const squeezeFuel = pctShortLiq > 65 && !oiDistribucion;
-  const distribucion = oiDistribucion && (takerBearish || takerCayendo);
+  const squeezeFuel      = pctShortLiq > 65 && !oiDistribucion;
+  const distribucion     = oiDistribucion && (takerBearish || takerCayendo);
   const liqLongDominante = pctShortLiq < 35;
+
+  // ── Absorción CVD: takers cayendo + vol bajo + OI aún estable
+  // El LIQSCAN lo detecta como "Vol Whale 0.4x — ABSORCIÓN"
+  // = la ballena absorbió el movimiento y ahora vende silenciosamente
+  const absorcionCVD = takerCayendo && !oiDistribucion && takerActual < 1.0;
+
+  // ── Retail atrapado: funding positivo moderado + takers vendiendo
+  // = compradores retail pagando funding, ballena ya no empuja
+  const retailAtrapado = takerBearish && !oiDistribucion && !squeezeFuel;
+
+  // ── Agotamiento sin distribución confirmada: OI estable pero takers caen
+  const agotamiento = takerCayendo && oiTendencia === 'estable' && pctShortLiq < 65;
 
   if(liqLongDominante && oiDistribucion){
     ballenaEstado = 'PANZA LLENA — DISTRIBUYENDO';
     ballenaClase  = 'b-llena';
     ballenaIcon   = '🐋💨';
-    ballenaTxt    = `Liquidaciones LONG dominan (${(100-pctShortLiq).toFixed(0)}%). OI cae. La ballena ya vendió.`;
+    ballenaTxt    = `Liq LONG dominan (${(100-pctShortLiq).toFixed(0)}%). OI cae. La ballena ya vendió.`;
   } else if(distribucion && !squeezeFuel){
     ballenaEstado = 'POSIBLE TECHO — OI CAYENDO';
     ballenaClase  = 'b-llenando';
     ballenaIcon   = '🐋⚠️';
-    ballenaTxt    = `OI ${oiDelta.toFixed(1)}% mientras precio sube. Takers ${takerActual.toFixed(2)}x. Señal de distribución.`;
+    ballenaTxt    = `OI ${oiDelta.toFixed(1)}% con precio subiendo. Takers ${takerActual.toFixed(2)}x. Distribución activa.`;
   } else if(squeezeFuel){
     ballenaEstado = 'CAZANDO SHORTS — SIGUE';
     ballenaClase  = 'b-buscando';
     ballenaIcon   = '🐋🎣';
     ballenaTxt    = `${pctShortLiq.toFixed(0)}% liquidaciones son SHORTS. OI estable. La ballena sigue apretando.`;
+  } else if(absorcionCVD){
+    // ← NUEVO: lo que el LIQSCAN llama "Absorción CVD confirmada"
+    ballenaEstado = 'ABSORCIÓN CVD — SALIENDO';
+    ballenaClase  = 'b-llenando';
+    ballenaIcon   = '🐋📤';
+    ballenaTxt    = `Takers cayendo (${takerActual.toFixed(2)}x). Vol bajo. La ballena absorbió y vende silencioso.`;
+  } else if(retailAtrapado){
+    // ← NUEVO: lo que el LIQSCAN llama "Retail atrapado arriba"
+    ballenaEstado = 'RETAIL ATRAPADO — VIGILAR';
+    ballenaClase  = 'b-llenando';
+    ballenaIcon   = '🐋👀';
+    ballenaTxt    = `Takers vendedores (${takerActual.toFixed(2)}x). Funding positivo. Retail paga, ballena observa.`;
+  } else if(agotamiento){
+    // ← NUEVO: agotamiento sin confirmación total
+    ballenaEstado = 'AGOTAMIENTO DETECTADO';
+    ballenaClase  = 'b-llenando';
+    ballenaIcon   = '🐋⏳';
+    ballenaTxt    = `Takers perdiendo fuerza. OI estable. Liq shorts ${pctShortLiq.toFixed(0)}%. Esperar confirmación.`;
   } else {
     ballenaEstado = 'SIN SEÑAL CLARA';
     ballenaClase  = 'b-unknown';
@@ -322,7 +403,8 @@ async function fetchLiquidez(pair, price, high24){
     oiDelta, oiTendencia, oiDistribucion,
     topRatio, topShortBias,
     ballenaEstado, ballenaClase, ballenaIcon, ballenaTxt,
-    squeezeFuel, distribucion, liqLongDominante
+    squeezeFuel, distribucion, liqLongDominante,
+    absorcionCVD, retailAtrapado, agotamiento
   };
 }
 
@@ -564,6 +646,15 @@ async function run(){
     }
     const sobrecompra=stochK>=85, sobrecompraExtrema=stochK>=95;
 
+    // ── ADX v6.2 — usa klines 1h (14 periodos mínimo, mejor con 30+) ──
+    const adxData = calcADX(kl1h, 14);
+    const adx = adxData.adx;
+    const adxClimax    = adx >= 75; // clímax absoluto — igual al LIQSCAN
+    const adxFuerte    = adx >= 50; // tendencia fuerte
+    const adxTendencia = adx >= 25; // tendencia activa
+    // +DI < -DI con ADX alto = tendencia bajista confirmada
+    const adxBearish   = adxData.diMinus > adxData.diPlus && adx >= 25;
+
     const precioAlto=price>=high24*0.90;
     const cvd5Last4=v5.slice(-4).reduce((a,b)=>a+b.cvd,0)/4;
     const cvd5Prev=v5.slice(0,-4).reduce((a,b)=>a+b.cvd,0)/Math.max(v5.length-4,1);
@@ -624,11 +715,18 @@ async function run(){
 
     let scoreLiq=0;
     if(liqData){
-      if(liqData.liqLongDominante && liqData.oiDistribucion) scoreLiq=15;
-      else if(liqData.distribucion) scoreLiq=10;
-      else if(liqData.oiDistribucion) scoreLiq=7;
-      else if(liqData.squeezeFuel) scoreLiq=-8;
+      if(liqData.liqLongDominante && liqData.oiDistribucion) scoreLiq=15;  // techo confirmado
+      else if(liqData.distribucion)   scoreLiq=12;  // OI cae + takers venden
+      else if(liqData.oiDistribucion) scoreLiq=8;   // OI cae solo
+      else if(liqData.absorcionCVD)   scoreLiq=8;   // ← NUEVO: absorción silenciosa
+      else if(liqData.retailAtrapado) scoreLiq=6;   // ← NUEVO: retail atrapado
+      else if(liqData.agotamiento)    scoreLiq=4;   // ← NUEVO: agotamiento
+      else if(liqData.squeezeFuel)    scoreLiq=-8;  // squeeze activo, NO techo
     }
+
+    // FIX v6.2: umbral funding más sensible (0.03% = retail atrapado, antes era 0.05%)
+    // Ajusta scoreFund para capturar antes el calentamiento
+    if(fundingLast>0.03 && fundingLast<=0.05) scoreFund = Math.max(scoreFund, 7);
 
     const techoScore=Math.max(0,Math.round(scorePump+scoreFund+scoreDivg+scoreStoch+scoreVol+scoreLiq));
 
@@ -642,20 +740,22 @@ async function run(){
     const techoMedioSinDiv=ch24>100&&fundingLast>0.15&&sinLibro&&sobrecompra;
     const cvdAunPositivo=cvd5Total>0&&!volInstitucional&&divgCount===0;
     const squeezeActivo=fundingBullSqueeze&&cvd5Total>0&&pumpIntraday<20;
-    const ballenaDistrib=liqData&&(liqData.liqLongDominante||liqData.distribucion);
+    const ballenaDistrib=liqData&&(liqData.liqLongDominante||liqData.distribucion||liqData.absorcionCVD||liqData.retailAtrapado);
 
     const señalesTecho=[
       sinLibro&&desacelerando5,
       divergencia5m,
       divergencia15m,
       divergencia1m,
-      fundingLast>0.05&&desacelerando5,
+      fundingLast>0.03&&desacelerando5,         // FIX: umbral 0.03 (antes 0.05)
       volCayendo&&divgCount>0,
       techoExtremo,
       sobrecompraExtrema&&sinLibro,
       ch24>100&&fundingLast>0.15&&sobrecompra,
       liqData&&liqData.liqLongDominante&&liqData.oiDistribucion,
-      liqData&&liqData.oiDistribucion&&liqData.takerBearish
+      liqData&&liqData.oiDistribucion&&liqData.takerBearish,
+      liqData&&liqData.absorcionCVD&&divgCount>0, // ← NUEVO: absorción + divergencia
+      liqData&&liqData.retailAtrapado&&sobrecompra // ← NUEVO: retail atrapado + stoch
     ].filter(Boolean).length;
 
     let vCls,vTxt,vIcon;
@@ -853,6 +953,9 @@ async function run(){
       ${liqData&&liqData.squeezeFuel?`<div class="alert alert-green"><span class="alert-icon">🎣</span><span>CAZANDO SHORTS — ${liqData.pctShortLiq.toFixed(0)}% de las liquidaciones son shorts. OI estable. La ballena sigue apretando.</span></div>`:''}
       ${liqData&&liqData.oiDistribucion&&!liqData.liqLongDominante?`<div class="alert alert-yellow"><span class="alert-icon">📉</span><span>OI CAYENDO con precio subiendo — señal de distribución. Monitorear takers.</span></div>`:''}
       ${fundingBullSqueeze&&!liqData?.liqLongDominante?`<div class="alert alert-cyan"><span class="alert-icon">ℹ️</span><span>FUNDING NEGATIVO — Shorts pagan a longs. Esperar agotamiento antes de shortear.</span></div>`:''}
+      ${liqData&&liqData.absorcionCVD?`<div class="alert alert-yellow"><span class="alert-icon">🐋📤</span><span>ABSORCIÓN CVD — Takers perdiendo fuerza (${liqData.takerActual.toFixed(2)}x). La ballena absorbió el rally y vende silenciosamente.</span></div>`:''}
+      ${liqData&&liqData.retailAtrapado?`<div class="alert alert-yellow"><span class="alert-icon">🐋👀</span><span>RETAIL ATRAPADO ARRIBA — Takers vendedores dominan. Funding positivo. Compradores retail pagando, ballena observa.</span></div>`:''}
+      ${liqData&&liqData.agotamiento&&!liqData.absorcionCVD?`<div class="alert alert-yellow"><span class="alert-icon">🐋⏳</span><span>AGOTAMIENTO DETECTADO — Takers perdiendo fuerza. Esperar divergencia CVD para confirmar techo.</span></div>`:''}
 
       <div class="veredicto ${vCls}">
         <span class="v-icon">${vIcon}</span>
