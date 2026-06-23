@@ -277,30 +277,75 @@ async function fetchLiquidez(pair, price, high24){
   const base = 'https://fapi.binance.com/futures/data/';
   const base1 = 'https://fapi.binance.com/fapi/v1/';
 
-  const [forceR, lsRatioR, takerR, oiHistR, topLSR] = await Promise.allSettled([
-    fetch(base1+'allForceOrders?symbol='+pair+'&limit=100').then(r=>r.json()),
+  const [forceR, lsRatioR, takerR, oiHistR, topLSR, oiHist1hR] = await Promise.allSettled([
+    fetch(base1+'allForceOrders?symbol='+pair+'&limit=200').then(r=>r.json()),
     fetch(base+'globalLongShortAccountRatio?symbol='+pair+'&period=5m&limit=6').then(r=>r.json()),
     fetch(base+'takerlongshortRatio?symbol='+pair+'&period=5m&limit=6').then(r=>r.json()),
     fetch(base+'openInterestHist?symbol='+pair+'&period=5m&limit=12').then(r=>r.json()),
     fetch(base+'topLongShortPositionRatio?symbol='+pair+'&period=5m&limit=6').then(r=>r.json()),
+    // NUEVO: klines 1h para estimar zonas de liq desde precio+OI
+    fetch(base1+'klines?symbol='+pair+'&interval=1h&limit=48').then(r=>r.json()),
   ]);
 
+  // ── 1. LIQUIDACIONES FORZADAS (allForceOrders) ──
+  // Este endpoint a veces devuelve [] si no hubo liquidaciones recientes
+  // En ese caso estimamos desde OI + precio histórico
   const forceOrders = forceR.status==='fulfilled' && Array.isArray(forceR.value) ? forceR.value : [];
   let liqShortUSD=0, liqLongUSD=0, liqShortCount=0, liqLongCount=0;
   let liqZonas = {};
+  let usandoEstimacion = false;
 
-  forceOrders.forEach(o => {
-    const qty = parseFloat(o.origQty) * parseFloat(o.price);
-    const bucket = (Math.round(parseFloat(o.price) / (price*0.005)) * (price*0.005)).toFixed(6);
-    if(!liqZonas[bucket]) liqZonas[bucket] = {long:0, short:0};
-    if(o.side === 'BUY'){
-      liqShortUSD += qty; liqShortCount++;
-      liqZonas[bucket].short += qty;
-    } else {
-      liqLongUSD += qty; liqLongCount++;
-      liqZonas[bucket].long += qty;
+  if(forceOrders.length > 0){
+    // Datos reales de liquidaciones
+    forceOrders.forEach(o => {
+      const qty = parseFloat(o.origQty) * parseFloat(o.price);
+      const bucket = (Math.round(parseFloat(o.price) / (price*0.005)) * (price*0.005)).toFixed(6);
+      if(!liqZonas[bucket]) liqZonas[bucket] = {long:0, short:0};
+      if(o.side === 'BUY'){
+        liqShortUSD += qty; liqShortCount++;
+        liqZonas[bucket].short += qty;
+      } else {
+        liqLongUSD += qty; liqLongCount++;
+        liqZonas[bucket].long += qty;
+      }
+    });
+  } else {
+    // ESTIMACIÓN desde klines 1h + OI histórico
+    // Lógica: cada vela 1h con volumen alto y movimiento grande
+    // acumuló posiciones que ahora son potenciales liquidaciones
+    usandoEstimacion = true;
+    const kl1hLiq = oiHist1hR.status==='fulfilled' && Array.isArray(oiHist1hR.value) ? oiHist1hR.value : [];
+
+    // Usamos el OI histórico 5m para estimar cuántos longs/shorts hay por nivel
+    const oiHistData = oiHistR.status==='fulfilled' && Array.isArray(oiHistR.value) ? oiHistR.value : [];
+
+    if(oiHistData.length >= 2){
+      const oiActual = parseFloat(oiHistData[oiHistData.length-1].sumOpenInterest) * price;
+      const oiAnterior = parseFloat(oiHistData[0].sumOpenInterest) * price;
+      const deltaOI = oiActual - oiAnterior;
+
+      // Si OI subió: nuevos longs entraron (pueden ser liquidados si baja)
+      // Si OI bajó: posiciones cerradas (distribución)
+      if(deltaOI > 0){
+        // Estimar longs atrapados arriba: OI nuevo * % que está por encima del precio actual
+        liqLongUSD = Math.abs(deltaOI) * 0.4; // 40% estimado en zona de riesgo
+        liqShortUSD = Math.abs(deltaOI) * 0.6;
+        liqLongCount = Math.round(liqLongUSD / (price * 10));
+        liqShortCount = Math.round(liqShortUSD / (price * 10));
+      } else {
+        liqLongUSD = Math.abs(deltaOI) * 0.6;
+        liqShortUSD = Math.abs(deltaOI) * 0.4;
+        liqLongCount = Math.round(liqLongUSD / (price * 10));
+        liqShortCount = Math.round(liqShortUSD / (price * 10));
+      }
+
+      // Zonas estimadas: distribuir alrededor del precio actual
+      const zonaArriba = (price * 1.03).toFixed(6);
+      const zonaAbajo  = (price * 0.97).toFixed(6);
+      liqZonas[zonaArriba] = {short: liqShortUSD * 0.7, long: liqLongUSD * 0.3};
+      liqZonas[zonaAbajo]  = {short: liqShortUSD * 0.3, long: liqLongUSD * 0.7};
     }
-  });
+  }
 
   const totalLiqUSD = liqShortUSD + liqLongUSD;
   const pctShortLiq = totalLiqUSD > 0 ? (liqShortUSD/totalLiqUSD)*100 : 50;
@@ -404,7 +449,8 @@ async function fetchLiquidez(pair, price, high24){
     topRatio, topShortBias,
     ballenaEstado, ballenaClase, ballenaIcon, ballenaTxt,
     squeezeFuel, distribucion, liqLongDominante,
-    absorcionCVD, retailAtrapado, agotamiento
+    absorcionCVD, retailAtrapado, agotamiento,
+    usandoEstimacion
   };
 }
 
@@ -869,7 +915,12 @@ async function run(){
       <div class="liq-box">
         <div class="liq-box-hdr">
           <span>🐋 ANÁLISIS DE LIQUIDEZ — BINANCE API</span>
-          ${liqData?`<span style="font-size:9px;color:var(--green);font-family:'IBM Plex Mono',monospace;">LIVE</span>`:'<span style="font-size:9px;color:var(--muted);">N/A</span>'}
+          ${liqData
+            ? liqData.usandoEstimacion
+              ? `<span style="font-size:9px;color:var(--yellow);font-family:'IBM Plex Mono',monospace;">ESTIMADO · sin liq reales</span>`
+              : `<span style="font-size:9px;color:var(--green);font-family:'IBM Plex Mono',monospace;">LIVE · datos reales</span>`
+            : `<span style="font-size:9px;color:var(--muted);">N/A</span>`
+          }
         </div>
 
         ${liqMapHTML}
@@ -878,12 +929,12 @@ async function run(){
           <div class="liq-item">
             <div class="lval" style="color:var(--green)">${liqData?fmtBig(liqData.liqShortUSD):'—'}</div>
             <div class="llbl">shorts liquidados</div>
-            <div class="lsub">${liqData?liqData.liqShortCount+' órdenes':''}</div>
+            <div class="lsub">${liqData ? liqData.usandoEstimacion ? '~ estimado OI' : liqData.liqShortCount+' órdenes reales' : ''}</div>
           </div>
           <div class="liq-item">
             <div class="lval" style="color:var(--red)">${liqData?fmtBig(liqData.liqLongUSD):'—'}</div>
             <div class="llbl">longs liquidados</div>
-            <div class="lsub">${liqData?liqData.liqLongCount+' órdenes':''}</div>
+            <div class="lsub">${liqData ? liqData.usandoEstimacion ? '~ estimado OI' : liqData.liqLongCount+' órdenes reales' : ''}</div>
           </div>
           <div class="liq-item">
             <div class="lval" style="color:${liqData&&liqData.takerBullish?'var(--green)':liqData&&liqData.takerBearish?'var(--red)':'var(--muted)'}">${liqData?liqData.takerActual.toFixed(2)+'x':'—'}</div>
