@@ -13,14 +13,12 @@
   --green:#00c97a;--yellow:#f5c842;--red:#f04a5a;--orange:#ff8c42;--purple:#a855f7;--cyan:#22d3ee;
 }
 body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;padding:20px 16px 48px;max-width:640px;margin:0 auto;}
-
 .hdr{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--border);}
 .logo{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink 2s infinite;flex-shrink:0;}
 @keyframes blink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(91,127,255,.5);}50%{opacity:.2;box-shadow:0 0 0 5px rgba(91,127,255,0);}}
 .ver{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--accent);background:rgba(91,127,255,.12);padding:2px 8px;border-radius:3px;letter-spacing:1px;font-weight:700;}
 .ts{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-left:auto;}
-
 .bar{display:flex;gap:8px;margin-bottom:22px;}
 .sym{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;padding:11px 14px;flex:1;text-transform:uppercase;outline:none;border-radius:7px;letter-spacing:2px;transition:border-color .15s;}
 .sym:focus{border-color:var(--accent);}
@@ -29,17 +27,14 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .go{background:var(--accent);color:#fff;border:none;padding:11px 22px;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13px;border-radius:7px;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap;}
 .go:hover{opacity:.85;}.go:active{transform:scale(.97);}
 .go:disabled{background:var(--bg3);color:var(--muted);cursor:not-allowed;transform:none;}
-
 .lock-bar{display:flex;align-items:center;gap:10px;background:rgba(240,74,90,.07);border:1px solid rgba(240,74,90,.25);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--red);}
 .lock-icon{font-size:14px;flex-shrink:0;}
 .lock-bar .countdown{margin-left:auto;font-weight:700;font-size:13px;}
 .lock-bar.amarillo{background:rgba(245,200,66,.06);border-color:rgba(245,200,66,.25);color:var(--yellow);}
-
 .price-row{margin-bottom:18px;}
 .price-num{font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:700;color:#fff;letter-spacing:-1px;line-height:1;}
 .price-meta{font-size:12px;color:var(--muted);margin-top:6px;font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;display:flex;gap:10px;flex-wrap:wrap;}
 .price-ch{font-weight:600;}.price-ch.pos{color:var(--green);}.price-ch.neg{color:var(--red);}
-
 .techo-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;}
 .techo-hdr{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;margin-bottom:10px;}
 .techo-track{height:10px;background:var(--bg3);border-radius:5px;overflow:hidden;}
@@ -51,25 +46,18 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .techo-sub .hi{color:var(--red);background:rgba(240,74,90,.1);}
 .techo-sub .bull{color:var(--green);background:rgba(0,201,122,.1);}
 .techo-sub .cy{color:var(--cyan);background:rgba(34,211,238,.1);}
-
-/* ══ LIQUIDEZ BOX v6 ══ */
 .liq-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden;}
 .liq-box::before{content:'';position:absolute;inset:0;border-left:3px solid var(--purple);border-radius:10px;pointer-events:none;}
 .liq-box-hdr{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
-
-/* Mapa visual de liquidaciones */
 .liqmap{position:relative;height:80px;background:var(--bg3);border-radius:7px;overflow:hidden;margin-bottom:10px;}
 .liqmap-bar{position:absolute;bottom:0;width:3px;border-radius:2px 2px 0 0;transition:height .6s ease;}
 .liqmap-price{position:absolute;top:50%;transform:translateY(-50%);width:2px;background:rgba(255,255,255,.6);height:100%;}
 .liqmap-label{position:absolute;font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);top:3px;}
-
 .liq-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
 .liq-item{background:var(--bg3);border-radius:7px;padding:10px 12px;}
 .liq-item .lval{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700;line-height:1;margin-bottom:3px;}
 .liq-item .llbl{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;}
 .liq-item .lsub{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:3px;}
-
-/* Ballena status */
 .ballena-status{border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;font-family:'IBM Plex Mono',monospace;font-size:12px;}
 .ballena-icon{font-size:22px;flex-shrink:0;}
 .ballena-txt .btitle{font-weight:700;font-size:13px;margin-bottom:2px;}
@@ -78,8 +66,6 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .b-llenando{background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.25);color:var(--yellow);}
 .b-llena{background:rgba(240,74,90,.08);border:1px solid rgba(240,74,90,.3);color:var(--red);}
 .b-unknown{background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
-
-/* LIMIT BOX */
 .limit-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden;}
 .limit-box::before{content:'';position:absolute;inset:0;border-left:3px solid var(--cyan);border-radius:10px;pointer-events:none;}
 .limit-hdr{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
@@ -93,6 +79,18 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .depth-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:8px;}
 .depth-fill{height:100%;border-radius:3px;transition:width 1s ease;}
 
+/* ══ LIBRO BOX — NUEVO v6.1 ══ */
+.libro-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden;}
+.libro-box::before{content:'';position:absolute;inset:0;border-left:3px solid var(--yellow);border-radius:10px;pointer-events:none;}
+.libro-hdr{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+.libro-visual{display:flex;gap:3px;height:60px;align-items:flex-end;margin-bottom:8px;}
+.libro-col{flex:1;border-radius:2px 2px 0 0;min-width:4px;transition:height .5s ease;}
+.libro-precio{font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:center;padding:6px 0;background:var(--bg3);border-radius:5px;margin-bottom:8px;color:#fff;letter-spacing:1px;}
+.libro-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.libro-stat{background:var(--bg3);border-radius:6px;padding:8px 10px;text-align:center;}
+.libro-stat .lsv{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;line-height:1;margin-bottom:2px;}
+.libro-stat .lsl{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:.8px;text-transform:uppercase;}
+
 .alert{border-radius:8px;padding:12px 16px;margin-bottom:12px;font-size:12px;font-family:'IBM Plex Mono',monospace;letter-spacing:.4px;display:flex;align-items:flex-start;gap:10px;line-height:1.6;}
 .alert-red{background:rgba(240,74,90,.08);border:1px solid rgba(240,74,90,.3);color:var(--red);}
 .alert-yellow{background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.25);color:var(--yellow);}
@@ -100,7 +98,6 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .alert-cyan{background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.25);color:var(--cyan);}
 .alert-purple{background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.25);color:var(--purple);}
 .alert-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
-
 .veredicto{padding:16px 20px;border-radius:9px;font-size:15px;font-weight:600;letter-spacing:.5px;margin-bottom:18px;border-left:3px solid transparent;display:flex;align-items:center;gap:10px;}
 .v-red{background:rgba(240,74,90,.1);border-color:var(--red);color:var(--red);}
 .v-yellow{background:rgba(245,200,66,.08);border-color:var(--yellow);color:var(--yellow);}
@@ -108,12 +105,10 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .v-green{background:rgba(0,201,122,.08);border-color:var(--green);color:var(--green);}
 .v-gray{background:var(--bg2);border-color:var(--border);color:var(--muted);}
 .v-icon{font-size:18px;flex-shrink:0;}
-
 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:11px 8px;text-align:center;}
 .card-val{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700;line-height:1;margin-bottom:4px;}
 .card-lbl{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:.8px;text-transform:uppercase;}
-
 .section-title{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
 .qs{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;}
 .q{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--bg3);gap:12px;transition:background .1s;}
@@ -129,15 +124,12 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .b-gray{background:var(--bg3);color:var(--muted);}
 .b-purple{background:rgba(168,85,247,.15);color:var(--purple);}
 .b-cyan{background:rgba(34,211,238,.15);color:var(--cyan);}
-
 .stoch-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:5px;width:70px;}
 .stoch-fill{height:100%;border-radius:3px;}
-
 .miss{padding:60px 0;text-align:center;color:var(--muted);font-size:12px;line-height:3;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;}
 .err{padding:16px 18px;border:1px solid rgba(240,74,90,.3);border-radius:8px;color:var(--red);font-size:12px;line-height:2;font-family:'IBM Plex Mono',monospace;background:rgba(240,74,90,.05);}
 .bottom{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;display:flex;justify-content:space-between;margin-top:24px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap;gap:6px;}
-
-@media(max-width:420px){.price-num{font-size:32px;}.cards{grid-template-columns:repeat(2,1fr);}.techo-label{font-size:22px;}.limit-grid,.liq-grid{grid-template-columns:1fr;}}
+@media(max-width:420px){.price-num{font-size:32px;}.cards{grid-template-columns:repeat(2,1fr);}.techo-label{font-size:22px;}.limit-grid,.liq-grid,.libro-stats{grid-template-columns:1fr;}}
 @media(prefers-reduced-motion:reduce){.dot{animation:none;}.techo-fill,.depth-fill{transition:none;}}
 </style>
 </head>
@@ -145,7 +137,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
 <div class="hdr">
   <span class="logo"><span class="dot"></span>SPIKE TECHO</span>
-  <span class="ver">v6</span>
+  <span class="ver">v6.1</span>
   <span class="ts" id="ts">—</span>
 </div>
 
@@ -167,7 +159,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
 <div class="bottom">
   <span id="bl">—</span>
-  <span>BINANCE FUTURES · SPIKE TECHO v6</span>
+  <span>BINANCE FUTURES · SPIKE TECHO v6.1</span>
 </div>
 
 <script>
@@ -230,24 +222,6 @@ function parseCVD(klines){
   });
 }
 
-/* ══════════════════════════════════════════════════════════
-   ANÁLISIS DE LIQUIDEZ — lee directamente de Binance API
-   
-   Fuentes:
-   1. allForceOrders  → liquidaciones reales ejecutadas (precio + monto)
-   2. globalLongShortAccountRatio → % cuentas long vs short AHORA
-   3. takerlongshortRatio → presión real de takers (quién está comprando)
-   4. openInterestHist → evolución del OI (subiendo con precio = bullish)
-   5. topLongShortPositionRatio → qué hacen los traders grandes
-   
-   Lógica ballena:
-   - Si liquidaciones recientes son mayoritariamente SHORT → la ballena
-     está cazando shorts (squeeze en curso, panza no llena)
-   - Si liquidaciones recientes son mayoritariamente LONG → la ballena
-     ya distribuyó y los compradores están siendo liquidados (techo)
-   - OI cae con precio subiendo → distribución (ballena vendiendo)
-   - OI sube con precio → nuevos longs entrando (puede seguir)
-   ══════════════════════════════════════════════════════════ */
 async function fetchLiquidez(pair, price, high24){
   const base = 'https://fapi.binance.com/futures/data/';
   const base1 = 'https://fapi.binance.com/fapi/v1/';
@@ -260,17 +234,14 @@ async function fetchLiquidez(pair, price, high24){
     fetch(base+'topLongShortPositionRatio?symbol='+pair+'&period=5m&limit=6').then(r=>r.json()),
   ]);
 
-  // ── 1. LIQUIDACIONES FORZADAS ──
   const forceOrders = forceR.status==='fulfilled' && Array.isArray(forceR.value) ? forceR.value : [];
   let liqShortUSD=0, liqLongUSD=0, liqShortCount=0, liqLongCount=0;
-  let liqZonas = {}; // precio → usd liquidado
+  let liqZonas = {};
 
   forceOrders.forEach(o => {
     const qty = parseFloat(o.origQty) * parseFloat(o.price);
     const bucket = (Math.round(parseFloat(o.price) / (price*0.005)) * (price*0.005)).toFixed(6);
     if(!liqZonas[bucket]) liqZonas[bucket] = {long:0, short:0};
-    // side BUY = liquidación de SHORT (el exchange compra para cerrar short)
-    // side SELL = liquidación de LONG (el exchange vende para cerrar long)
     if(o.side === 'BUY'){
       liqShortUSD += qty; liqShortCount++;
       liqZonas[bucket].short += qty;
@@ -283,56 +254,40 @@ async function fetchLiquidez(pair, price, high24){
   const totalLiqUSD = liqShortUSD + liqLongUSD;
   const pctShortLiq = totalLiqUSD > 0 ? (liqShortUSD/totalLiqUSD)*100 : 50;
 
-  // Zonas de mayor liquidación (para el mapa)
   const zonasArr = Object.entries(liqZonas)
     .map(([p,v]) => ({price:parseFloat(p), total:v.long+v.short, long:v.long, short:v.short}))
     .sort((a,b) => b.total-a.total)
     .slice(0, 15);
 
-  // ── 2. RATIO LONG/SHORT GLOBAL ──
   const lsData = lsRatioR.status==='fulfilled' && Array.isArray(lsRatioR.value) ? lsRatioR.value : [];
   const lsActual = lsData.length > 0 ? parseFloat(lsData[lsData.length-1].longShortRatio) : 1;
   const lsAnterior = lsData.length > 1 ? parseFloat(lsData[0].longShortRatio) : lsActual;
-  const lsCreciendo = lsActual > lsAnterior * 1.05; // más longs que antes
-  const lsCayendo   = lsActual < lsAnterior * 0.95; // menos longs (más shorts)
+  const lsCreciendo = lsActual > lsAnterior * 1.05;
+  const lsCayendo   = lsActual < lsAnterior * 0.95;
   const pctLong = lsData.length > 0 ? parseFloat(lsData[lsData.length-1].longAccount)*100 : 50;
 
-  // ── 3. TAKER RATIO ──
   const takerData = takerR.status==='fulfilled' && Array.isArray(takerR.value) ? takerR.value : [];
   const takerActual = takerData.length > 0 ? parseFloat(takerData[takerData.length-1].buySellRatio) : 1;
   const takerAnterior = takerData.length > 1 ? parseFloat(takerData[0].buySellRatio) : takerActual;
-  // >1 = más takers comprando; <1 = más vendiendo
   const takerBullish  = takerActual > 1.1;
   const takerBearish  = takerActual < 0.9;
-  const takerCayendo  = takerActual < takerAnterior * 0.85; // takers compradores cayendo
+  const takerCayendo  = takerActual < takerAnterior * 0.85;
 
-  // ── 4. OI HISTÓRICO — ¿subiendo o bajando con el precio? ──
   const oiHist = oiHistR.status==='fulfilled' && Array.isArray(oiHistR.value) ? oiHistR.value : [];
   let oiDelta = 0, oiTendencia = 'neutral';
   if(oiHist.length >= 3){
     const oiFirst = parseFloat(oiHist[0].sumOpenInterest);
     const oiLast  = parseFloat(oiHist[oiHist.length-1].sumOpenInterest);
     oiDelta = ((oiLast - oiFirst) / oiFirst) * 100;
-    // OI sube + precio sube = nuevos longs, bullish para continuar
-    // OI baja + precio sube = cierres / distribución = bearish
     oiTendencia = oiDelta > 2 ? 'subiendo' : oiDelta < -2 ? 'bajando' : 'estable';
   }
-  const oiDistribucion = oiTendencia === 'bajando'; // precio sube pero OI baja = distribución
+  const oiDistribucion = oiTendencia === 'bajando';
 
-  // ── 5. TOP TRADERS RATIO ──
   const topLS = topLSR.status==='fulfilled' && Array.isArray(topLSR.value) ? topLSR.value : [];
   const topRatio = topLS.length > 0 ? parseFloat(topLS[topLS.length-1].longShortRatio) : 1;
-  // >1 top traders más long, <1 más short
-  const topShortBias = topRatio < 0.8; // grandes traders apuestan a baja
-
-  // ── CONCLUSIÓN BALLENA ──
-  // La ballena "llenó la panza" cuando:
-  // - Liquidaciones de SHORT dominan (>65%) → squeeze activo, sigue comprando
-  // - Pero si OI empieza a bajar mientras precio sigue = está distribuyendo
-  // - Si takers caen + OI baja + liq LONG empieza a crecer → terminó
+  const topShortBias = topRatio < 0.8;
 
   let ballenaEstado, ballenaClase, ballenaIcon, ballenaTxt;
-
   const squeezeFuel = pctShortLiq > 65 && !oiDistribucion;
   const distribucion = oiDistribucion && (takerBearish || takerCayendo);
   const liqLongDominante = pctShortLiq < 35;
@@ -371,9 +326,16 @@ async function fetchLiquidez(pair, price, high24){
   };
 }
 
-function calcLimit(price, asks, high24, minLocal, oi, vol24, kl1h, liqData){
-  const rng5 = price * 0.05;
-  const asksNear = asks.filter(a => a.price <= price + rng5 && a.price > price);
+/* ══════════════════════════════════════════════
+   FIX v6.1: calcLimit con lógica de libro corregida
+   - RNG ampliado a ±8% para capturar paredes reales
+   - liquidezLibre = bids / (bids+asks) en zona cercana
+   ══════════════════════════════════════════════ */
+function calcLimit(price, asks, bids, high24, minLocal, oi, vol24, kl1h, liqData){
+  // FIX: rango ampliado de 2.5% a 8% para capturar paredes
+  const RNG_RESIST = price * 0.08;
+  const asksNear = asks.filter(a => a.price <= price + RNG_RESIST && a.price > price);
+
   let resistLevel = price * 1.02;
   if(asksNear.length > 0){
     const bucketSize = price * 0.005;
@@ -394,10 +356,8 @@ function calcLimit(price, asks, high24, minLocal, oi, vol24, kl1h, liqData){
   }
   const atrTarget = minLocal>0&&atr>0 ? minLocal+atr*2.5 : price*1.03;
 
-  // Zona de liquidaciones: usar las liquidaciones reales de la API si las hay
   let liqTarget = high24>price ? high24*1.02 : price*1.04;
   if(liqData && liqData.zonasArr && liqData.zonasArr.length > 0){
-    // Zona con más shorts por liquidar ARRIBA del precio actual
     const zonaArriba = liqData.zonasArr
       .filter(z => z.price > price && z.short > z.long)
       .sort((a,b) => b.short-a.short)[0];
@@ -405,11 +365,25 @@ function calcLimit(price, asks, high24, minLocal, oi, vol24, kl1h, liqData){
   }
 
   const limit = resistLevel*0.45 + atrTarget*0.25 + liqTarget*0.30;
-  const totalAskUSD = asksNear.reduce((s,a)=>s+a.usd,0);
-  const liquidezLibre = totalAskUSD>0 ? Math.min(100,Math.max(0,100-(totalAskUSD/(vol24*0.001))*100)) : 50;
+
+  // FIX: liquidezLibre = ratio bids/(bids+asks) en zona ±3%
+  // Si bids dominan → camino despejado arriba (verde)
+  // Si asks dominan → libro denso, techo cercano (rojo)
+  const RNG_CLOSE = price * 0.03;
+  const askUSDClose = asks.filter(a => a.price <= price + RNG_CLOSE).reduce((s,a)=>s+a.usd,0);
+  const bidUSDClose = bids.filter(b => b.price >= price - RNG_CLOSE).reduce((s,b)=>s+b.usd,0);
+  const totalCercano = askUSDClose + bidUSDClose;
+
+  // liquidezLibre: cuánto "espacio" hay arriba vs cuánta presión vendedora
+  // 100% = solo bids (camino libre), 0% = solo asks (pared total)
+  const liquidezLibre = totalCercano > 0
+    ? Math.min(100, Math.max(0, (bidUSDClose / totalCercano) * 100))
+    : 50;
+
   const distPct = ((limit-price)/price)*100;
 
-  return {limit, resistLevel, atrTarget, liqTarget, distPct, liquidezLibre};
+  return {limit, resistLevel, atrTarget, liqTarget, distPct, liquidezLibre,
+          askUSDClose, bidUSDClose, totalCercano};
 }
 
 /* ── RENDER DEL MAPA DE LIQUIDACIONES ── */
@@ -422,7 +396,7 @@ function renderLiqMap(zonasArr, price){
   const range = maxP - minP || 1;
   const maxTotal = Math.max(...zonasArr.map(z=>z.total));
 
-  const W = 280; // ancho del mapa en px
+  const W = 280;
   let bars = '';
   zonasArr.forEach(z => {
     const x = ((z.price - minP) / range) * (W-4);
@@ -432,11 +406,9 @@ function renderLiqMap(zonasArr, price){
     bars += `<div class="liqmap-bar" style="left:${x.toFixed(1)}px;height:${h}px;background:${col};"></div>`;
   });
 
-  // Línea del precio actual
   const priceX = ((price - minP) / range) * (W-4);
   const minLabel = fmtP(minP);
   const maxLabel = fmtP(maxP);
-  const priceLabel = fmtP(price);
 
   return `
     <div style="position:relative;">
@@ -451,6 +423,74 @@ function renderLiqMap(zonasArr, price){
         <span style="color:var(--red);">▮ longs liquidados (techo)</span>
       </div>
     </div>`;
+}
+
+/* ── RENDER DEL LIBRO VISUAL ── */
+function renderLibroVisual(asks, bids, price){
+  // Tomamos 20 niveles de cada lado en ±5%
+  const RNG = price * 0.05;
+  const asksV = asks.filter(a=>a.price<=price+RNG && a.price>price).slice(0,20);
+  const bidsV = bids.filter(b=>b.price>=price-RNG && b.price<price).slice(0,20);
+
+  if(asksV.length===0 && bidsV.length===0){
+    return '<div style="text-align:center;color:var(--muted);font-size:10px;padding:10px;font-family:\'IBM Plex Mono\',monospace;">Sin datos de libro</div>';
+  }
+
+  const maxUSD = Math.max(
+    ...asksV.map(a=>a.usd),
+    ...bidsV.map(b=>b.usd),
+    1
+  );
+
+  // Bid bars (izquierda, verde) + ask bars (derecha, rojo), centrado en precio
+  let bidBars = bidsV.slice().reverse().map(b=>{
+    const h = Math.max(4, (b.usd/maxUSD)*58);
+    return `<div class="libro-col" style="height:${h}px;background:rgba(0,201,122,${0.3+0.7*(b.usd/maxUSD)});"></div>`;
+  }).join('');
+
+  let askBars = asksV.map(a=>{
+    const h = Math.max(4, (a.usd/maxUSD)*58);
+    return `<div class="libro-col" style="height:${h}px;background:rgba(240,74,90,${0.3+0.7*(a.usd/maxUSD)});"></div>`;
+  }).join('');
+
+  const totalAsk = asksV.reduce((s,a)=>s+a.usd,0);
+  const totalBid = bidsV.reduce((s,b)=>s+b.usd,0);
+  const ratio = totalBid>0 ? totalAsk/totalBid : 0;
+
+  // Pared más grande arriba
+  const paredTop = asksV.reduce((mx,a)=>a.usd>mx.usd?a:mx, {usd:0,price:0});
+  const soporteTop = bidsV.reduce((mx,b)=>b.usd>mx.usd?b:mx, {usd:0,price:0});
+
+  const ratioCls = ratio>2?'var(--red)':ratio>1.3?'var(--yellow)':'var(--green)';
+  const ratioTxt = ratio>2?'PARED FUERTE':ratio>1.3?'RESISTENCIA':'LIBRE';
+
+  return `
+    <div class="libro-visual">
+      ${bidBars}
+      <div style="width:2px;background:rgba(255,255,255,.5);height:100%;border-radius:1px;flex-shrink:0;"></div>
+      ${askBars}
+    </div>
+    <div class="libro-precio" style="font-size:10px;display:flex;justify-content:space-between;padding:6px 10px;">
+      <span style="color:var(--green);">BIDS $${fmtBig(totalBid)}</span>
+      <span style="color:#fff;">${fmtP(price)}</span>
+      <span style="color:var(--red);">ASKS $${fmtBig(totalAsk)}</span>
+    </div>
+    <div class="libro-stats">
+      <div class="libro-stat">
+        <div class="lsv" style="color:${ratioCls}">${ratio.toFixed(1)}x</div>
+        <div class="lsl">ratio ask/bid</div>
+      </div>
+      <div class="libro-stat">
+        <div class="lsv" style="color:var(--red);font-size:11px;">${fmtP(paredTop.price)}</div>
+        <div class="lsl">pared asks $${fmtBig(paredTop.usd)}</div>
+      </div>
+      <div class="libro-stat">
+        <div class="lsv" style="color:var(--green);font-size:11px;">${fmtP(soporteTop.price)}</div>
+        <div class="lsl">soporte bids $${fmtBig(soporteTop.usd)}</div>
+      </div>
+    </div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:${ratioCls};margin-top:8px;text-align:center;font-weight:700;letter-spacing:1px;">${ratioTxt} — ±5% del precio</div>
+  `;
 }
 
 async function run(){
@@ -474,7 +514,8 @@ async function run(){
       fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=5m&limit=30').then(r=>r.json()),
       fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=15m&limit=20').then(r=>r.json()),
       fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=1h&limit=14').then(r=>r.json()),
-      fetch('https://fapi.binance.com/fapi/v1/depth?symbol='+pair+'&limit=500').then(r=>r.json()),
+      // FIX: limit=1000 para capturar más profundidad del libro
+      fetch('https://fapi.binance.com/fapi/v1/depth?symbol='+pair+'&limit=1000').then(r=>r.json()),
       fetch('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=3').then(r=>r.json()),
       fetch('https://fapi.binance.com/fapi/v1/openInterest?symbol='+pair).then(r=>r.json())
     ]);
@@ -491,7 +532,6 @@ async function run(){
     const high24  = parseFloat(tk.highPrice);
     const oi      = oiR.status==='fulfilled'&&oiR.value.openInterest?parseFloat(oiR.value.openInterest)*price:0;
 
-    // Fetch liquidez (paralelo, no bloquea si falla)
     const liqData = await fetchLiquidez(pair, price, high24).catch(()=>null);
 
     const frArr   = frR.status==='fulfilled'?frR.value:[];
@@ -546,7 +586,9 @@ async function run(){
     const volInstitucional=vol3>volAvg*1.5;
 
     const dep=depR.status==='fulfilled'?depR.value:{asks:[],bids:[]};
-    const RNG=price*0.025;
+
+    // FIX: rango ampliado a 8% para el análisis principal
+    const RNG = price * 0.08;
     const asks=(dep.asks||[]).map(a=>({price:parseFloat(a[0]),usd:parseFloat(a[0])*parseFloat(a[1])})).filter(a=>a.price>=price);
     const bids=(dep.bids||[]).map(b=>({price:parseFloat(b[0]),usd:parseFloat(b[0])*parseFloat(b[1])})).filter(b=>b.price<=price);
     const askUSD=asks.filter(a=>a.price<=price+RNG).reduce((s,a)=>s+a.usd,0);
@@ -562,10 +604,10 @@ async function run(){
     const pumpIntraday=minLocal>0?((price-minLocal)/minLocal)*100:0;
     const pumpEfectivo=Math.max(ch24,pumpIntraday*3);
 
-    // LIMIT
-    const lim=calcLimit(price, asks, high24, minLocal, oi, vol24, kl1h, liqData);
+    // LIMIT — FIX: pasa bids también
+    const lim=calcLimit(price, asks, bids, high24, minLocal, oi, vol24, kl1h, liqData);
 
-    // SCORE v6 — incorpora señales de liquidez
+    // SCORE
     const scorePump=Math.min(30,(pumpEfectivo/200)*30);
     let scoreFund=0;
     if(fundingLast>0.3) scoreFund=25;
@@ -580,13 +622,12 @@ async function run(){
     const scoreStoch=sobrecompraExtrema?15:sobrecompra?9:0;
     const scoreVol=volCayendo?5:0;
 
-    // Liquidez score: si ballena distribuyendo suma puntos de techo
     let scoreLiq=0;
     if(liqData){
-      if(liqData.liqLongDominante && liqData.oiDistribucion) scoreLiq=15; // techo confirmado por liquidez
+      if(liqData.liqLongDominante && liqData.oiDistribucion) scoreLiq=15;
       else if(liqData.distribucion) scoreLiq=10;
       else if(liqData.oiDistribucion) scoreLiq=7;
-      else if(liqData.squeezeFuel) scoreLiq=-8; // sigue el squeeze
+      else if(liqData.squeezeFuel) scoreLiq=-8;
     }
 
     const techoScore=Math.max(0,Math.round(scorePump+scoreFund+scoreDivg+scoreStoch+scoreVol+scoreLiq));
@@ -613,7 +654,6 @@ async function run(){
       techoExtremo,
       sobrecompraExtrema&&sinLibro,
       ch24>100&&fundingLast>0.15&&sobrecompra,
-      // v6: señales de liquidez
       liqData&&liqData.liqLongDominante&&liqData.oiDistribucion,
       liqData&&liqData.oiDistribucion&&liqData.takerBearish
     ].filter(Boolean).length;
@@ -675,8 +715,12 @@ async function run(){
     const limLabel=lim.distPct>10?'LEJOS':lim.distPct>4?'CERCANO':'MUY CERCA';
     const nowStr=new Date().toLocaleTimeString('es-AR');
 
-    // Render mapa liq
-    const liqMapHTML = liqData ? renderLiqMap(liqData.zonasArr, price) : '<div style="text-align:center;color:var(--muted);font-size:10px;padding:20px;font-family:\'IBM Plex Mono\',monospace;">Cargando liquidaciones...</div>';
+    const liqMapHTML = liqData ? renderLiqMap(liqData.zonasArr, price) : '<div style="text-align:center;color:var(--muted);font-size:10px;padding:20px;">Sin datos de liquidaciones</div>';
+    const libroHTML = renderLibroVisual(asks, bids, price);
+
+    // liquidezLibre: color y texto correctos
+    const liqLibreColor = lim.liquidezLibre>60?'var(--green)':lim.liquidezLibre>40?'var(--yellow)':'var(--red)';
+    const liqLibreTxt   = lim.liquidezLibre>60?'camino despejado':lim.liquidezLibre>40?'resistencia moderada':'libro denso — techo cercano';
 
     document.getElementById('out').innerHTML=`
 
@@ -710,6 +754,15 @@ async function run(){
           ${liqData&&liqData.oiDistribucion?`<span class="hi">📉 OI cae</span>`:''}
           ${locked?'<span style="color:var(--accent)">🔒 locked</span>':''}
         </div>
+      </div>
+
+      <!-- ══ LIBRO VISUAL v6.1 ══ -->
+      <div class="libro-box">
+        <div class="libro-hdr">
+          <span>📖 LIBRO DE ÓRDENES — BINANCE DEPTH</span>
+          <span style="font-size:9px;color:var(--yellow);font-family:'IBM Plex Mono',monospace;">±5% PRECIO</span>
+        </div>
+        ${libroHTML}
       </div>
 
       <!-- ══ LIQUIDEZ BOX v6 ══ -->
@@ -766,9 +819,9 @@ async function run(){
             <div class="lsub">+${lim.distPct.toFixed(1)}% desde ahora</div>
           </div>
           <div class="limit-item">
-            <div class="lval" style="color:var(--muted)">${fmtP(lim.resistLevel)}</div>
+            <div class="lval" style="color:var(--red)">${fmtP(lim.resistLevel)}</div>
             <div class="llbl">resistencia libro</div>
-            <div class="lsub">bloque más denso ±5%</div>
+            <div class="lsub">bloque más denso ±8%</div>
           </div>
           <div class="limit-item">
             <div class="lval" style="color:var(--muted)">${fmtP(lim.atrTarget)}</div>
@@ -781,11 +834,16 @@ async function run(){
             <div class="lsub">${liqData&&liqData.zonasArr.length>0?'de API real':'high24 + buffer'}</div>
           </div>
           <div class="limit-item limit-full">
-            <div class="llbl" style="margin-bottom:6px">liquidez disponible arriba (libro)</div>
-            <div class="depth-bar">
-              <div class="depth-fill" style="width:${lim.liquidezLibre.toFixed(0)}%;background:${lim.liquidezLibre>60?'var(--green)':lim.liquidezLibre>30?'var(--yellow)':'var(--red)'}"></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <div class="llbl">liquidez disponible arriba (bids vs asks ±3%)</div>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:${liqLibreColor};">
+                asks $${fmtBig(lim.askUSDClose)} · bids $${fmtBig(lim.bidUSDClose)}
+              </span>
             </div>
-            <div class="lsub" style="margin-top:4px">${lim.liquidezLibre.toFixed(0)}% libre — ${lim.liquidezLibre>60?'camino despejado':lim.liquidezLibre>30?'resistencia moderada':'libro denso — techo cercano'}</div>
+            <div class="depth-bar">
+              <div class="depth-fill" style="width:${lim.liquidezLibre.toFixed(0)}%;background:${liqLibreColor}"></div>
+            </div>
+            <div class="lsub" style="margin-top:4px;color:${liqLibreColor};">${lim.liquidezLibre.toFixed(0)}% bids — ${liqLibreTxt}</div>
           </div>
         </div>
       </div>
@@ -867,8 +925,8 @@ async function run(){
         </div>
         <div class="q">
           <div class="q-left">
-            <span class="q-txt">¿Pared activa arriba?</span>
-            <span class="q-hint">Ratio asks/bids ±2.5% · ${ratio.toFixed(1)}x</span>
+            <span class="q-txt">¿Pared activa arriba? (±8%)</span>
+            <span class="q-hint">Ratio asks/bids ±8% · ${ratio.toFixed(1)}x · pared en ${fmtP(lim.resistLevel)}</span>
           </div>
           <span class="badge ${libroCls}">${libroTxt}</span>
         </div>
