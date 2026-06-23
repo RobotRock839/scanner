@@ -126,7 +126,31 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .b-cyan{background:rgba(34,211,238,.15);color:var(--cyan);}
 .stoch-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:5px;width:70px;}
 .stoch-fill{height:100%;border-radius:3px;}
-.miss{padding:60px 0;text-align:center;color:var(--muted);font-size:12px;line-height:3;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;}
+/* ══ DISPARO BOX — N1/N2/N3 ══ */
+.disparo-box{border-radius:10px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden;}
+.disparo-box.n3{background:rgba(240,74,90,.08);border:1px solid rgba(240,74,90,.4);}
+.disparo-box.n2{background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.35);}
+.disparo-box.n1{background:rgba(91,127,255,.06);border:1px solid rgba(91,127,255,.3);}
+.disparo-box.inactivo{background:var(--bg2);border:1px solid var(--border);}
+.disparo-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.disparo-nivel{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.disparo-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
+.disparo-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;padding:3px 10px;border-radius:4px;letter-spacing:1px;}
+.disparo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.disparo-item{background:rgba(0,0,0,.25);border-radius:7px;padding:10px 12px;text-align:center;}
+.disparo-item .dval{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:700;line-height:1;margin-bottom:3px;}
+.disparo-item .dlbl{font-size:8px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;}
+.disparo-item .dsub{font-size:9px;font-family:'IBM Plex Mono',monospace;margin-top:3px;}
+.disparo-rr{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.2);border-radius:7px;padding:10px 14px;margin-bottom:10px;}
+.disparo-rr .rrval{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;}
+.disparo-rr .rrlbl{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;}
+.disparo-condiciones{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);line-height:2;display:flex;flex-wrap:wrap;gap:6px;}
+.disparo-cond{padding:2px 8px;border-radius:3px;font-size:9px;font-weight:600;}
+.disparo-cond.ok{background:rgba(0,201,122,.15);color:var(--green);}
+.disparo-cond.falta{background:var(--bg3);color:var(--muted);}
+.disparo-inactivo-msg{text-align:center;padding:20px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:2;}
+
+@media(max-width:420px){.disparo-grid{grid-template-columns:1fr 1fr;}.disparo-nivel{font-size:16px;}}
 .err{padding:16px 18px;border:1px solid rgba(240,74,90,.3);border-radius:8px;color:var(--red);font-size:12px;line-height:2;font-family:'IBM Plex Mono',monospace;background:rgba(240,74,90,.05);}
 .bottom{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;display:flex;justify-content:space-between;margin-top:24px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap;gap:6px;}
 @media(max-width:420px){.price-num{font-size:32px;}.cards{grid-template-columns:repeat(2,1fr);}.techo-label{font-size:22px;}.limit-grid,.liq-grid,.libro-stats{grid-template-columns:1fr;}}
@@ -589,6 +613,111 @@ function renderLibroVisual(asks, bids, price){
   `;
 }
 
+/* ══════════════════════════════════════════════════
+   CALC DISPARO — Niveles N1/N2/N3 de limit short
+   
+   Lógica de precios:
+   - ENTRADA  = resistencia libro (pared asks más densa)
+               Si N3: justo en la pared. N2: -0.3%. N1: -0.8%
+   - STOP     = ATR techo + buffer según nivel
+               N3: +1.5%  N2: +3%  N1: +5%
+   - TP       = soporte bids más fuerte abajo
+               Ajustado por % del tamaño del movimiento esperado
+   - LEVERAGE = máximo recomendado según nivel y R/R
+   ══════════════════════════════════════════════════ */
+function calcDisparo(price, techoScore, señalesTecho, liqData, lim, asks, bids, adx, fundingLast, divgCount, sobrecompra){
+
+  // ── Soporte más fuerte abajo (TP base) ──
+  const RNG_TP = price * 0.10;
+  const bidsTP = bids.filter(b => b.price >= price - RNG_TP);
+  const topBidBlock = bidsTP.reduce((mx,b) => b.usd > mx.usd ? b : mx, {usd:0, price: price*0.95});
+  const tpBase = topBidBlock.price > 0 ? topBidBlock.price : price * 0.95;
+
+  // ── Resistencia arriba (ENTRADA base) ──
+  const entradaBase = lim.resistLevel > price ? lim.resistLevel : price * 1.02;
+
+  // ── ATR para stop ──
+  const atrPct = lim.atrTarget > price ? ((lim.atrTarget - price) / price) : 0.05;
+
+  // ── DETERMINAR NIVEL ACTIVO ──
+  // N3: score ≥80 O (score≥55 + ADX≥60 + absorción/distribución + divg)
+  // N2: score 55-79 O (score≥25 + 3+ señales + sobrecompra)
+  // N1: score 25-54 + absorción detectada
+  const esN3 = techoScore >= 80 ||
+               (techoScore >= 55 && adx >= 60 && liqData && (liqData.absorcionCVD || liqData.distribucion) && divgCount >= 1);
+
+  const esN2 = !esN3 && (techoScore >= 55 ||
+               (techoScore >= 25 && señalesTecho >= 3 && sobrecompra));
+
+  const esN1 = !esN3 && !esN2 && techoScore >= 25 &&
+               liqData && (liqData.absorcionCVD || liqData.retailAtrapado || liqData.agotamiento);
+
+  if(!esN3 && !esN2 && !esN1) return null; // Sin nivel activo
+
+  // ── Calcular precios según nivel ──
+  let nivel, color, leverage, entradaOffset, stopBuffer, etiqueta, condiciones;
+
+  if(esN3){
+    nivel        = 'N3';
+    color        = 'n3';
+    leverage     = 20;
+    etiqueta     = 'CLÍMAX ABSOLUTO';
+    entradaOffset = 0;        // Entrada exacta en la pared
+    stopBuffer   = 0.015;     // SL 1.5% arriba de la pared
+    condiciones  = [
+      {txt:'Score ≥80% o ADX≥60', ok: techoScore>=80 || adx>=60},
+      {txt:'Absorción/Distribución', ok: liqData&&(liqData.absorcionCVD||liqData.distribucion||liqData.liqLongDominante)},
+      {txt:'Divergencia CVD', ok: divgCount>=1},
+      {txt:'Sobrecompra 1h', ok: sobrecompra},
+      {txt:'Funding positivo', ok: fundingLast>0.03},
+    ];
+  } else if(esN2){
+    nivel        = 'N2';
+    color        = 'n2';
+    leverage     = 10;
+    etiqueta     = 'ZONA MADURA';
+    entradaOffset = 0.003;    // Entrada 0.3% por debajo de la pared (más conservador)
+    stopBuffer   = 0.03;      // SL 3% arriba
+    condiciones  = [
+      {txt:'Score ≥55%', ok: techoScore>=55},
+      {txt:'3+ señales activas', ok: señalesTecho>=3},
+      {txt:'Sobrecompra 1h', ok: sobrecompra},
+      {txt:'Absorción detectada', ok: liqData&&(liqData.absorcionCVD||liqData.retailAtrapado)},
+      {txt:'Funding >0.03%', ok: fundingLast>0.03},
+    ];
+  } else {
+    nivel        = 'N1';
+    color        = 'n1';
+    leverage     = 5;
+    etiqueta     = 'SEÑAL DÉBIL';
+    entradaOffset = 0.008;    // Entrada 0.8% por debajo (muy conservador)
+    stopBuffer   = 0.05;      // SL 5% arriba
+    condiciones  = [
+      {txt:'Score ≥25%', ok: techoScore>=25},
+      {txt:'Absorción CVD', ok: liqData&&liqData.absorcionCVD},
+      {txt:'Retail atrapado', ok: liqData&&liqData.retailAtrapado},
+      {txt:'Pared en libro', ok: entradaBase > price*1.005},
+      {txt:'Funding positivo', ok: fundingLast>0.01},
+    ];
+  }
+
+  const entrada = entradaBase * (1 - entradaOffset);
+  const stop    = entradaBase * (1 + stopBuffer);
+  const riesgo  = stop - entrada;
+
+  // TP: mínimo 2x el riesgo, apuntando al soporte más fuerte
+  const tpIdeal = entrada - Math.max(riesgo * 2, entrada * 0.04);
+  const tp      = Math.max(tpBase, tpIdeal);
+
+  const ganancia = entrada - tp;
+  const rr       = ganancia > 0 && riesgo > 0 ? (ganancia / riesgo) : 0;
+
+  const rrColor  = rr >= 3 ? 'var(--green)' : rr >= 2 ? 'var(--yellow)' : 'var(--red)';
+  const nColor   = esN3 ? 'var(--red)' : esN2 ? 'var(--yellow)' : 'var(--accent)';
+
+  return {nivel, color, leverage, etiqueta, entrada, stop, tp, rr, rrColor, nColor, condiciones, entradaBase};
+}
+
 async function run(){
   const raw=document.getElementById('sym').value.trim().toUpperCase().replace(/USDT$/,'');
   if(!raw) return;
@@ -810,6 +939,9 @@ async function run(){
     if(locked){ updateLockDisplay(raw); lockTimer=setInterval(()=>updateLockDisplay(raw),1000); }
     else { document.getElementById('lock-display').innerHTML=''; }
 
+    // ── DISPARO N1/N2/N3 ──
+    const disparo = calcDisparo(price, techoScore, señalesTecho, liqData, lim, asks, bids, adx, fundingLast, divgCount, sobrecompra);
+
     // Labels
     const libroTxt=paredFuerte?'PARED FUERTE':paredMedia?'PARED MEDIA':'LIVIANO';
     const libroCls=paredFuerte?'b-red':paredMedia?'b-yellow':'b-gray';
@@ -975,6 +1107,71 @@ async function run(){
       ${liqData&&liqData.absorcionCVD?`<div class="alert alert-yellow"><span class="alert-icon">🐋📤</span><span>ABSORCIÓN CVD — Takers perdiendo fuerza (${liqData.takerActual.toFixed(2)}x). La ballena absorbió el rally y vende silenciosamente.</span></div>`:''}
       ${liqData&&liqData.retailAtrapado?`<div class="alert alert-yellow"><span class="alert-icon">🐋👀</span><span>RETAIL ATRAPADO ARRIBA — Takers vendedores dominan. Funding positivo. Compradores retail pagando, ballena observa.</span></div>`:''}
       ${liqData&&liqData.agotamiento&&!liqData.absorcionCVD?`<div class="alert alert-yellow"><span class="alert-icon">🐋⏳</span><span>AGOTAMIENTO DETECTADO — Takers perdiendo fuerza. Esperar divergencia CVD para confirmar techo.</span></div>`:''}
+
+      ${disparo ? `
+      <!-- ══ DISPARO N1/N2/N3 ══ -->
+      <div class="disparo-box ${disparo.color}">
+        <div class="disparo-hdr">
+          <div>
+            <div class="disparo-nivel" style="color:${disparo.nColor}">
+              🎯 ${disparo.nivel} — ${disparo.etiqueta}
+            </div>
+            <div class="disparo-sub" style="margin-top:4px;">LIMIT SHORT — ZONA DE DISPARO</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;color:${disparo.nColor};">${disparo.leverage}x</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);">MAX LEVERAGE</div>
+          </div>
+        </div>
+
+        <div class="disparo-grid">
+          <div class="disparo-item">
+            <div class="dval" style="color:var(--yellow)">${fmtP(disparo.entrada)}</div>
+            <div class="dlbl">📍 entrada limit</div>
+            <div class="dsub" style="color:var(--muted);">pared asks ${disparo.nivel==='N3'?'exacta':disparo.nivel==='N2'?'-0.3%':'-0.8%'}</div>
+          </div>
+          <div class="disparo-item">
+            <div class="dval" style="color:var(--green)">${fmtP(disparo.tp)}</div>
+            <div class="dlbl">🎯 take profit</div>
+            <div class="dsub" style="color:var(--green);">-${(((disparo.entrada-disparo.tp)/disparo.entrada)*100).toFixed(1)}% desde entrada</div>
+          </div>
+          <div class="disparo-item">
+            <div class="dval" style="color:var(--red)">${fmtP(disparo.stop)}</div>
+            <div class="dlbl">🛑 stop loss</div>
+            <div class="dsub" style="color:var(--red);">+${(((disparo.stop-disparo.entrada)/disparo.entrada)*100).toFixed(1)}% desde entrada</div>
+          </div>
+        </div>
+
+        <div class="disparo-rr">
+          <div>
+            <div class="rrval" style="color:${disparo.rrColor}">R/R ${disparo.rr.toFixed(1)}:1</div>
+            <div class="rrlbl">RISK / REWARD</div>
+          </div>
+          <div style="flex:1;margin-left:14px;">
+            <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:${Math.min(disparo.rr/5*100,100).toFixed(0)}%;background:${disparo.rrColor};border-radius:3px;transition:width 1s;"></div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;">
+              Riesgo $${fmtBig((disparo.stop-disparo.entrada)*disparo.leverage)} · Ganancia potencial $${fmtBig((disparo.entrada-disparo.tp)*disparo.leverage)} · por unidad apalancada
+            </div>
+          </div>
+        </div>
+
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:6px;letter-spacing:1px;">CONDICIONES ACTIVAS:</div>
+        <div class="disparo-condiciones">
+          ${disparo.condiciones.map(c=>`<span class="disparo-cond ${c.ok?'ok':'falta'}">${c.ok?'✓':'○'} ${c.txt}</span>`).join('')}
+        </div>
+      </div>
+      ` : techoScore >= 10 ? `
+      <!-- Sin nivel activo aún -->
+      <div class="disparo-box inactivo">
+        <div class="disparo-inactivo-msg">
+          🎯 ZONA DE DISPARO<br>
+          <span style="font-size:9px;letter-spacing:1px;">SIN NIVEL ACTIVO — Score ${techoScore}% · Señales ${señalesTecho}/13</span><br>
+          <span style="font-size:9px;">N1 activa con score ≥25% + absorción · N2 con score ≥55% · N3 con score ≥80%</span>
+        </div>
+      </div>
+      ` : ''}
 
       <div class="veredicto ${vCls}">
         <span class="v-icon">${vIcon}</span>
