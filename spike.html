@@ -28,28 +28,28 @@ td:last-child{text-align:right;font-weight:bold;}
 </style>
 </head>
 <body>
-
+ 
 <div class="bar">
   <input id="sym" placeholder="TOKEN ej: BTC" maxlength="12">
   <button id="btn">CALCULAR TECHO</button>
 </div>
-
+ 
 <div id="out"><span class="muted">Ingresá un token para estimar el precio límite (techo)</span></div>
-
+ 
 <script>
 'use strict';
-
+ 
 // Rango de búsqueda de paredes: hasta qué % arriba del precio miramos el libro
 const RNG_PCT = 0.15;        // ±15% — walls lejanas de marketcaps chicos pueden estar lejos
 const BUCKET_PCT = 0.005;    // agrupa niveles cada 0.5% para encontrar paredes reales
-
+ 
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtP = p => !p||isNaN(p) ? '—' : p>=1000?p.toFixed(2):p>=1?p.toFixed(4):p.toFixed(6);
 const fmtBig = n => !n||isNaN(n) ? '—' : n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n.toFixed(0);
-
+ 
 document.getElementById('sym').addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
 document.getElementById('btn').addEventListener('click', run);
-
+ 
 // Agrupa los asks en buckets de precio y devuelve las paredes ordenadas por USD, de mayor a menor
 function buildWalls(asks, price){
   const bucket = price*BUCKET_PCT;
@@ -63,53 +63,53 @@ function buildWalls(asks, price){
   });
   return Object.values(buckets).sort((a,b)=>a.price-b.price);
 }
-
+ 
 async function run(){
   const raw = document.getElementById('sym').value.trim().toUpperCase().replace(/USDT$/,'');
   if(!raw) return;
   const btn=document.getElementById('btn'), out=document.getElementById('out');
   btn.disabled=true; btn.textContent='...';
-
+ 
   try{
     const pair = raw+'USDT';
     const [tkR, depR] = await Promise.allSettled([
       fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${pair}`).then(r=>r.json()),
       fetch(`https://fapi.binance.com/fapi/v1/depth?symbol=${pair}&limit=1000`).then(r=>r.json()),
     ]);
-
+ 
     const tk = tkR.status==='fulfilled' ? tkR.value : null;
     if(!tk || tk.code){ out.innerHTML=`<div class="err">TOKEN "${esc(raw)}" NO ENCONTRADO</div>`; btn.disabled=false; btn.textContent='CALCULAR TECHO'; return; }
-
+ 
     const price=+tk.lastPrice, ch24=+tk.priceChangePercent, vol24=+tk.quoteVolume;
     const dep = depR.status==='fulfilled' ? depR.value : {asks:[]};
     const RNG = price*RNG_PCT;
     const asks = (dep.asks||[]).map(a=>({price:+a[0], usd:+a[0]*+a[1]})).filter(a=>a.price>price && a.price<=price+RNG);
-
+ 
     if(!asks.length){
       out.innerHTML = `<div class="price">${fmtP(price)}</div><div class="meta">${esc(raw)}USDT</div><div class="err">Sin liquidez visible en el libro dentro de ±${(RNG_PCT*100).toFixed(0)}%. El libro puede estar muy vacío arriba — cuidado, el precio podría correr sin resistencia.</div>`;
       btn.disabled=false; btn.textContent='CALCULAR TECHO'; return;
     }
-
+ 
     const walls = buildWalls(asks, price);
     const wallsPorTamano = [...walls].sort((a,b)=>b.usd-a.usd);
     const paredPrincipal = wallsPorTamano[0];
     const totalLiq = asks.reduce((s,a)=>s+a.usd,0);
-
+ 
     // Techo estimado: precio de la pared más densa dentro del rango.
     // Si hay varias paredes grandes, usamos un promedio ponderado de las 3 principales
     // (para no fiarse de una sola pared que puede consumirse rápido).
     const top3 = wallsPorTamano.slice(0,3);
     const top3Total = top3.reduce((s,w)=>s+w.usd,0);
     const techoPonderado = top3.reduce((s,w)=>s+w.price*w.usd,0)/top3Total;
-
+ 
     const distPct = ((paredPrincipal.price-price)/price)*100;
     const distPctPond = ((techoPonderado-price)/price)*100;
-
+ 
     // Liquidez acumulada hasta la pared principal — indica qué tan "caro" es
     // para el precio llegar hasta ahí (cuanto más USD acumulado, más difícil romperlo)
     const liqHastaPared = asks.filter(a=>a.price<=paredPrincipal.price).reduce((s,a)=>s+a.usd,0);
     const liqVsVol = vol24>0 ? (totalLiq/vol24*100) : 0;
-
+ 
     // Visual: barras de liquidez por bucket dentro del rango
     const maxUsd = Math.max(...walls.map(w=>w.usd));
     const wallBars = walls.map(w=>{
@@ -117,20 +117,20 @@ async function run(){
       const isTop = w.price===paredPrincipal.price;
       return `<div class="wcol ${isTop?'top':''}" style="height:${h}px;" title="${fmtP(w.price)} · $${fmtBig(w.usd)}"></div>`;
     }).join('');
-
+ 
     out.innerHTML = `
       <div class="price">${fmtP(price)}</div>
       <div class="meta">${esc(raw)}USDT · <span style="color:${ch24>=0?'#00c97a':'#f04a5a'}">${ch24>=0?'+':''}${ch24.toFixed(2)}% 24h</span> · Vol $${fmtBig(vol24)}</div>
-
+ 
       <div class="techo-box">
         <div class="techo-val">${fmtP(paredPrincipal.price)}</div>
         <div class="techo-sub">TECHO SPIKE — pared de liquidez más densa · +${distPct.toFixed(1)}% desde precio actual</div>
         <div class="techo-sub">Techo ponderado (top 3 paredes): ${fmtP(techoPonderado)} · +${distPctPond.toFixed(1)}%</div>
       </div>
-
+ 
       <div class="wallbar">${wallBars}</div>
       <div class="techo-sub" style="margin-bottom:14px;">liquidez de asks agrupada cada ${(BUCKET_PCT*100).toFixed(1)}% · rango ±${(RNG_PCT*100).toFixed(0)}% · barra roja = pared principal</div>
-
+ 
       <table>
         <tr><td>Pared principal (techo)</td><td>${fmtP(paredPrincipal.price)}</td></tr>
         <tr><td>Liquidez en la pared</td><td>$${fmtBig(paredPrincipal.usd)}</td></tr>
@@ -138,7 +138,7 @@ async function run(){
         <tr><td>Liquidez total en rango ±${(RNG_PCT*100).toFixed(0)}%</td><td>$${fmtBig(totalLiq)}</td></tr>
         <tr><td>Liquidez vs volumen 24h</td><td style="color:${liqVsVol>5?'#00c97a':liqVsVol>1?'#f5c842':'#f04a5a'}">${liqVsVol.toFixed(2)}%</td></tr>
       </table>
-
+ 
       <div class="techo-sub">
         ${liqVsVol<1?'⚠️ Liquidez baja respecto al volumen — el precio puede atravesar el techo sin mucha resistencia real, usalo como referencia blanda.':'Liquidez razonable respecto al volumen — más probabilidad de que el techo actúe como resistencia real.'}
       </div>
@@ -151,3 +151,4 @@ async function run(){
 </script>
 </body>
 </html>
+ 
