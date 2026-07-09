@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TECHO SPIKE — límite por liquidez</title>
+<title>TECHO SPIKE — Límite por Liquidez Pro</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Courier New',monospace;}
 body{background:#07080d;color:#c8cae0;max-width:520px;margin:0 auto;padding:20px 16px 48px;}
@@ -17,20 +17,22 @@ button:disabled{background:#141520;color:#525470;}
 .techo-box{background:#0e0f17;border:1px solid #1e1f2e;border-left:3px solid #f04a5a;border-radius:8px;padding:16px;margin-bottom:14px;}
 .techo-val{font-size:28px;font-weight:bold;color:#f04a5a;}
 .techo-sub{font-size:11px;color:#525470;margin-top:6px;}
-.wallbar{height:60px;display:flex;align-items:flex-end;gap:2px;margin:14px 0 8px;background:#141520;border-radius:6px;padding:6px;}
-.wcol{flex:1;background:#f04a5a88;border-radius:2px 2px 0 0;min-width:2px;}
-.wcol.top{background:#f04a5a;}
+.wallbar{height:70px;display:flex;align-items:flex-end;gap:2px;margin:14px 0 8px;background:#141520;border-radius:6px;padding:6px;border:1px solid #1e1f2e;}
+.wcol{flex:1;background:#24263a;border-radius:2px 2px 0 0;min-width:2px;transition:all 0.2s;}
+.wcol.has-liq{background:#f04a5a44;}
+.wcol.top{background:#f04a5a;box-shadow: 0 0 8px #f04a5a;}
 table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;}
 td{padding:7px 4px;border-bottom:1px solid #1e1f2e;}
 td:last-child{text-align:right;font-weight:bold;}
 .err{color:#f04a5a;font-size:12px;padding:12px;border:1px solid #f04a5a55;border-radius:6px;}
 .muted{color:#525470;}
+.badge-pista{background:#1b4d3e;color:#00c97a;padding:4px 8px;border-radius:4px;font-size:10px;font-weight:bold;display:inline-block;margin-top:8px;}
 </style>
 </head>
 <body>
  
 <div class="bar">
-  <input id="sym" placeholder="TOKEN ej: BTC" maxlength="12">
+  <input id="sym" placeholder="TOKEN ej: ALLO o BTC" maxlength="12">
   <button id="btn">CALCULAR TECHO</button>
 </div>
  
@@ -39,9 +41,8 @@ td:last-child{text-align:right;font-weight:bold;}
 <script>
 'use strict';
  
-// Rango de búsqueda de paredes: hasta qué % arriba del precio miramos el libro
-const RNG_PCT = 0.15;        // ±15% — walls lejanas de marketcaps chicos pueden estar lejos
-const BUCKET_PCT = 0.005;    // agrupa niveles cada 0.5% para encontrar paredes reales
+const RNG_PCT = 0.15;        // Rango fijo ±15%
+const BUCKET_PCT = 0.005;    // Agrupación cada 0.5%
  
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtP = p => !p||isNaN(p) ? '—' : p>=1000?p.toFixed(2):p>=1?p.toFixed(4):p.toFixed(6);
@@ -50,18 +51,32 @@ const fmtBig = n => !n||isNaN(n) ? '—' : n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?
 document.getElementById('sym').addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
 document.getElementById('btn').addEventListener('click', run);
  
-// Agrupa los asks en buckets de precio y devuelve las paredes ordenadas por USD, de mayor a menor
+// FUNCIÓN MEJORADA: Escala uniforme que evita baches y dibuja los huecos reales del Orderbook
 function buildWalls(asks, price){
-  const bucket = price*BUCKET_PCT;
+  const bucketSize = price * BUCKET_PCT;
+  const totalBuckets = Math.ceil(RNG_PCT / BUCKET_PCT);
   const buckets = {};
-  asks.forEach(a=>{
-    const b = Math.floor((a.price-price)/bucket);
-    buckets[b] = buckets[b] || {price:a.price, usd:0};
-    buckets[b].usd += a.usd;
-    // guardamos el precio más bajo del bucket (el "borde" de la pared)
-    if(a.price < buckets[b].price) buckets[b].price = a.price;
+ 
+  // Inicializamos todos los casilleros de la escala de forma secuencial
+  for (let i = 0; i < totalBuckets; i++) {
+    buckets[i] = {
+      price: price + (i * bucketSize),
+      usd: 0,
+      isEmpty: true
+    };
+  }
+ 
+  // Volcamos las órdenes de Binance en el casillero correspondiente
+  asks.forEach(a => {
+    const b = Math.floor((a.price - price) / bucketSize);
+    if (buckets[b]) {
+      buckets[b].usd += a.usd;
+      buckets[b].isEmpty = false;
+      if (a.price < buckets[b].price) buckets[b].price = a.price;
+    }
   });
-  return Object.values(buckets).sort((a,b)=>a.price-b.price);
+ 
+  return Object.values(buckets);
 }
  
 async function run(){
@@ -83,21 +98,29 @@ async function run(){
     const price=+tk.lastPrice, ch24=+tk.priceChangePercent, vol24=+tk.quoteVolume;
     const dep = depR.status==='fulfilled' ? depR.value : {asks:[]};
     const RNG = price*RNG_PCT;
+    
+    // Filtrado de asks dentro del rango
     const asks = (dep.asks||[]).map(a=>({price:+a[0], usd:+a[0]*+a[1]})).filter(a=>a.price>price && a.price<=price+RNG);
  
     if(!asks.length){
-      out.innerHTML = `<div class="price">${fmtP(price)}</div><div class="meta">${esc(raw)}USDT</div><div class="err">Sin liquidez visible en el libro dentro de ±${(RNG_PCT*100).toFixed(0)}%. El libro puede estar muy vacío arriba — cuidado, el precio podría correr sin resistencia.</div>`;
+      out.innerHTML = `<div class="price">${fmtP(price)}</div><div class="meta">${esc(raw)}USDT</div><div class="err">Sin liquidez visible arriba dentro de el rango. Cuidado, el libro está vacío.</div>`;
       btn.disabled=false; btn.textContent='CALCULAR TECHO'; return;
     }
  
+    // Construcción del mapa de liquidez lineal corregido
     const walls = buildWalls(asks, price);
-    const wallsPorTamano = [...walls].sort((a,b)=>b.usd-a.usd);
+    const wallsPorTamano = [...walls].filter(w => !w.isEmpty).sort((a,b)=>b.usd-a.usd);
+    
+    // Si todo el rango está vacío por alguna anomalía externa
+    if(!wallsPorTamano.length) {
+        out.innerHTML = `<div class="err">Error procesando bloques de liquidez.</div>`;
+        btn.disabled=false; btn.textContent='CALCULAR TECHO'; return;
+    }
+ 
     const paredPrincipal = wallsPorTamano[0];
     const totalLiq = asks.reduce((s,a)=>s+a.usd,0);
  
-    // Techo estimado: precio de la pared más densa dentro del rango.
-    // Si hay varias paredes grandes, usamos un promedio ponderado de las 3 principales
-    // (para no fiarse de una sola pared que puede consumirse rápido).
+    // Cálculo Ponderado Top 3
     const top3 = wallsPorTamano.slice(0,3);
     const top3Total = top3.reduce((s,w)=>s+w.usd,0);
     const techoPonderado = top3.reduce((s,w)=>s+w.price*w.usd,0)/top3Total;
@@ -105,18 +128,29 @@ async function run(){
     const distPct = ((paredPrincipal.price-price)/price)*100;
     const distPctPond = ((techoPonderado-price)/price)*100;
  
-    // Liquidez acumulada hasta la pared principal — indica qué tan "caro" es
-    // para el precio llegar hasta ahí (cuanto más USD acumulado, más difícil romperlo)
     const liqHastaPared = asks.filter(a=>a.price<=paredPrincipal.price).reduce((s,a)=>s+a.usd,0);
     const liqVsVol = vol24>0 ? (totalLiq/vol24*100) : 0;
  
-    // Visual: barras de liquidez por bucket dentro del rango
-    const maxUsd = Math.max(...walls.map(w=>w.usd));
-    const wallBars = walls.map(w=>{
-      const h = Math.max(4, (w.usd/maxUsd)*54);
-      const isTop = w.price===paredPrincipal.price;
-      return `<div class="wcol ${isTop?'top':''}" style="height:${h}px;" title="${fmtP(w.price)} · $${fmtBig(w.usd)}"></div>`;
+    // Renderizado visual adaptativo de las barras
+    const maxUsd = Math.max(...walls.map(w=>w.usd)) || 1;
+    let indexPared = -1;
+    
+    const wallBars = walls.map((w, index)=>{
+      const isTop = w.price === paredPrincipal.price && !w.isEmpty;
+      if(isTop) indexPared = index;
+      const h = w.isEmpty ? 2 : Math.max(6, (w.usd/maxUsd)*58);
+      const claseCss = isTop ? 'wcol top' : (!w.isEmpty ? 'wcol has-liq' : 'wcol');
+      return `<div class="${claseCss}" style="height:${h}px;" title="${fmtP(w.price)} · $${fmtBig(w.usd)}"></div>`;
     }).join('');
+ 
+    // Detección automática de "Pista Libre" (si los casilleros previos a la pared están casi vacíos)
+    let pistaLibreHtml = '';
+    if(indexPared > 1) {
+        const liqPrevia = walls.slice(0, indexPared).reduce((s,w)=>s+w.usd,0);
+        if(liqPrevia < (paredPrincipal.usd * 0.15)) { // Menos del 15% de la pared
+            pistaLibreHtml = `<br><div class="badge-pista">⚡ PISTA LIBRE DETECTADA: Vacío de órdenes hasta el bloque</div>`;
+        }
+    }
  
     out.innerHTML = `
       <div class="price">${fmtP(price)}</div>
@@ -126,10 +160,11 @@ async function run(){
         <div class="techo-val">${fmtP(paredPrincipal.price)}</div>
         <div class="techo-sub">TECHO SPIKE — pared de liquidez más densa · +${distPct.toFixed(1)}% desde precio actual</div>
         <div class="techo-sub">Techo ponderado (top 3 paredes): ${fmtP(techoPonderado)} · +${distPctPond.toFixed(1)}%</div>
+        ${pistaLibreHtml}
       </div>
  
       <div class="wallbar">${wallBars}</div>
-      <div class="techo-sub" style="margin-bottom:14px;">liquidez de asks agrupada cada ${(BUCKET_PCT*100).toFixed(1)}% · rango ±${(RNG_PCT*100).toFixed(0)}% · barra roja = pared principal</div>
+      <div class="techo-sub" style="margin-bottom:14px;">liquidez de asks agrupada cada ${(BUCKET_PCT*100).toFixed(1)}% · rango lineal ±${(RNG_PCT*100).toFixed(0)}% · barra roja destellante = pared principal</div>
  
       <table>
         <tr><td>Pared principal (techo)</td><td>${fmtP(paredPrincipal.price)}</td></tr>
@@ -151,4 +186,3 @@ async function run(){
 </script>
 </body>
 </html>
- 
