@@ -3,25 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPIKE TECHO — mini</title>
+<title>TECHO SPIKE — límite por liquidez</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Courier New',monospace;}
 body{background:#07080d;color:#c8cae0;max-width:520px;margin:0 auto;padding:20px 16px 48px;}
 .bar{display:flex;gap:8px;margin-bottom:16px;}
-input,select,button{background:#0e0f17;border:1px solid #1e1f2e;color:#c8cae0;padding:10px;border-radius:6px;font-size:14px;}
+input,button{background:#0e0f17;border:1px solid #1e1f2e;color:#c8cae0;padding:10px;border-radius:6px;font-size:14px;}
 input{flex:1;text-transform:uppercase;}
 button{background:#5b7fff;color:#fff;border:none;cursor:pointer;font-weight:bold;}
 button:disabled{background:#141520;color:#525470;}
-.price{font-size:32px;font-weight:bold;color:#fff;}
-.meta{font-size:12px;color:#525470;margin:4px 0 16px;}
-.pos{color:#00c97a}.neg{color:#f04a5a}
-.bar-track{height:8px;background:#141520;border-radius:4px;overflow:hidden;margin:6px 0 4px;}
-.bar-fill{height:100%;border-radius:4px;}
-.score{font-size:22px;font-weight:bold;margin-bottom:16px;}
-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px;}
-td{padding:8px 4px;border-bottom:1px solid #1e1f2e;}
+.price{font-size:30px;font-weight:bold;color:#fff;}
+.meta{font-size:12px;color:#525470;margin:4px 0 18px;}
+.techo-box{background:#0e0f17;border:1px solid #1e1f2e;border-left:3px solid #f04a5a;border-radius:8px;padding:16px;margin-bottom:14px;}
+.techo-val{font-size:28px;font-weight:bold;color:#f04a5a;}
+.techo-sub{font-size:11px;color:#525470;margin-top:6px;}
+.wallbar{height:60px;display:flex;align-items:flex-end;gap:2px;margin:14px 0 8px;background:#141520;border-radius:6px;padding:6px;}
+.wcol{flex:1;background:#f04a5a88;border-radius:2px 2px 0 0;min-width:2px;}
+.wcol.top{background:#f04a5a;}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;}
+td{padding:7px 4px;border-bottom:1px solid #1e1f2e;}
 td:last-child{text-align:right;font-weight:bold;}
-.veredicto{padding:14px 16px;border-radius:8px;font-size:14px;font-weight:bold;margin-bottom:16px;border-left:3px solid;}
 .err{color:#f04a5a;font-size:12px;padding:12px;border:1px solid #f04a5a55;border-radius:6px;}
 .muted{color:#525470;}
 </style>
@@ -30,72 +31,37 @@ td:last-child{text-align:right;font-weight:bold;}
 
 <div class="bar">
   <input id="sym" placeholder="TOKEN ej: BTC" maxlength="12">
-  <select id="auto">
-    <option value="0">MANUAL</option>
-    <option value="30">30s</option>
-    <option value="60">1min</option>
-  </select>
-  <button id="btn">ANALIZAR</button>
+  <button id="btn">CALCULAR TECHO</button>
 </div>
 
-<div id="out"><span class="muted">Ingresá un token para analizar</span></div>
+<div id="out"><span class="muted">Ingresá un token para estimar el precio límite (techo)</span></div>
 
 <script>
 'use strict';
-const CFG = { STOCH_OB:85, ADX_STRONG:50, LOCK_MIN:15 };
-const memory = {};
-let autoT=null;
+
+// Rango de búsqueda de paredes: hasta qué % arriba del precio miramos el libro
+const RNG_PCT = 0.15;        // ±15% — walls lejanas de marketcaps chicos pueden estar lejos
+const BUCKET_PCT = 0.005;    // agrupa niveles cada 0.5% para encontrar paredes reales
 
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtP = p => !p||isNaN(p) ? '—' : p>=1000?p.toFixed(2):p>=1?p.toFixed(4):p.toFixed(6);
-const avg = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0;
+const fmtBig = n => !n||isNaN(n) ? '—' : n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n.toFixed(0);
 
 document.getElementById('sym').addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
 document.getElementById('btn').addEventListener('click', run);
-document.getElementById('auto').addEventListener('change', function(){
-  clearInterval(autoT);
-  const v=+this.value;
-  if(v>0) autoT=setInterval(run, v*1000);
-});
 
-// ADX simplificado (Wilder) — requiere >= period*2+1 velas
-function calcADX(kl, period=14){
-  if(!kl || kl.length < period*2+1) return {adx:0, ok:false};
-  const h=kl.map(k=>+k[2]), l=kl.map(k=>+k[3]), c=kl.map(k=>+k[4]);
-  const tr=[],dp=[],dm=[];
-  for(let i=1;i<kl.length;i++){
-    tr.push(Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1])));
-    const up=h[i]-h[i-1], dn=l[i-1]-l[i];
-    dp.push(up>dn&&up>0?up:0); dm.push(dn>up&&dn>0?dn:0);
-  }
-  const smooth=(a,p)=>{const r=[a.slice(0,p).reduce((x,y)=>x+y,0)];for(let i=p;i<a.length;i++)r.push(r[r.length-1]-r[r.length-1]/p+a[i]);return r;};
-  const atr=smooth(tr,period), pdm=smooth(dp,period), mdm=smooth(dm,period);
-  const dx=atr.map((a,i)=> a===0?0:Math.abs(pdm[i]-mdm[i])/(pdm[i]+mdm[i]||1)*100);
-  let adx=avg(dx.slice(0,period));
-  for(let i=period;i<dx.length;i++) adx=(adx*(period-1)+dx[i])/period;
-  return {adx:+adx.toFixed(1), ok:true};
-}
-
-function cvdSeries(kl){
-  return (kl||[]).map(k=>{
-    const o=+k[1],h=+k[2],l=+k[3],c=+k[4],v=+k[5],rng=h-l;
-    return {cvd:(rng>0?((c-l)-(h-c))/rng:(c>=o?1:-1))*v, close:c, low:l};
+// Agrupa los asks en buckets de precio y devuelve las paredes ordenadas por USD, de mayor a menor
+function buildWalls(asks, price){
+  const bucket = price*BUCKET_PCT;
+  const buckets = {};
+  asks.forEach(a=>{
+    const b = Math.floor((a.price-price)/bucket);
+    buckets[b] = buckets[b] || {price:a.price, usd:0};
+    buckets[b].usd += a.usd;
+    // guardamos el precio más bajo del bucket (el "borde" de la pared)
+    if(a.price < buckets[b].price) buckets[b].price = a.price;
   });
-}
-
-async function fetchLiq(pair){
-  const base='https://fapi.binance.com/futures/data/';
-  const [ls, taker, oiHist] = await Promise.allSettled([
-    fetch(base+'globalLongShortAccountRatio?symbol='+pair+'&period=5m&limit=6').then(r=>r.json()),
-    fetch(base+'takerlongshortRatio?symbol='+pair+'&period=5m&limit=6').then(r=>r.json()),
-    fetch(base+'openInterestHist?symbol='+pair+'&period=5m&limit=12').then(r=>r.json()),
-  ]);
-  const ok=r=>r.status==='fulfilled'&&Array.isArray(r.value)?r.value:[];
-  const taker_=ok(taker), oi_=ok(oiHist);
-  const takerActual = taker_.length ? +taker_[taker_.length-1].buySellRatio : 1;
-  let oiDelta=0;
-  if(oi_.length>=3) oiDelta=(+oi_[oi_.length-1].sumOpenInterest - +oi_[0].sumOpenInterest)/+oi_[0].sumOpenInterest*100;
-  return { takerActual, oiDelta, oiBajando: oiDelta<-2, takerBearish: takerActual<0.9 };
+  return Object.values(buckets).sort((a,b)=>a.price-b.price);
 }
 
 async function run(){
@@ -105,89 +71,82 @@ async function run(){
   btn.disabled=true; btn.textContent='...';
 
   try{
-    const pair=raw+'USDT';
-    const [tkR, kl5R, kl1hR, frR] = await Promise.allSettled([
+    const pair = raw+'USDT';
+    const [tkR, depR] = await Promise.allSettled([
       fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${pair}`).then(r=>r.json()),
-      fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=5m&limit=30`).then(r=>r.json()),
-      fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1h&limit=40`).then(r=>r.json()),
-      fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${pair}&limit=1`).then(r=>r.json()),
+      fetch(`https://fapi.binance.com/fapi/v1/depth?symbol=${pair}&limit=1000`).then(r=>r.json()),
     ]);
 
     const tk = tkR.status==='fulfilled' ? tkR.value : null;
-    if(!tk || tk.code){ out.innerHTML=`<div class="err">TOKEN "${esc(raw)}" NO ENCONTRADO</div>`; btn.disabled=false; btn.textContent='ANALIZAR'; return; }
+    if(!tk || tk.code){ out.innerHTML=`<div class="err">TOKEN "${esc(raw)}" NO ENCONTRADO</div>`; btn.disabled=false; btn.textContent='CALCULAR TECHO'; return; }
 
-    const price=+tk.lastPrice, ch24=+tk.priceChangePercent, high24=+tk.highPrice;
-    const kl5=kl5R.status==='fulfilled'?kl5R.value:[], kl1h=kl1hR.status==='fulfilled'?kl1hR.value:[];
-    const fr=frR.status==='fulfilled'&&frR.value.length ? +frR.value[0].fundingRate*100 : 0;
+    const price=+tk.lastPrice, ch24=+tk.priceChangePercent, vol24=+tk.quoteVolume;
+    const dep = depR.status==='fulfilled' ? depR.value : {asks:[]};
+    const RNG = price*RNG_PCT;
+    const asks = (dep.asks||[]).map(a=>({price:+a[0], usd:+a[0]*+a[1]})).filter(a=>a.price>price && a.price<=price+RNG);
 
-    const v5=cvdSeries(kl5);
-    const mid=Math.floor(v5.length/2);
-    const cvdA=v5.slice(0,mid).reduce((a,b)=>a+b.cvd,0), cvdB=v5.slice(mid).reduce((a,b)=>a+b.cvd,0);
-    const precioAlto = price >= high24*0.9;
-    const divergencia = precioAlto && cvdA>0 && cvdB < cvdA*0.5;
-
-    let stoch=50;
-    if(kl1h.length>=14){
-      const sl=kl1h.slice(-14), lo=Math.min(...sl.map(k=>+k[3])), hi=Math.max(...sl.map(k=>+k[2])), lc=+kl1h[kl1h.length-1][4];
-      stoch = hi>lo ? (lc-lo)/(hi-lo)*100 : 50;
+    if(!asks.length){
+      out.innerHTML = `<div class="price">${fmtP(price)}</div><div class="meta">${esc(raw)}USDT</div><div class="err">Sin liquidez visible en el libro dentro de ±${(RNG_PCT*100).toFixed(0)}%. El libro puede estar muy vacío arriba — cuidado, el precio podría correr sin resistencia.</div>`;
+      btn.disabled=false; btn.textContent='CALCULAR TECHO'; return;
     }
-    const sobrecompra = stoch>=CFG.STOCH_OB;
 
-    const adxData = calcADX(kl1h);
-    const liq = await fetchLiq(pair).catch(()=>null);
+    const walls = buildWalls(asks, price);
+    const wallsPorTamano = [...walls].sort((a,b)=>b.usd-a.usd);
+    const paredPrincipal = wallsPorTamano[0];
+    const totalLiq = asks.reduce((s,a)=>s+a.usd,0);
 
-    // ── Score simple 0-100 ──
-    let score=0;
-    score += Math.min(30, Math.max(0, ch24)/100*30);            // pump
-    score += fr>0.1?20:fr>0.03?10:fr<-0.05?-10:0;                // funding
-    score += divergencia?25:0;                                   // divergencia CVD
-    score += sobrecompra?15:0;                                    // stoch
-    score += (liq&&liq.oiBajando&&liq.takerBearish)?15:(liq&&liq.oiBajando)?8:0; // distribución
-    score = Math.max(0, Math.round(score));
+    // Techo estimado: precio de la pared más densa dentro del rango.
+    // Si hay varias paredes grandes, usamos un promedio ponderado de las 3 principales
+    // (para no fiarse de una sola pared que puede consumirse rápido).
+    const top3 = wallsPorTamano.slice(0,3);
+    const top3Total = top3.reduce((s,w)=>s+w.usd,0);
+    const techoPonderado = top3.reduce((s,w)=>s+w.price*w.usd,0)/top3Total;
 
-    const [color,label] = score>=80?['#f04a5a','ZONA DE TECHO'] : score>=55?['#f5c842','SPIKE MADURO'] : score>=25?['#00c97a','SPIKE EN CURSO'] : ['#525470','INICIO'];
+    const distPct = ((paredPrincipal.price-price)/price)*100;
+    const distPctPond = ((techoPonderado-price)/price)*100;
 
-    // veredicto
-    let vTxt, vColor, vIcon;
-    if(score>=70){ vTxt='TECHO PROBABLE — precaución con longs'; vColor='#f04a5a'; vIcon='🔴'; }
-    else if(score>=40){ vTxt='ZONA MADURA — vigilar divergencias'; vColor='#f5c842'; vIcon='⚠️'; }
-    else if(fr<-0.05){ vTxt='FUNDING NEGATIVO — posible squeeze, evitar shorts'; vColor='#00c97a'; vIcon='🟢'; }
-    else { vTxt='SIN SEÑAL CLARA'; vColor='#525470'; vIcon='⬜'; }
+    // Liquidez acumulada hasta la pared principal — indica qué tan "caro" es
+    // para el precio llegar hasta ahí (cuanto más USD acumulado, más difícil romperlo)
+    const liqHastaPared = asks.filter(a=>a.price<=paredPrincipal.price).reduce((s,a)=>s+a.usd,0);
+    const liqVsVol = vol24>0 ? (totalLiq/vol24*100) : 0;
 
-    // memoria simple: no bajar de nivel por 15 min salvo nuevo máximo +2%
-    const mem=memory[raw], now=Date.now();
-    const lvl = c=>({'#f04a5a':3,'#f5c842':2,'#00c97a':1}[c]||0);
-    let locked=false;
-    if(mem){
-      const expired=(now-mem.ts)/1000 > CFG.LOCK_MIN*60;
-      const newHigh = price > mem.maxPrice*1.02;
-      if(!expired && !newHigh && lvl(vColor)<lvl(mem.vColor)){ vTxt=mem.vTxt; vColor=mem.vColor; vIcon=mem.vIcon; locked=true; }
-    }
-    if(!locked || lvl(vColor)>lvl((mem||{}).vColor)) memory[raw]={vTxt,vColor,vIcon,maxPrice:mem?Math.max(price,mem.maxPrice):price,ts:mem&&locked?mem.ts:now};
-    else if(mem) mem.maxPrice=Math.max(price,mem.maxPrice);
+    // Visual: barras de liquidez por bucket dentro del rango
+    const maxUsd = Math.max(...walls.map(w=>w.usd));
+    const wallBars = walls.map(w=>{
+      const h = Math.max(4, (w.usd/maxUsd)*54);
+      const isTop = w.price===paredPrincipal.price;
+      return `<div class="wcol ${isTop?'top':''}" style="height:${h}px;" title="${fmtP(w.price)} · $${fmtBig(w.usd)}"></div>`;
+    }).join('');
 
     out.innerHTML = `
       <div class="price">${fmtP(price)}</div>
-      <div class="meta">${esc(raw)}USDT · <span class="${ch24>=0?'pos':'neg'}">${ch24>=0?'+':''}${ch24.toFixed(2)}% 24h</span> · fund ${fr>=0?'+':''}${fr.toFixed(4)}% · stoch ${stoch.toFixed(0)}% · ADX ${adxData.ok?adxData.adx:'N/A'}${locked?' · 🔒 locked':''}</div>
+      <div class="meta">${esc(raw)}USDT · <span style="color:${ch24>=0?'#00c97a':'#f04a5a'}">${ch24>=0?'+':''}${ch24.toFixed(2)}% 24h</span> · Vol $${fmtBig(vol24)}</div>
 
-      <div class="bar-track"><div class="bar-fill" style="width:${Math.min(score,100)}%;background:${color}"></div></div>
-      <div class="score" style="color:${color}">${score}% — ${label}</div>
+      <div class="techo-box">
+        <div class="techo-val">${fmtP(paredPrincipal.price)}</div>
+        <div class="techo-sub">TECHO SPIKE — pared de liquidez más densa · +${distPct.toFixed(1)}% desde precio actual</div>
+        <div class="techo-sub">Techo ponderado (top 3 paredes): ${fmtP(techoPonderado)} · +${distPctPond.toFixed(1)}%</div>
+      </div>
+
+      <div class="wallbar">${wallBars}</div>
+      <div class="techo-sub" style="margin-bottom:14px;">liquidez de asks agrupada cada ${(BUCKET_PCT*100).toFixed(1)}% · rango ±${(RNG_PCT*100).toFixed(0)}% · barra roja = pared principal</div>
 
       <table>
-        <tr><td>Divergencia CVD (5m, precio en alto)</td><td style="color:${divergencia?'#f04a5a':'#525470'}">${divergencia?'SÍ':'NO'}</td></tr>
-        <tr><td>Sobrecompra estocástico 1h</td><td style="color:${sobrecompra?'#f5c842':'#525470'}">${stoch.toFixed(0)}%</td></tr>
-        <tr><td>Funding</td><td style="color:${fr>0.05?'#f5c842':fr<-0.05?'#00c97a':'#525470'}">${fr>=0?'+':''}${fr.toFixed(4)}%</td></tr>
-        <tr><td>OI cayendo + takers vendedores</td><td style="color:${liq&&liq.oiBajando&&liq.takerBearish?'#f04a5a':'#525470'}">${liq?(liq.oiBajando&&liq.takerBearish?'SÍ':'NO'):'—'}</td></tr>
-        <tr><td>Taker buy/sell ratio</td><td>${liq?liq.takerActual.toFixed(2)+'x':'—'}</td></tr>
-        <tr><td>ADX (fuerza tendencia 1h)</td><td>${adxData.ok?adxData.adx:'necesita más velas'}</td></tr>
+        <tr><td>Pared principal (techo)</td><td>${fmtP(paredPrincipal.price)}</td></tr>
+        <tr><td>Liquidez en la pared</td><td>$${fmtBig(paredPrincipal.usd)}</td></tr>
+        <tr><td>Liquidez acumulada hasta el techo</td><td>$${fmtBig(liqHastaPared)}</td></tr>
+        <tr><td>Liquidez total en rango ±${(RNG_PCT*100).toFixed(0)}%</td><td>$${fmtBig(totalLiq)}</td></tr>
+        <tr><td>Liquidez vs volumen 24h</td><td style="color:${liqVsVol>5?'#00c97a':liqVsVol>1?'#f5c842':'#f04a5a'}">${liqVsVol.toFixed(2)}%</td></tr>
       </table>
 
-      <div class="veredicto" style="background:${vColor}18;border-color:${vColor};color:${vColor}">${vIcon} ${esc(vTxt)}</div>
+      <div class="techo-sub">
+        ${liqVsVol<1?'⚠️ Liquidez baja respecto al volumen — el precio puede atravesar el techo sin mucha resistencia real, usalo como referencia blanda.':'Liquidez razonable respecto al volumen — más probabilidad de que el techo actúe como resistencia real.'}
+      </div>
     `;
   } catch(e){
     out.innerHTML = `<div class="err">ERROR: ${esc(e.message)}</div>`;
   }
-  btn.disabled=false; btn.textContent='ANALIZAR';
+  btn.disabled=false; btn.textContent='CALCULAR TECHO';
 }
 </script>
 </body>
