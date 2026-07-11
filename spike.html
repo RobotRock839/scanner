@@ -3,122 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TECHO SPIKE — Límite por Liquidez Pro</title>
+<title>TECHO SPIKE — Pro</title>
 <style>
-    *{box-sizing:border-box;margin:0;padding:0;font-family:'Courier New',monospace;}
-    body{background:#07080d;color:#c8cae0;max-width:520px;margin:0 auto;padding:20px 16px 48px;}
-    .bar{display:flex;gap:8px;margin-bottom:16px;}
-    input,button{background:#0e0f17;border:1px solid #1e1f2e;color:#c8cae0;padding:10px;border-radius:6px;font-size:14px;}
-    input{flex:1;text-transform:uppercase;}
-    button{background:#5b7fff;color:#fff;border:none;cursor:pointer;font-weight:bold;}
-    button:disabled{background:#141520;color:#525470;}
-    .price{font-size:30px;font-weight:bold;color:#fff;}
-    .meta{font-size:12px;color:#525470;margin:4px 0 18px;}
-    .techo-box{background:#0e0f17;border:1px solid #1e1f2e;border-left:3px solid #f04a5a;border-radius:8px;padding:16px;margin-bottom:14px;}
-    .techo-val{font-size:28px;font-weight:bold;color:#f04a5a;}
-    .techo-sub{font-size:11px;color:#525470;margin-top:6px;}
-    .wallbar{height:70px;display:flex;align-items:flex-end;gap:2px;margin:14px 0 8px;background:#141520;border-radius:6px;padding:6px;border:1px solid #1e1f2e;}
-    .wcol{flex:1;background:#24263a;border-radius:2px 2px 0 0;min-width:2px;transition:all 0.2s;}
-    .wcol.has-liq{background:#f04a5a44;}
-    .wcol.top{background:#f04a5a;box-shadow: 0 0 8px #f04a5a;}
-    table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;}
-    td{padding:7px 4px;border-bottom:1px solid #1e1f2e;}
-    td:last-child{text-align:right;font-weight:bold;}
-    .err{color:#f04a5a;font-size:12px;padding:12px;border:1px solid #f04a5a55;border-radius:6px;}
-    .muted{color:#525470;}
-    .badge-pista{background:#1b4d3e;color:#00c97a;padding:4px 8px;border-radius:4px;font-size:10px;font-weight:bold;display:inline-block;margin-top:8px;}
+    body{background:#07080d;color:#c8cae0;font-family:'Courier New',monospace;max-width:520px;margin:auto;padding:20px;}
+    .box{background:#0e0f17;border:1px solid #1e1f2e;padding:20px;border-radius:12px;}
+    .val{font-size:32px;font-weight:bold;color:#f04a5a;text-shadow:0 0 10px #f04a5a44;}
+    .wallbar{height:60px;display:flex;align-items:flex-end;gap:3px;margin:20px 0;}
+    .wcol{flex:1;background:#24263a;border-radius:2px;transition:0.3s;}
+    .top{background:#f04a5a !important; animation: pulse 1.5s infinite; box-shadow: 0 0 10px #f04a5a;}
+    @keyframes pulse { 0% { opacity:1; } 50% { opacity:0.6; } 100% { opacity:1; } }
+    .res-bar{height:10px;background:#141520;border-radius:5px;overflow:hidden;margin:8px 0;}
+    #liq-bar{height:100%;width:0%;transition:1s;}
 </style>
 </head>
 <body>
 
-<div class="bar">
-  <input id="sym" placeholder="TOKEN ej: BTC" maxlength="12">
-  <button id="btn">CALCULAR TECHO</button>
+<div class="box">
+    <input id="sym" placeholder="TOKEN (ej: BANK)" style="width:100%;padding:10px;background:#0e0f17;border:1px solid #333;color:#fff;">
+    <button id="btn" style="width:100%;margin-top:10px;padding:10px;background:#5b7fff;color:#fff;border:none;cursor:pointer;">CALCULAR</button>
+    
+    <div id="out" style="margin-top:20px;"></div>
 </div>
 
-<div id="out"><span class="muted">Ingresá un token para estimar el precio límite (techo)</span></div>
-
 <script>
-'use strict';
+let prevRes = 0;
 const RNG_PCT = 0.15;
-const BUCKET_PCT = 0.005;
-
-const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmtP = p => !p||isNaN(p) ? '—' : p>=1000?p.toFixed(2):p>=1?p.toFixed(4):p.toFixed(6);
-const fmtBig = n => !n||isNaN(n) ? '—' : n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n.toFixed(0);
-
-document.getElementById('sym').addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
-document.getElementById('btn').addEventListener('click', run);
-
-function buildWalls(asks, price){
-  const bucketSize = price * BUCKET_PCT;
-  const totalBuckets = Math.ceil(RNG_PCT / BUCKET_PCT);
-  const buckets = {};
-  for (let i = 0; i < totalBuckets; i++) {
-    buckets[i] = { price: price + (i * bucketSize), usd: 0, isEmpty: true };
-  }
-  asks.forEach(a => {
-    const b = Math.floor((a.price - price) / bucketSize);
-    if (buckets[b]) {
-      buckets[b].usd += a.usd;
-      buckets[b].isEmpty = false;
-    }
-  });
-  return Object.values(buckets);
-}
 
 async function run(){
-  const raw = document.getElementById('sym').value.trim().toUpperCase().replace(/USDT$/,'');
-  if(!raw) return;
-  const btn=document.getElementById('btn'), out=document.getElementById('out');
-  btn.disabled=true; btn.textContent='...';
-  try{
+    const raw = document.getElementById('sym').value.trim().toUpperCase();
     const pair = raw+'USDT';
-    const [tkR, depR] = await Promise.allSettled([
-      fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${pair}`).then(r=>r.json()),
-      fetch(`https://fapi.binance.com/fapi/v1/depth?symbol=${pair}&limit=1000`).then(r=>r.json())
+    const [tk, dep] = await Promise.all([
+        fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${pair}`).then(r=>r.json()),
+        fetch(`https://fapi.binance.com/fapi/v1/depth?symbol=${pair}&limit=1000`).then(r=>r.json())
     ]);
-    const tk = tkR.value;
-    if(!tk || tk.code){ out.innerHTML=`<div class="err">TOKEN "${esc(raw)}" NO ENCONTRADO</div>`; btn.disabled=false; btn.textContent='CALCULAR TECHO'; return; }
+
+    const price = +tk.lastPrice;
+    const asks = dep.asks.map(a=>({p:+a[0], u:+a[0]*+a[1]})).filter(a=>a.p > price && a.p <= price*(1+RNG_PCT));
     
-    const price=+tk.lastPrice, ch24=+tk.priceChangePercent, vol24=+tk.quoteVolume;
-    const asks = (depR.value.asks||[]).map(a=>({price:+a[0], usd:+a[0]*+a[1]})).filter(a=>a.price>price && a.price<=price+(price*RNG_PCT));
-    const walls = buildWalls(asks, price);
-    const wallsPorTamano = [...walls].filter(w => !w.isEmpty).sort((a,b)=>b.usd-a.usd);
-    const paredPrincipal = wallsPorTamano[0];
-    const liqVsVol = vol24>0 ? (asks.reduce((s,a)=>s+a.usd,0)/vol24*100) : 0;
+    // Agrupar en bloques
+    const bucketSize = (price * RNG_PCT) / 20;
+    const walls = Array.from({length: 20}, (_, i) => ({
+        price: price + (i * bucketSize),
+        usd: asks.filter(a => a.p >= price + (i*bucketSize) && a.p < price + ((i+1)*bucketSize)).reduce((s,a) => s+a.u, 0)
+    }));
+
+    const maxUsd = Math.max(...walls.map(w => w.usd));
+    const top = [...walls].sort((a,b) => b.usd - a.usd)[0];
+    const res = (asks.reduce((s,a)=>s+a.u, 0) / tk.quoteVolume) * 100;
     
-    // Renderizado
-    out.innerHTML = `
-      <div class="price">${fmtP(price)}</div>
-      <div class="meta">${esc(raw)}USDT · <span style="color:${ch24>=0?'#00c97a':'#f04a5a'}">${ch24>=0?'+':''}${ch24.toFixed(2)}%</span></div>
-      <div class="techo-box">
-        <div class="techo-val">${fmtP(paredPrincipal.price)}</div>
-        <div class="techo-sub">TECHO SPIKE — Pared más densa</div>
-      </div>
-      <div class="wallbar">${walls.map((w,i)=>{
-        const h = w.isEmpty ? 2 : Math.max(6, (w.usd/Math.max(...walls.map(w=>w.usd)))*58);
-        return `<div class="wcol ${w.price===paredPrincipal.price?'top':'has-liq'}" style="height:${h}px;"></div>`
-      }).join('')}</div>
-      <table>
-        <tr><td>Liquidez en pared</td><td>$${fmtBig(paredPrincipal.usd)}</td></tr>
-        <tr><td>Resistencia estimada</td><td>
-            <div style="width:100px; height:8px; background:#141520; border-radius:4px; display:inline-block; overflow:hidden;">
-                <div id="liq-bar" style="height:100%; width:0%; transition:1s;"></div>
-            </div>
-            <span id="liq-pct" style="margin-left:6px;">0%</span>
-        </td></tr>
-      </table>
+    document.getElementById('out').innerHTML = `
+        <div class="val">${top.price.toFixed(4)}</div>
+        <div style="font-size:12px;color:#525470;">TECHO SPIKE · PARED MÁS DENSA</div>
+        <div class="wallbar">${walls.map(w => `<div class="wcol ${w.price===top.price?'top':''}" style="height:${(w.usd/maxUsd)*50}px"></div>`).join('')}</div>
+        <div>Resistencia: <span id="trend">${res > prevRes ? '📈' : '📉'}</span> ${res.toFixed(2)}%</div>
+        <div class="res-bar"><div id="liq-bar" style="width:${Math.min(res*10, 100)}%; background:${res > 5 ? '#00c97a' : '#f04a5a'}"></div></div>
     `;
-    
-    const pct = Math.min(liqVsVol * 10, 100);
-    document.getElementById('liq-bar').style.width = pct + '%';
-    document.getElementById('liq-bar').style.backgroundColor = liqVsVol > 5 ? '#00c97a' : (liqVsVol > 1 ? '#f5c842' : '#f04a5a');
-    document.getElementById('liq-pct').textContent = liqVsVol.toFixed(2) + '%';
-    
-  } catch(e){ out.innerHTML = `<div class="err">ERROR: ${esc(e.message)}</div>`; }
-  btn.disabled=false; btn.textContent='CALCULAR TECHO';
+    prevRes = res;
 }
+
+document.getElementById('btn').onclick = run;
 </script>
 </body>
 </html>
