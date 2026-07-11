@@ -255,11 +255,72 @@
         align-items:baseline;
         margin-bottom:8px;
     }
+    .metric-label-wrap{
+        position:relative;
+        display:flex;
+        align-items:center;
+        gap:6px;
+    }
     .metric-label{
         font-size:10px;
         font-weight:700;
         letter-spacing:.14em;
         color:var(--text-dim);
+    }
+    .info-icon{
+        width:14px;
+        height:14px;
+        border-radius:50%;
+        border:1px solid var(--text-faint);
+        color:var(--text-faint);
+        font-size:9px;
+        font-weight:700;
+        line-height:12px;
+        text-align:center;
+        cursor:pointer;
+        user-select:none;
+        flex-shrink:0;
+        transition:border-color .15s, color .15s;
+    }
+    .info-icon:hover, .info-icon.active{
+        border-color:var(--gold);
+        color:var(--gold);
+    }
+    .tooltip{
+        position:absolute;
+        left:0;
+        bottom:calc(100% + 10px);
+        width:270px;
+        max-width:calc(100vw - 80px);
+        background:var(--bg-panel-2);
+        border:1px solid var(--line);
+        border-radius:8px;
+        padding:12px 13px;
+        font-size:10.5px;
+        line-height:1.55;
+        color:var(--text-dim);
+        letter-spacing:.01em;
+        box-shadow:0 12px 30px -8px rgba(0,0,0,.6);
+        opacity:0;
+        visibility:hidden;
+        transform:translateY(4px);
+        transition:opacity .15s, transform .15s, visibility .15s;
+        z-index:10;
+    }
+    .tooltip b{color:var(--text);font-weight:700;}
+    .tooltip::after{
+        content:'';
+        position:absolute;
+        top:100%;
+        left:9px;
+        border:5px solid transparent;
+        border-top-color:var(--line);
+    }
+    .info-icon.active + .tooltip,
+    .metric-label-wrap:hover .tooltip{
+        opacity:1;
+        visibility:visible;
+        transform:translateY(0);
     }
     .metric-value{
         font-size:15px;
@@ -364,7 +425,16 @@ async function run(){
 
             <div class="metric-row">
                 <div class="metric-head">
-                    <span class="metric-label">RESISTENCIA</span>
+                    <div class="metric-label-wrap">
+                        <span class="metric-label">RESISTENCIA</span>
+                        <span class="info-icon" id="infoIcon">i</span>
+                        <div class="tooltip">
+                            <b>¿Qué mide?</b><br>
+                            Suma la liquidez de venta (asks) en el 15% de rango sobre el precio y la compara contra el volumen operado en 24h.<br><br>
+                            <b>Cómo leerlo:</b> % más alto = más liquidez esperando vs. lo que se mueve en un día → cuesta más romper esa zona. % más bajo = pared más débil, el volumen normal podría barrerla.<br><br>
+                            Es una heurística propia del script, no un indicador técnico estándar. La flecha compara contra tu última corrida en esta sesión.
+                        </div>
+                    </div>
                     <span class="metric-value" style="color:${resColor}">${trendUp ? '▲' : '▼'} ${res.toFixed(2)}%</span>
                 </div>
                 <div class="gauge">${Array.from({length:10}, (_,i)=>`<div style="background:${i<gaugeFilled?resColor:'var(--line-soft)'}"></div>`).join('')}</div>
@@ -373,6 +443,15 @@ async function run(){
         prevRes = res;
         statusDot.className = 'status-dot on';
         statusText.textContent = 'LIVE';
+
+        const infoIcon = document.getElementById('infoIcon');
+        if(infoIcon){
+            infoIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                infoIcon.classList.toggle('active');
+            });
+            document.addEventListener('click', () => infoIcon.classList.remove('active'));
+        }
     }catch(err){
         out.innerHTML = `<div class="divider"></div><div class="err">⚠ ${err.message || 'Error al consultar Binance. Verifica el símbolo.'}</div>`;
         statusDot.className = 'status-dot';
