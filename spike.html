@@ -21,6 +21,8 @@
         --danger-glow:rgba(255,59,92,.45);
         --safe:#00e0a4;
         --gold:#f2b705;
+        --blue-neon:#00d4ff;
+        --blue-neon-glow:rgba(0,212,255,.5);
     }
     *{box-sizing:border-box;}
     body{
@@ -45,7 +47,26 @@
         border-radius:10px;
         overflow:hidden;
         box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset;
+        transition: background 1s ease;
     }
+
+    /* ===== MÓDULO 3: ALERTA VISUAL DE BURBUJA / VERTICALIDAD ===== */
+    /* Ratio_Burbuja > 1.0 -> textura roja de advertencia sobre el panel completo */
+    .terminal.zona-peligro{
+        background:
+            radial-gradient(circle at 15% 0%, rgba(255,59,92,.10), transparent 45%),
+            radial-gradient(circle at 85% 100%, rgba(255,59,92,.10), transparent 45%),
+            rgba(255,59,92,.16);
+    }
+    /* Pendiente de precio > umbral crítico -> panel completo parpadea con glow rojo */
+    .terminal.modo-vertical{
+        animation: panelPulse 1.05s ease-in-out infinite;
+    }
+    @keyframes panelPulse{
+        0%,100%{ box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset, 0 0 0 0 var(--danger-glow); }
+        50%{ box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset, 0 0 46px 8px var(--danger-glow); }
+    }
+
     .term-bar{
         display:flex;
         align-items:center;
@@ -248,6 +269,28 @@
         letter-spacing:.03em;
     }
 
+    /* Icono de "rayo" sobre el gráfico cuando la ballena está cargando (Estado 1) */
+    .lightning-icon{
+        position:absolute;
+        top:-4px;
+        right:0;
+        font-size:19px;
+        opacity:0;
+        transform:scale(.5);
+        transition:opacity .3s, transform .3s;
+        filter:drop-shadow(0 0 8px var(--blue-neon-glow));
+        pointer-events:none;
+    }
+    .lightning-icon.show{
+        opacity:1;
+        transform:scale(1);
+        animation:flicker 1.3s ease-in-out infinite;
+    }
+    @keyframes flicker{
+        0%,100%{opacity:1;}
+        50%{opacity:.5;}
+    }
+
     .metric-row{margin-top:22px;}
     .metric-head{
         display:flex;
@@ -340,6 +383,45 @@
         background:var(--line-soft);
         transition:background .3s;
     }
+
+    /* ===== MÓDULO 2: BARRA DE ENERGÍA DE CHOQUE ===== */
+    .energy-bar-wrap{
+        height:8px;
+        border-radius:4px;
+        background:var(--line-soft);
+        overflow:hidden;
+    }
+    .energy-bar-fill{
+        height:100%;
+        width:0%;
+        border-radius:4px;
+        background:var(--text-faint);
+        transition:width .4s ease, background .4s ease, box-shadow .4s ease;
+    }
+    /* Estado 1 (Carga): ballena absorbiendo la pared -> Modo Azul Neón */
+    .energy-bar-fill.carga{
+        background:var(--blue-neon);
+        box-shadow:0 0 12px var(--blue-neon-glow);
+    }
+    /* Estado 2 (Debilidad): subida sin volumen real -> Modo Amarillo */
+    .energy-bar-fill.debilidad{
+        background:var(--gold);
+        box-shadow:0 0 10px rgba(242,183,5,.45);
+    }
+    /* Estado 3 (Ruptura): pared rota / short liquidado -> Modo Alerta Roja */
+    .energy-bar-fill.ruptura{
+        background:var(--danger);
+        box-shadow:0 0 14px var(--danger-glow);
+        animation:pulse 1s ease-in-out infinite;
+    }
+
+    .mcap-sub{
+        font-size:9px;
+        color:var(--text-faint);
+        margin-top:6px;
+        letter-spacing:.02em;
+        line-height:1.5;
+    }
 </style>
 </head>
 <body>
@@ -357,7 +439,7 @@
             </div>
             <button id="btn">RUN →</button>
         </div>
-        <div class="empty-hint">Analiza el libro de órdenes de Binance Futures y ubica la pared de liquidez más densa por encima del precio.</div>
+        <div class="empty-hint">Analiza el libro de órdenes de Binance Futures, el Market Cap real y la energía de choque ballena vs. pared.</div>
         <div id="out"></div>
     </div>
 </div>
@@ -368,10 +450,193 @@ const RNG_PCT = 0.15;
 const statusDot = document.getElementById('statusDot');
 const statusText = document.getElementById('statusText');
 
+/* ============================================================
+   CONFIGURACIÓN — MÓDULO 1: REALIDAD FUNDAMENTAL (MARKET CAP)
+   ============================================================
+   El programador define aquí el "techo lógico" (Umbral_Maximo_Logico)
+   en USD para cada token que quiera vigilar de cerca. Si el símbolo
+   no está en esta lista, se usa como respaldo el Fully Diluted
+   Valuation (FDV) que entrega CoinGecko, y si tampoco existe, se usa
+   un múltiplo del Market Cap actual (UMBRAL_FALLBACK_MULTIPLIER).
+*/
+const CONFIG_UMBRALES = {
+    BTC: 3_000_000_000_000,
+    ETH: 1_000_000_000_000,
+    SOL: 500_000_000_000,
+    BNB: 300_000_000_000,
+    // Agrega aquí más pares "SYMBOL: valor_en_usd" según tu propio criterio de burbuja.
+};
+const UMBRAL_FALLBACK_MULTIPLIER = 3; // si no hay umbral definido ni FDV disponible
+const CACHE_TTL_MS = 60 * 60 * 1000; // 60 minutos de caché para circulating_supply
+
+/* Umbral de pendiente que dispara el "modo vertical" (spike): % del precio por minuto */
+const UMBRAL_PENDIENTE_CRITICO_PCT = 0.15;
+
 function fmtPrice(p){
     if(p >= 100) return p.toFixed(2);
     if(p >= 1) return p.toFixed(4);
     return p.toPrecision(4);
+}
+
+function formatCompact(n){
+    if(n === null || n === undefined || isNaN(n)) return '—';
+    const abs = Math.abs(n);
+    if(abs >= 1e12) return (n/1e12).toFixed(2)+'T';
+    if(abs >= 1e9) return (n/1e9).toFixed(2)+'B';
+    if(abs >= 1e6) return (n/1e6).toFixed(2)+'M';
+    if(abs >= 1e3) return (n/1e3).toFixed(2)+'K';
+    return n.toFixed(2);
+}
+
+/* ============================================================
+   CACHÉ EN localStorage (60 min) — evita golpear CoinGecko en
+   cada iteración del escáner
+   ============================================================ */
+function getCachedTokenData(symbol){
+    try{
+        const raw = localStorage.getItem(`cg_cache_${symbol}`);
+        if(!raw) return null;
+        const data = JSON.parse(raw);
+        if(Date.now() - data.ts > CACHE_TTL_MS) return null;
+        return data;
+    }catch(e){
+        return null; // localStorage bloqueado o corrupto: seguimos sin caché
+    }
+}
+
+function setCachedTokenData(symbol, data){
+    try{
+        localStorage.setItem(`cg_cache_${symbol}`, JSON.stringify({ ...data, ts: Date.now() }));
+    }catch(e){ /* localStorage lleno/bloqueado: no rompemos el escáner por esto */ }
+}
+
+/* Consulta CoinGecko: id del token -> circulating_supply + FDV (para fallback de umbral) */
+async function fetchCoinGeckoData(symbol){
+    const cached = getCachedTokenData(symbol);
+    if(cached) return cached;
+
+    const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(symbol)}`).then(r=>r.json());
+    const coins = searchRes.coins || [];
+    const match = coins.find(c => (c.symbol||'').toUpperCase() === symbol) || coins[0];
+    if(!match) throw new Error(`CoinGecko no encontró ${symbol}`);
+
+    const coinData = await fetch(`https://api.coingecko.com/api/v3/coins/${match.id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`).then(r=>r.json());
+
+    const supply = coinData.market_data?.circulating_supply || 0;
+    const fdv = coinData.market_data?.fully_diluted_valuation?.usd || null;
+    if(!supply) throw new Error(`CoinGecko no reporta circulating_supply para ${symbol}`);
+
+    const data = { id: match.id, supply, fdv };
+    setCachedTokenData(symbol, data);
+    return data;
+}
+
+/* Market_Cap = Precio_Actual * Circulating_Supply ; Ratio_Burbuja = Market_Cap / Umbral_Maximo_Logico */
+function computeMarketCap(symbol, price, tokenData){
+    const marketCap = price * tokenData.supply;
+    const umbral = CONFIG_UMBRALES[symbol] || tokenData.fdv || (marketCap * UMBRAL_FALLBACK_MULTIPLIER);
+    const ratioBurbuja = marketCap / umbral;
+    return { marketCap, umbral, ratioBurbuja };
+}
+
+/* ============================================================
+   MÓDULO 2: ENERGÍA DE CHOQUE (ballena vs. resistencia)
+   ============================================================
+   Usa velas de 1m (limit=6): las 5 primeras dan el promedio base,
+   la 6ta (más reciente) es el volumen/precio "actual".
+*/
+async function fetchShockEnergy(pair){
+    const klines = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1m&limit=6`).then(r=>r.json());
+    if(!Array.isArray(klines) || klines.length < 6) throw new Error('Velas 1m insuficientes.');
+
+    const volumenesPrevios = klines.slice(0,5).map(k => +k[5]);
+    const volumenPromedio5m = volumenesPrevios.reduce((a,b)=>a+b,0) / volumenesPrevios.length;
+    const volumenActual = +klines[5][5];
+
+    const precioHace5min = +klines[0][4];
+    const precioActual = +klines[5][4];
+    const variacionPrecio5m = ((precioActual - precioHace5min) / precioHace5min) * 100;
+    const pendiente = (precioActual - precioHace5min) / 5; // USD por minuto
+
+    let estado = 'neutro';
+    if(volumenActual > volumenPromedio5m*1.5 && Math.abs(variacionPrecio5m) < 0.2){
+        estado = 'carga';       // Estado 1 — Modo Azul Neón
+    }else if(variacionPrecio5m > 0.5 && volumenActual < volumenPromedio5m*0.8){
+        estado = 'debilidad';   // Estado 2 — Modo Amarillo
+    }else if(volumenActual > volumenPromedio5m*2 && variacionPrecio5m > 1){
+        estado = 'ruptura';     // Estado 3 — Modo Alerta Roja
+    }
+
+    return { volumenPromedio5m, volumenActual, variacionPrecio5m, pendiente, estado, precioActual };
+}
+
+/* ============================================================
+   Orquesta Módulo 1 + Módulo 2/3 y pinta el feedback visual
+   ============================================================ */
+async function updateRiskModules(symbol, pair, price){
+    const terminal = document.querySelector('.terminal');
+    const mcapValue = document.getElementById('mcapValue');
+    const mcapSub = document.getElementById('mcapSub');
+    const mcapGauge = document.getElementById('mcapGauge');
+    const energyValue = document.getElementById('energyValue');
+    const energyBarFill = document.getElementById('energyBarFill');
+    const lightningIcon = document.getElementById('lightningIcon');
+
+    // --- Módulo 1: Market Cap real ---
+    try{
+        const tokenData = await fetchCoinGeckoData(symbol);
+        const { marketCap, umbral, ratioBurbuja } = computeMarketCap(symbol, price, tokenData);
+
+        const mcapColor = ratioBurbuja > 1 ? 'var(--danger)' : ratioBurbuja > 0.6 ? 'var(--gold)' : 'var(--safe)';
+        mcapValue.style.color = mcapColor;
+        mcapValue.textContent = `${ratioBurbuja.toFixed(2)}x`;
+        mcapSub.textContent = `MCap $${formatCompact(marketCap)} · Umbral $${formatCompact(umbral)} · Supply ${formatCompact(tokenData.supply)}`;
+
+        const gaugeCells = mcapGauge.querySelectorAll('div');
+        const filled = Math.max(0, Math.min(Math.round(ratioBurbuja*10), 10));
+        gaugeCells.forEach((cell,i) => { cell.style.background = i < filled ? mcapColor : 'var(--line-soft)'; });
+
+        terminal.classList.toggle('zona-peligro', ratioBurbuja > 1.0);
+    }catch(err){
+        mcapValue.style.color = 'var(--text-faint)';
+        mcapValue.textContent = '--';
+        mcapSub.textContent = `⚠ Sin datos de Market Cap (${err.message})`;
+        terminal.classList.remove('zona-peligro');
+    }
+
+    // --- Módulo 2 y 3: Energía de choque + pendiente vertical ---
+    try{
+        const shock = await fetchShockEnergy(pair);
+        const { volumenPromedio5m, volumenActual, estado, pendiente, precioActual } = shock;
+
+        const estadoConfig = {
+            carga:     { label:'CARGA · BALLENA ABSORBIENDO', color:'var(--blue-neon)', cls:'carga',     pct: Math.min((volumenActual/Math.max(volumenPromedio5m,1e-9))*40, 100) },
+            debilidad: { label:'DEBILIDAD · SUBIDA SIN VOLUMEN', color:'var(--gold)',    cls:'debilidad', pct: 45 },
+            ruptura:   { label:'RUPTURA · PARED ROTA', color:'var(--danger)',            cls:'ruptura',   pct: 100 },
+            neutro:    { label:'SIN SEÑAL CLARA', color:'var(--text-faint)',             cls:'',          pct: Math.min((volumenActual/Math.max(volumenPromedio5m,1e-9))*30, 60) }
+        };
+        const cfg = estadoConfig[estado];
+
+        energyValue.style.color = cfg.color;
+        energyValue.textContent = cfg.label;
+        energyBarFill.className = `energy-bar-fill ${cfg.cls}`.trim();
+        energyBarFill.style.width = `${Math.max(cfg.pct, 4)}%`;
+
+        // Icono de "rayo" solo en Estado 1 (carga)
+        lightningIcon.classList.toggle('show', estado === 'carga');
+
+        // Módulo 3: pendiente (spike) -> modo vertical (glow rojo + pulse en TODO el panel)
+        const umbralPendiente = precioActual * (UMBRAL_PENDIENTE_CRITICO_PCT / 100);
+        const esVertical = Math.abs(pendiente) > umbralPendiente;
+        terminal.classList.toggle('modo-vertical', esVertical);
+    }catch(err){
+        energyValue.style.color = 'var(--text-faint)';
+        energyValue.textContent = '--';
+        energyBarFill.className = 'energy-bar-fill';
+        energyBarFill.style.width = '0%';
+        lightningIcon.classList.remove('show');
+        terminal.classList.remove('modo-vertical');
+    }
 }
 
 async function run(){
@@ -379,9 +644,11 @@ async function run(){
     if(!raw) return;
     const pair = raw+'USDT';
     const out = document.getElementById('out');
+    const terminal = document.querySelector('.terminal');
 
     statusDot.className = 'status-dot';
     statusText.textContent = 'SCANNING…';
+    terminal.classList.remove('zona-peligro','modo-vertical');
 
     try{
         const [tk, dep] = await Promise.all([
@@ -417,6 +684,7 @@ async function run(){
             <div class="price-value">${fmtPrice(top.price)}</div>
 
             <div class="chart-wrap">
+                <div class="lightning-icon" id="lightningIcon">⚡</div>
                 <div class="wall-tag" style="left:${tagPct}%;">$${fmtPrice(top.usd)}</div>
                 <div class="gridlines"><div></div><div></div><div></div><div></div></div>
                 <div class="wallbar">${walls.map((w,i) => `<div class="wcol ${i===topIndex?'top':''}" style="height:${Math.max((w.usd/maxUsd)*76,2)}px"></div>`).join('')}</div>
@@ -439,6 +707,42 @@ async function run(){
                 </div>
                 <div class="gauge">${Array.from({length:10}, (_,i)=>`<div style="background:${i<gaugeFilled?resColor:'var(--line-soft)'}"></div>`).join('')}</div>
             </div>
+
+            <div class="metric-row" id="mcapRow">
+                <div class="metric-head">
+                    <div class="metric-label-wrap">
+                        <span class="metric-label">MARKET CAP · RATIO BURBUJA</span>
+                        <span class="info-icon" id="infoIconMcap">i</span>
+                        <div class="tooltip">
+                            <b>¿Qué mide?</b><br>
+                            Market Cap = Precio actual × Suministro circulante real (CoinGecko, cacheado 60 min).<br><br>
+                            Ratio Burbuja = Market Cap ÷ Umbral Máximo Lógico definido para este token.<br><br>
+                            Ratio > 1.0 → el mercado ya paga por encima del techo lógico configurado: zona de riesgo matemático (panel se pone rojo).
+                        </div>
+                    </div>
+                    <span class="metric-value" id="mcapValue">--</span>
+                </div>
+                <div class="gauge" id="mcapGauge">${Array.from({length:10}, ()=>'<div></div>').join('')}</div>
+                <div class="mcap-sub" id="mcapSub">Consultando CoinGecko…</div>
+            </div>
+
+            <div class="metric-row" id="energyRow">
+                <div class="metric-head">
+                    <div class="metric-label-wrap">
+                        <span class="metric-label">ENERGÍA DE CHOQUE</span>
+                        <span class="info-icon" id="infoIconEnergy">i</span>
+                        <div class="tooltip">
+                            <b>¿Qué mide?</b><br>
+                            Compara el volumen del último minuto contra el promedio de los 5 minutos previos, cruzado con la variación de precio.<br><br>
+                            <b>Azul (Carga):</b> volumen alto, precio casi plano → ballena absorbiendo la pared.<br>
+                            <b>Amarillo (Debilidad):</b> precio sube pero sin volumen real → subida falsa.<br>
+                            <b>Rojo (Ruptura):</b> volumen y precio disparados juntos → pared rota / short liquidado.
+                        </div>
+                    </div>
+                    <span class="metric-value" id="energyValue">--</span>
+                </div>
+                <div class="energy-bar-wrap"><div class="energy-bar-fill" id="energyBarFill"></div></div>
+            </div>
         `;
         prevRes = res;
         statusDot.className = 'status-dot on';
@@ -450,12 +754,26 @@ async function run(){
                 e.stopPropagation();
                 infoIcon.classList.toggle('active');
             });
-            document.addEventListener('click', () => infoIcon.classList.remove('active'));
         }
+        [document.getElementById('infoIconMcap'), document.getElementById('infoIconEnergy')].forEach(icon => {
+            if(icon){
+                icon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    icon.classList.toggle('active');
+                });
+            }
+        });
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.info-icon.active').forEach(i => i.classList.remove('active'));
+        });
+
+        // Módulos de riesgo (no bloquean el render principal si CoinGecko/klines fallan)
+        updateRiskModules(raw, pair, price);
     }catch(err){
         out.innerHTML = `<div class="divider"></div><div class="err">⚠ ${err.message || 'Error al consultar Binance. Verifica el símbolo.'}</div>`;
         statusDot.className = 'status-dot';
         statusText.textContent = 'ERROR';
+        terminal.classList.remove('zona-peligro','modo-vertical');
     }
 }
 
