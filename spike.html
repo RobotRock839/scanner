@@ -422,6 +422,43 @@
         letter-spacing:.02em;
         line-height:1.5;
     }
+
+    /* ===== MÓDULOS PRE-RUPTURA: Consumo de Pared / CVD / Tensión ===== */
+    .energy-bar-fill.consumo-real{
+        background:#ff9900;
+        box-shadow:0 0 14px rgba(255,153,0,.55);
+        animation:pulse 1s ease-in-out infinite;
+    }
+    .energy-bar-fill.retiro{
+        background:var(--text-dim);
+    }
+    .energy-bar-fill.reforzando{
+        background:var(--safe);
+        box-shadow:0 0 10px rgba(0,224,164,.4);
+    }
+    .energy-bar-fill.estable{
+        background:var(--text-faint);
+    }
+    .energy-bar-fill.cvd-buy{
+        background:var(--safe);
+        box-shadow:0 0 10px rgba(0,224,164,.4);
+    }
+    .energy-bar-fill.cvd-sell{
+        background:var(--danger);
+        box-shadow:0 0 10px var(--danger-glow);
+    }
+    /* Estado de Tensión: parpadeo naranja en TODO el panel cuando el precio está a <0.1% de la pared */
+    .terminal.tension-critica{
+        animation: tensionBlink .9s ease-in-out infinite;
+    }
+    @keyframes tensionBlink{
+        0%,100%{ box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset, 0 0 0 0 rgba(255,153,0,0); }
+        50%{ box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset, 0 0 46px 10px rgba(255,153,0,.6); }
+    }
+    #tensionValue.critica{
+        color:#ff9900 !important;
+        animation:flicker .9s ease-in-out infinite;
+    }
 </style>
 </head>
 <body>
@@ -439,13 +476,17 @@
             </div>
             <button id="btn">RUN →</button>
         </div>
-        <div class="empty-hint">Analiza el libro de órdenes de Binance Futures, el Market Cap real y la energía de choque ballena vs. pared.</div>
+        <div class="empty-hint">Analiza el libro de órdenes de Binance Futures, el Market Cap real, la energía de choque ballena vs. pared, y sondea cada 5s el consumo real de la pared (CVD + tensión de proximidad).</div>
         <div id="out"></div>
     </div>
 </div>
 
 <script>
 let prevRes = 0;
+let wallWatch = null;               // { priceLow, priceHigh, lastUsd, lastTradeTime } — pared vigilada por el módulo Pre-Ruptura
+let pollTimer = null;               // intervalo de sondeo Pre-Ruptura
+const POLL_MS = 5000;               // frecuencia de sondeo (ms)
+const TENSION_THRESHOLD_PCT = 0.1;  // % de distancia precio↔pared que dispara la alerta de tensión
 const RNG_PCT = 0.15;
 const statusDot = document.getElementById('statusDot');
 const statusText = document.getElementById('statusText');
@@ -639,6 +680,117 @@ async function updateRiskModules(symbol, pair, price){
     }
 }
 
+/* ============================================================
+   MÓDULOS PRE-RUPTURA
+   ============================================================
+   1) Consumo de Pared: compara el volumen USD de la pared vigilada
+      entre este sondeo (T0) y el anterior (T-1).
+   2) CVD estimado en la pared: usa aggTrades y el flag isBuyerMaker
+      para distinguir Market Buy agresivo vs Market Sell, filtrado
+      SOLO a las órdenes ejecutadas dentro del rango de precio de
+      la pared vigilada (no el mercado completo).
+   3) Cruce de ambas señales para diferenciar "pared comida" (consumo
+      real) de "pared cancelada" (fake wall retirada).
+   4) Tensión: distancia % entre precio actual y la pared vigilada.
+*/
+function classifyWallState(consumptionPct, cvdDelta){
+    if(consumptionPct > 15 && cvdDelta > 0){
+        return { label:'CONSUMO REAL · COMPRA AGRESIVA', cls:'consumo-real', color:'#ff9900' };
+    }
+    if(consumptionPct > 15 && cvdDelta <= 0){
+        return { label:'RETIRO DE ORDEN (FAKE WALL)', cls:'retiro', color:'var(--text-dim)' };
+    }
+    if(consumptionPct < -5){
+        return { label:'PARED REFORZÁNDOSE', cls:'reforzando', color:'var(--safe)' };
+    }
+    return { label:'PARED ESTABLE', cls:'estable', color:'var(--text-faint)' };
+}
+
+async function pollPreRuptura(pair){
+    if(!wallWatch) return;
+    const consumoValue = document.getElementById('consumoValue');
+    const consumoBarFill = document.getElementById('consumoBarFill');
+    const consumoSub = document.getElementById('consumoSub');
+    const cvdValue = document.getElementById('cvdValue');
+    const cvdBarFill = document.getElementById('cvdBarFill');
+    const cvdSub = document.getElementById('cvdSub');
+    const tensionValue = document.getElementById('tensionValue');
+    const terminal = document.querySelector('.terminal');
+    if(!consumoValue || !cvdValue || !tensionValue) return; // el panel fue reemplazado por un nuevo RUN
+
+    try{
+        const now = Date.now();
+        const [dep, bt] = await Promise.all([
+            fetch(`https://fapi.binance.com/fapi/v1/depth?symbol=${pair}&limit=1000`).then(r=>r.json()),
+            fetch(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${pair}`).then(r=>r.json())
+        ]);
+
+        const currentPrice = +bt.price;
+        const asksInBucket = dep.asks
+            .map(a => ({ p:+a[0], u:+a[0]*+a[1] }))
+            .filter(a => a.p >= wallWatch.priceLow && a.p < wallWatch.priceHigh);
+        const currUsd = asksInBucket.reduce((s,a) => s+a.u, 0);
+        const prevUsd = wallWatch.lastUsd;
+        const consumptionPct = prevUsd > 0 ? ((prevUsd - currUsd) / prevUsd) * 100 : 0;
+
+        // Trades agresivos dentro de la zona de la pared desde el último sondeo
+        let buyVol = 0, sellVol = 0;
+        try{
+            const trades = await fetch(`https://fapi.binance.com/fapi/v1/aggTrades?symbol=${pair}&startTime=${wallWatch.lastTradeTime}&endTime=${now}&limit=1000`).then(r=>r.json());
+            if(Array.isArray(trades)){
+                trades.forEach(t => {
+                    const p = +t.p, q = +t.p * +t.q;
+                    if(p >= wallWatch.priceLow && p < wallWatch.priceHigh){
+                        // m=false -> el comprador fue el "taker" (agresor) -> Market Buy real
+                        // m=true  -> el vendedor fue el "taker" -> Market Sell
+                        if(t.m === false) buyVol += q; else sellVol += q;
+                    }
+                });
+            }
+        }catch(e){ /* si aggTrades falla, seguimos solo con la señal de tamaño */ }
+
+        const cvdDelta = buyVol - sellVol;
+        const totalVol = buyVol + sellVol;
+
+        // --- Render: Consumo de Pared ---
+        const stateInfo = classifyWallState(consumptionPct, cvdDelta);
+        consumoValue.style.color = stateInfo.color;
+        consumoValue.textContent = `${stateInfo.label} (${consumptionPct >= 0 ? '-' : '+'}${Math.abs(consumptionPct).toFixed(1)}%)`;
+        consumoBarFill.className = `energy-bar-fill ${stateInfo.cls}`;
+        consumoBarFill.style.width = `${Math.max(Math.min(Math.abs(consumptionPct)*4, 100), 4)}%`;
+        consumoSub.textContent = `Pared: $${formatCompact(prevUsd)} → $${formatCompact(currUsd)}  (T-1 vs T0, cada ${POLL_MS/1000}s)`;
+
+        // --- Render: CVD estimado en la pared ---
+        if(totalVol > 0){
+            const buyPct = (buyVol/totalVol)*100;
+            cvdValue.style.color = cvdDelta > 0 ? 'var(--safe)' : 'var(--danger)';
+            cvdValue.textContent = `${cvdDelta > 0 ? '▲' : '▼'} $${formatCompact(Math.abs(cvdDelta))}`;
+            cvdBarFill.className = `energy-bar-fill ${cvdDelta > 0 ? 'cvd-buy' : 'cvd-sell'}`;
+            cvdBarFill.style.width = `${Math.max(buyPct,4)}%`;
+            cvdSub.textContent = `Market Buy $${formatCompact(buyVol)} · Market Sell $${formatCompact(sellVol)} dentro de la pared`;
+        }else{
+            cvdValue.style.color = 'var(--text-faint)';
+            cvdValue.textContent = 'Sin trades en la zona';
+            cvdBarFill.className = 'energy-bar-fill';
+            cvdBarFill.style.width = '0%';
+            cvdSub.textContent = 'No hubo ejecuciones dentro del rango de precio de la pared en este intervalo.';
+        }
+
+        // --- Render: Tensión / Proximidad Crítica ---
+        const distPct = ((wallWatch.priceLow - currentPrice) / currentPrice) * 100;
+        const enTension = distPct >= 0 && distPct < TENSION_THRESHOLD_PCT;
+        tensionValue.textContent = `${distPct.toFixed(3)}%${enTension ? '  ⚠ CRÍTICA' : ''}`;
+        tensionValue.classList.toggle('critica', enTension);
+        tensionValue.style.color = enTension ? '#ff9900' : (distPct < 0 ? 'var(--danger)' : 'var(--text)');
+        terminal.classList.toggle('tension-critica', enTension);
+
+        wallWatch.lastUsd = currUsd;
+        wallWatch.lastTradeTime = now;
+    }catch(err){
+        if(consumoSub) consumoSub.textContent = `⚠ Error de sondeo: ${err.message}`;
+    }
+}
+
 async function run(){
     const raw = document.getElementById('sym').value.trim().toUpperCase();
     if(!raw) return;
@@ -646,9 +798,13 @@ async function run(){
     const out = document.getElementById('out');
     const terminal = document.querySelector('.terminal');
 
+    // Reinicia el módulo Pre-Ruptura para el nuevo símbolo
+    if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+    wallWatch = null;
+
     statusDot.className = 'status-dot';
     statusText.textContent = 'SCANNING…';
-    terminal.classList.remove('zona-peligro','modo-vertical');
+    terminal.classList.remove('zona-peligro','modo-vertical','tension-critica');
 
     try{
         const [tk, dep] = await Promise.all([
@@ -669,6 +825,15 @@ async function run(){
         const maxUsd = Math.max(...walls.map(w => w.usd), 1);
         const top = [...walls].sort((a,b) => b.usd - a.usd)[0];
         const topIndex = walls.indexOf(top);
+
+        // Fija la pared vigilada para el módulo Pre-Ruptura (rango de precio absoluto)
+        wallWatch = {
+            priceLow: price + (topIndex * bucketSize),
+            priceHigh: price + ((topIndex + 1) * bucketSize),
+            lastUsd: top.usd,
+            lastTradeTime: Date.now()
+        };
+
         const res = (asks.reduce((s,a)=>s+a.u, 0) / tk.quoteVolume) * 100;
         const trendUp = res > prevRes;
         const resColor = res > 5 ? 'var(--safe)' : 'var(--danger)';
@@ -695,7 +860,7 @@ async function run(){
                 <div class="metric-head">
                     <div class="metric-label-wrap">
                         <span class="metric-label">RESISTENCIA</span>
-                        <span class="info-icon" id="infoIcon">i</span>
+                        <span class="info-icon">i</span>
                         <div class="tooltip">
                             <b>¿Qué mide?</b><br>
                             Suma la liquidez de venta (asks) en el 15% de rango sobre el precio y la compara contra el volumen operado en 24h.<br><br>
@@ -712,7 +877,7 @@ async function run(){
                 <div class="metric-head">
                     <div class="metric-label-wrap">
                         <span class="metric-label">MARKET CAP · RATIO BURBUJA</span>
-                        <span class="info-icon" id="infoIconMcap">i</span>
+                        <span class="info-icon">i</span>
                         <div class="tooltip">
                             <b>¿Qué mide?</b><br>
                             Market Cap = Precio actual × Suministro circulante real (CoinGecko, cacheado 60 min).<br><br>
@@ -730,7 +895,7 @@ async function run(){
                 <div class="metric-head">
                     <div class="metric-label-wrap">
                         <span class="metric-label">ENERGÍA DE CHOQUE</span>
-                        <span class="info-icon" id="infoIconEnergy">i</span>
+                        <span class="info-icon">i</span>
                         <div class="tooltip">
                             <b>¿Qué mide?</b><br>
                             Compara el volumen del último minuto contra el promedio de los 5 minutos previos, cruzado con la variación de precio.<br><br>
@@ -743,39 +908,87 @@ async function run(){
                 </div>
                 <div class="energy-bar-wrap"><div class="energy-bar-fill" id="energyBarFill"></div></div>
             </div>
+
+            <div class="metric-row" id="consumoRow">
+                <div class="metric-head">
+                    <div class="metric-label-wrap">
+                        <span class="metric-label">CONSUMO DE PARED (T0 vs T-1)</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">
+                            <b>¿Qué mide?</b><br>
+                            Compara el volumen USD de la pared vigilada entre este sondeo y el anterior (cada ${POLL_MS/1000}s).<br><br>
+                            Si baja Y hay Market Buy agresivo real dentro de esa zona (ver CVD abajo) → <b>Consumo Real</b>, ruptura probable.<br><br>
+                            Si baja pero el CVD no lo respalda → probablemente fue una <b>orden cancelada</b> (fake wall), no una ruptura.
+                        </div>
+                    </div>
+                    <span class="metric-value" id="consumoValue">--</span>
+                </div>
+                <div class="energy-bar-wrap"><div class="energy-bar-fill" id="consumoBarFill"></div></div>
+                <div class="mcap-sub" id="consumoSub">Esperando primer sondeo…</div>
+            </div>
+
+            <div class="metric-row" id="cvdRow">
+                <div class="metric-head">
+                    <div class="metric-label-wrap">
+                        <span class="metric-label">CVD ESTIMADO EN LA PARED</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">
+                            <b>¿Qué mide?</b><br>
+                            Delta de volumen agresivo (Market Buy − Market Sell) ejecutado dentro del rango de precio de la pared vigilada, desde el último sondeo.<br><br>
+                            Verde = predominan compras agresivas contra la pared (presión de ruptura). Rojo = predominan ventas o no hay agresión compradora real.
+                        </div>
+                    </div>
+                    <span class="metric-value" id="cvdValue">--</span>
+                </div>
+                <div class="energy-bar-wrap"><div class="energy-bar-fill" id="cvdBarFill"></div></div>
+                <div class="mcap-sub" id="cvdSub">Esperando primer sondeo…</div>
+            </div>
+
+            <div class="metric-row" id="tensionRow">
+                <div class="metric-head">
+                    <div class="metric-label-wrap">
+                        <span class="metric-label">TENSIÓN · DISTANCIA A LA PARED</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">
+                            <b>¿Qué mide?</b><br>
+                            Distancia porcentual entre el precio actual y el precio de la pared vigilada.<br><br>
+                            Por debajo del ${TENSION_THRESHOLD_PCT}% el panel entero parpadea en naranja — la ruptura puede ocurrir en cualquier momento.
+                        </div>
+                    </div>
+                    <span class="metric-value" id="tensionValue">--</span>
+                </div>
+            </div>
         `;
         prevRes = res;
         statusDot.className = 'status-dot on';
         statusText.textContent = 'LIVE';
 
-        const infoIcon = document.getElementById('infoIcon');
-        if(infoIcon){
-            infoIcon.addEventListener('click', (e) => {
+        out.querySelectorAll('.info-icon').forEach(icon => {
+            icon.addEventListener('click', (e) => {
                 e.stopPropagation();
-                infoIcon.classList.toggle('active');
+                icon.classList.toggle('active');
             });
-        }
-        [document.getElementById('infoIconMcap'), document.getElementById('infoIconEnergy')].forEach(icon => {
-            if(icon){
-                icon.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    icon.classList.toggle('active');
-                });
-            }
-        });
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.info-icon.active').forEach(i => i.classList.remove('active'));
         });
 
         // Módulos de riesgo (no bloquean el render principal si CoinGecko/klines fallan)
         updateRiskModules(raw, pair, price);
+
+        // Inicia el sondeo periódico Pre-Ruptura (Consumo de Pared / CVD / Tensión)
+        pollTimer = setInterval(() => pollPreRuptura(pair), POLL_MS);
+        pollPreRuptura(pair);
     }catch(err){
         out.innerHTML = `<div class="divider"></div><div class="err">⚠ ${err.message || 'Error al consultar Binance. Verifica el símbolo.'}</div>`;
         statusDot.className = 'status-dot';
         statusText.textContent = 'ERROR';
-        terminal.classList.remove('zona-peligro','modo-vertical');
+        terminal.classList.remove('zona-peligro','modo-vertical','tension-critica');
+        if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+        wallWatch = null;
     }
 }
+
+document.addEventListener('click', () => {
+    document.querySelectorAll('.info-icon.active').forEach(i => i.classList.remove('active'));
+});
 
 document.getElementById('btn').onclick = run;
 document.getElementById('sym').addEventListener('keydown', e => { if(e.key === 'Enter') run(); });
