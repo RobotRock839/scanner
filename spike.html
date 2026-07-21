@@ -3,576 +3,338 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPIKE_SCANNER · Techo</title>
+<title>🐋 Cazador de Ballenas — Modo Fácil</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
     :root{
-        --bg-void:#05060a;
-        --bg-panel:#0b0d14;
-        --bg-panel-2:#10121b;
-        --line:#1b1e2b;
-        --line-soft:#141620;
-        --text:#e2e4f1;
-        --text-dim:#565c74;
-        --text-faint:#31344a;
-        --danger:#ff3b5c;
-        --danger-glow:rgba(255,59,92,.45);
-        --safe:#00e0a4;
-        --gold:#f2b705;
-        --blue-neon:#00d4ff;
-        --blue-neon-glow:rgba(0,212,255,.5);
+        --bg:#eef4ff;
+        --card:#ffffff;
+        --ink:#20263a;
+        --ink-soft:#6b7290;
+        --line:#e3e8f7;
+        --blue:#3b82f6;
+        --blue-soft:#dbe8ff;
+        --green:#22c55e;
+        --green-soft:#dcfce7;
+        --yellow:#f59e0b;
+        --yellow-soft:#fef3c7;
+        --red:#ef4444;
+        --red-soft:#fee2e2;
+        --purple:#8b5cf6;
+        --purple-soft:#ede9fe;
+        --radius:20px;
     }
     *{box-sizing:border-box;}
     body{
-        background:
-            radial-gradient(circle at 15% 0%, rgba(255,59,92,.06), transparent 40%),
-            radial-gradient(circle at 85% 100%, rgba(0,224,164,.05), transparent 40%),
-            var(--bg-void);
-        color:var(--text);
-        font-family:'JetBrains Mono', monospace;
-        min-height:100vh;
         margin:0;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        padding:32px 16px;
-    }
-    .terminal{
-        width:100%;
-        max-width:460px;
-        background:var(--bg-panel);
-        border:1px solid var(--line);
-        border-radius:10px;
-        overflow:hidden;
-        box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset;
-        transition: background 1s ease;
-    }
-
-    /* ===== MÓDULO 3: ALERTA VISUAL DE BURBUJA / VERTICALIDAD ===== */
-    /* Ratio_Burbuja > 1.0 -> textura roja de advertencia sobre el panel completo */
-    .terminal.zona-peligro{
+        min-height:100vh;
         background:
-            radial-gradient(circle at 15% 0%, rgba(255,59,92,.10), transparent 45%),
-            radial-gradient(circle at 85% 100%, rgba(255,59,92,.10), transparent 45%),
-            rgba(255,59,92,.16);
-    }
-    /* Pendiente de precio > umbral crítico -> panel completo parpadea con glow rojo */
-    .terminal.modo-vertical{
-        animation: panelPulse 1.05s ease-in-out infinite;
-    }
-    @keyframes panelPulse{
-        0%,100%{ box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset, 0 0 0 0 var(--danger-glow); }
-        50%{ box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset, 0 0 46px 8px var(--danger-glow); }
-    }
-
-    .term-bar{
+            radial-gradient(circle at 10% 0%, #dceaff 0%, transparent 45%),
+            radial-gradient(circle at 90% 100%, #e2fbee 0%, transparent 45%),
+            var(--bg);
+        font-family:'Nunito', sans-serif;
+        color:var(--ink);
         display:flex;
-        align-items:center;
-        justify-content:space-between;
-        padding:11px 16px;
-        background:var(--bg-panel-2);
-        border-bottom:1px solid var(--line);
+        align-items:flex-start;
+        justify-content:center;
+        padding:28px 14px;
     }
-    .dots{display:flex;gap:6px;}
-    .dots span{width:9px;height:9px;border-radius:50%;background:var(--text-faint);}
-    .term-title{
-        font-size:12px;
-        font-weight:700;
-        letter-spacing:.12em;
-        color:var(--text-dim);
+    .app{
+        width:100%;
+        max-width:440px;
     }
-    .term-title b{color:var(--text);}
-    .status{
-        display:flex;
-        align-items:center;
-        gap:6px;
-        font-size:10px;
-        font-weight:600;
-        letter-spacing:.14em;
-        color:var(--text-faint);
+    .header{
+        text-align:center;
+        margin-bottom:16px;
     }
-    .status-dot{
-        width:6px;height:6px;border-radius:50%;
-        background:var(--text-faint);
+    .header h1{
+        font-family:'Baloo 2', sans-serif;
+        font-size:26px;
+        font-weight:800;
+        margin:0 0 4px;
+        color:#1e3a8a;
     }
-    .status-dot.on{background:var(--safe);box-shadow:0 0 8px var(--safe);}
+    .header p{
+        margin:0;
+        font-size:13.5px;
+        color:var(--ink-soft);
+        line-height:1.5;
+        padding:0 8px;
+    }
 
-    .term-body{padding:20px;}
+    .card{
+        background:var(--card);
+        border-radius:var(--radius);
+        border:1px solid var(--line);
+        box-shadow:0 10px 30px -14px rgba(30,58,138,.15);
+        padding:18px;
+        margin-bottom:14px;
+    }
 
-    .input-row{
+    .search-row{
         display:flex;
         gap:8px;
-        margin-bottom:10px;
     }
-    .input-wrap{
+    .search-wrap{
         flex:1;
         display:flex;
         align-items:center;
         gap:8px;
-        background:var(--bg-void);
-        border:1px solid var(--line);
-        border-radius:7px;
-        padding:0 12px;
+        background:#f4f7ff;
+        border:2px solid var(--line);
+        border-radius:14px;
+        padding:0 14px;
+        transition:border-color .15s;
     }
-    .input-wrap span{color:var(--gold);font-weight:700;}
+    .search-wrap:focus-within{ border-color:var(--blue); }
+    .search-wrap span{ font-size:18px; }
     #sym{
         flex:1;
         background:transparent;
         border:none;
         outline:none;
-        color:var(--text);
-        font-family:inherit;
-        font-size:14px;
-        font-weight:600;
-        letter-spacing:.05em;
-        padding:11px 0;
+        font-family:'Nunito', sans-serif;
+        font-size:16px;
+        font-weight:700;
+        color:var(--ink);
+        padding:13px 0;
+        text-transform:uppercase;
     }
-    #sym::placeholder{color:var(--text-faint);}
+    #sym::placeholder{ color:#b3bad6; text-transform:none; font-weight:600;}
     #btn{
-        padding:0 18px;
-        background:var(--text);
-        color:var(--bg-void);
+        padding:0 20px;
+        background:var(--blue);
+        color:#fff;
         border:none;
-        border-radius:7px;
-        font-family:inherit;
-        font-size:12px;
-        font-weight:800;
-        letter-spacing:.1em;
+        border-radius:14px;
+        font-family:'Baloo 2', sans-serif;
+        font-size:14px;
+        font-weight:700;
         cursor:pointer;
         transition:transform .12s, background .12s;
     }
-    #btn:hover{background:var(--gold);}
-    #btn:active{transform:scale(.96);}
+    #btn:hover{ background:#2563eb; }
+    #btn:active{ transform:scale(.95); }
 
-    #out{min-height:2px;}
-    .empty-hint{
-        font-size:11px;
-        color:var(--text-faint);
-        padding:6px 2px 2px;
-        letter-spacing:.03em;
-    }
-    .err{
-        margin-top:14px;
-        padding:12px 14px;
-        border:1px solid rgba(255,59,92,.3);
-        background:rgba(255,59,92,.06);
-        color:var(--danger);
+    .status-line{
+        display:flex;
+        align-items:center;
+        gap:6px;
+        margin-top:10px;
         font-size:12px;
-        border-radius:7px;
-        letter-spacing:.02em;
+        font-weight:700;
+        color:var(--ink-soft);
     }
+    .status-dot{ width:8px; height:8px; border-radius:50%; background:#cbd2e8; }
+    .status-dot.on{ background:var(--green); box-shadow:0 0 0 4px var(--green-soft); }
+    .status-dot.err{ background:var(--red); box-shadow:0 0 0 4px var(--red-soft); }
 
-    .divider{
-        height:1px;
-        background:var(--line);
-        margin:20px 0;
+    #out{ display:none; }
+    #out.show{ display:block; }
+
+    .big-banner{
+        text-align:center;
+        border-radius:var(--radius);
+        padding:20px;
+        margin-bottom:14px;
+        transition:background .4s, box-shadow .4s;
+        background:var(--blue-soft);
     }
+    .big-banner.peligro{ background:var(--red-soft); animation:bannerPulse 1.1s ease-in-out infinite; }
+    @keyframes bannerPulse{
+        0%,100%{ box-shadow:0 0 0 0 rgba(239,68,68,0); }
+        50%{ box-shadow:0 0 0 10px rgba(239,68,68,.12); }
+    }
+    .big-banner .emoji{ font-size:34px; display:block; margin-bottom:4px; }
+    .big-banner .msg{
+        font-family:'Baloo 2', sans-serif;
+        font-size:16px;
+        font-weight:700;
+        color:#1e3a8a;
+    }
+    .big-banner.peligro .msg{ color:#991b1b; }
 
-    .label-row{
+    .price-row{
         display:flex;
         justify-content:space-between;
-        align-items:baseline;
-        margin-bottom:4px;
+        align-items:center;
+        margin-bottom:6px;
     }
-    .eyebrow{
-        font-size:10px;
+    .price-label{ font-size:12px; font-weight:700; color:var(--ink-soft); }
+    .pair-chip{
+        font-size:11px;
         font-weight:700;
-        letter-spacing:.16em;
-        color:var(--text-dim);
-    }
-    .pair-tag{
-        font-size:10px;
-        font-weight:600;
-        color:var(--text-faint);
-        letter-spacing:.08em;
+        color:var(--blue);
+        background:var(--blue-soft);
+        padding:3px 9px;
+        border-radius:20px;
     }
     .price-value{
-        font-size:36px;
+        font-family:'Baloo 2', sans-serif;
+        font-size:30px;
         font-weight:800;
-        color:var(--danger);
-        text-shadow:0 0 18px var(--danger-glow);
-        letter-spacing:-.01em;
-        line-height:1.1;
-        margin-top:2px;
+        color:var(--ink);
     }
 
-    .chart-wrap{
-        position:relative;
-        margin:22px 0 6px;
-        padding-top:22px;
-    }
-    .wall-tag{
-        position:absolute;
-        top:0;
-        transform:translateX(-50%);
-        font-size:9px;
-        font-weight:700;
-        letter-spacing:.1em;
-        color:var(--danger);
-        white-space:nowrap;
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        gap:2px;
-    }
-    .wall-tag::after{
-        content:'';
-        width:1px;
-        height:6px;
-        background:var(--danger);
-    }
-    .gridlines{
-        position:absolute;
-        inset:22px 0 26px 0;
-        display:flex;
-        flex-direction:column;
-        justify-content:space-between;
-        pointer-events:none;
-    }
-    .gridlines div{
-        height:1px;
-        background:var(--line-soft);
-    }
-    .wallbar{
-        position:relative;
-        height:76px;
-        display:flex;
-        align-items:flex-end;
-        gap:3px;
-    }
-    .wcol{
-        flex:1;
-        background:var(--text-faint);
-        opacity:.4;
-        border-radius:2px 2px 0 0;
-        min-height:2px;
-        transition:height .4s cubic-bezier(.2,.8,.2,1);
-    }
-    .wcol.top{
-        background:var(--danger);
-        opacity:1;
-        box-shadow:0 0 14px var(--danger-glow);
-        animation:pulse 1.6s ease-in-out infinite;
-    }
-    @keyframes pulse{
-        0%,100%{opacity:1;}
-        50%{opacity:.55;}
-    }
-    .axis{
-        display:flex;
-        justify-content:space-between;
+    .explain{
+        font-size:12.5px;
+        color:var(--ink-soft);
+        line-height:1.5;
         margin-top:8px;
-        font-size:9px;
-        color:var(--text-faint);
-        letter-spacing:.03em;
+        background:#f7f9ff;
+        border-radius:12px;
+        padding:10px 12px;
     }
 
-    /* Icono de "rayo" sobre el gráfico cuando la ballena está cargando (Estado 1) */
-    .lightning-icon{
-        position:absolute;
-        top:-4px;
-        right:0;
-        font-size:19px;
-        opacity:0;
-        transform:scale(.5);
-        transition:opacity .3s, transform .3s;
-        filter:drop-shadow(0 0 8px var(--blue-neon-glow));
-        pointer-events:none;
-    }
-    .lightning-icon.show{
-        opacity:1;
-        transform:scale(1);
-        animation:flicker 1.3s ease-in-out infinite;
-    }
-    @keyframes flicker{
-        0%,100%{opacity:1;}
-        50%{opacity:.5;}
-    }
+    .chart-wrap{ margin:18px 0 4px; }
+    .wallbar{ display:flex; align-items:flex-end; gap:3px; height:64px; }
+    .wcol{ flex:1; background:#dbe4fb; border-radius:3px 3px 0 0; min-height:2px; transition:height .4s; }
+    .wcol.top{ background:var(--red); box-shadow:0 0 10px rgba(239,68,68,.4); }
+    .axis{ display:flex; justify-content:space-between; margin-top:6px; font-size:10px; color:var(--ink-soft); font-weight:700;}
 
-    .metric-row{margin-top:22px;}
-    .metric-head{
+    .metric-title{
         display:flex;
-        justify-content:space-between;
-        align-items:baseline;
+        align-items:center;
+        gap:8px;
         margin-bottom:8px;
     }
-    .metric-label-wrap{
-        position:relative;
-        display:flex;
+    .metric-title .icon{ font-size:20px; }
+    .metric-title .name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14.5px; }
+
+    .pill{
+        display:inline-flex;
         align-items:center;
         gap:6px;
+        padding:8px 14px;
+        border-radius:14px;
+        font-weight:800;
+        font-size:14px;
+        font-family:'Baloo 2', sans-serif;
     }
-    .metric-label{
-        font-size:10px;
-        font-weight:700;
-        letter-spacing:.14em;
-        color:var(--text-dim);
-    }
-    .info-icon{
-        width:14px;
-        height:14px;
-        border-radius:50%;
-        border:1px solid var(--text-faint);
-        color:var(--text-faint);
-        font-size:9px;
-        font-weight:700;
-        line-height:12px;
-        text-align:center;
-        cursor:pointer;
-        user-select:none;
-        flex-shrink:0;
-        transition:border-color .15s, color .15s;
-    }
-    .info-icon:hover, .info-icon.active{
-        border-color:var(--gold);
-        color:var(--gold);
-    }
-    .tooltip{
-        position:absolute;
-        left:0;
-        bottom:calc(100% + 10px);
-        width:270px;
-        max-width:calc(100vw - 80px);
-        background:var(--bg-panel-2);
-        border:1px solid var(--line);
+    .pill.blue{ background:var(--blue-soft); color:#1e40af; }
+    .pill.green{ background:var(--green-soft); color:#166534; }
+    .pill.yellow{ background:var(--yellow-soft); color:#92400e; }
+    .pill.red{ background:var(--red-soft); color:#991b1b; }
+    .pill.purple{ background:var(--purple-soft); color:#5b21b6; }
+    .pill.gray{ background:#eef1f8; color:var(--ink-soft); }
+
+    .bar-wrap{
+        height:12px;
+        background:#eef1f8;
         border-radius:8px;
-        padding:12px 13px;
-        font-size:10.5px;
-        line-height:1.55;
-        color:var(--text-dim);
-        letter-spacing:.01em;
-        box-shadow:0 12px 30px -8px rgba(0,0,0,.6);
-        opacity:0;
-        visibility:hidden;
-        transform:translateY(4px);
-        transition:opacity .15s, transform .15s, visibility .15s;
-        z-index:10;
-    }
-    .tooltip b{color:var(--text);font-weight:700;}
-    .tooltip::after{
-        content:'';
-        position:absolute;
-        top:100%;
-        left:9px;
-        border:5px solid transparent;
-        border-top-color:var(--line);
-    }
-    .info-icon.active + .tooltip,
-    .metric-label-wrap:hover .tooltip{
-        opacity:1;
-        visibility:visible;
-        transform:translateY(0);
-    }
-    .metric-value{
-        font-size:15px;
-        font-weight:700;
-        display:flex;
-        align-items:center;
-        gap:6px;
-    }
-    .gauge{
-        display:flex;
-        gap:3px;
-        height:8px;
-    }
-    .gauge div{
-        flex:1;
-        border-radius:2px;
-        background:var(--line-soft);
-        transition:background .3s;
-    }
-
-    /* ===== MÓDULO 2: BARRA DE ENERGÍA DE CHOQUE ===== */
-    .energy-bar-wrap{
-        height:8px;
-        border-radius:4px;
-        background:var(--line-soft);
         overflow:hidden;
+        margin-top:10px;
     }
-    .energy-bar-fill{
+    .bar-fill{
         height:100%;
+        border-radius:8px;
         width:0%;
-        border-radius:4px;
-        background:var(--text-faint);
-        transition:width .4s ease, background .4s ease, box-shadow .4s ease;
-    }
-    /* Estado 1 (Carga): ballena absorbiendo la pared -> Modo Azul Neón */
-    .energy-bar-fill.carga{
-        background:var(--blue-neon);
-        box-shadow:0 0 12px var(--blue-neon-glow);
-    }
-    /* Estado 2 (Debilidad): subida sin volumen real -> Modo Amarillo */
-    .energy-bar-fill.debilidad{
-        background:var(--gold);
-        box-shadow:0 0 10px rgba(242,183,5,.45);
-    }
-    /* Estado 3 (Ruptura): pared rota / short liquidado -> Modo Alerta Roja */
-    .energy-bar-fill.ruptura{
-        background:var(--danger);
-        box-shadow:0 0 14px var(--danger-glow);
-        animation:pulse 1s ease-in-out infinite;
+        transition:width .4s ease, background .4s ease;
     }
 
-    .mcap-sub{
-        font-size:9px;
-        color:var(--text-faint);
+    .sub{ font-size:12px; color:var(--ink-soft); margin-top:8px; line-height:1.5; }
+
+    .err-box{
+        background:var(--red-soft);
+        color:#991b1b;
+        border-radius:14px;
+        padding:12px 14px;
+        font-size:13px;
+        font-weight:700;
+    }
+
+    .footer-note{
+        text-align:center;
+        font-size:11px;
+        color:var(--ink-soft);
         margin-top:6px;
-        letter-spacing:.02em;
         line-height:1.5;
-    }
-
-    /* ===== MÓDULOS PRE-RUPTURA: Consumo de Pared / CVD / Tensión ===== */
-    .energy-bar-fill.consumo-real{
-        background:#ff9900;
-        box-shadow:0 0 14px rgba(255,153,0,.55);
-        animation:pulse 1s ease-in-out infinite;
-    }
-    .energy-bar-fill.retiro{
-        background:var(--text-dim);
-    }
-    .energy-bar-fill.reforzando{
-        background:var(--safe);
-        box-shadow:0 0 10px rgba(0,224,164,.4);
-    }
-    .energy-bar-fill.estable{
-        background:var(--text-faint);
-    }
-    .energy-bar-fill.cvd-buy{
-        background:var(--safe);
-        box-shadow:0 0 10px rgba(0,224,164,.4);
-    }
-    .energy-bar-fill.cvd-sell{
-        background:var(--danger);
-        box-shadow:0 0 10px var(--danger-glow);
-    }
-    /* Estado de Tensión: parpadeo naranja en TODO el panel cuando el precio está a <0.1% de la pared */
-    .terminal.tension-critica{
-        animation: tensionBlink .9s ease-in-out infinite;
-    }
-    @keyframes tensionBlink{
-        0%,100%{ box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset, 0 0 0 0 rgba(255,153,0,0); }
-        50%{ box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset, 0 0 46px 10px rgba(255,153,0,.6); }
-    }
-    #tensionValue.critica{
-        color:#ff9900 !important;
-        animation:flicker .9s ease-in-out infinite;
     }
 </style>
 </head>
 <body>
-<div class="terminal">
-    <div class="term-bar">
-        <div class="dots"><span></span><span></span><span></span></div>
-        <div class="term-title"><b>SPIKE</b>_SCANNER</div>
-        <div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">IDLE</span></div>
+<div class="app">
+    <div class="header">
+        <h1>🐋 Cazador de Ballenas</h1>
+        <p>Escribe el nombre de una cripto (por ejemplo <b>BTC</b> o <b>SOL</b>) y te explico, en fácil, qué están haciendo los "peces grandes" con su precio.</p>
     </div>
-    <div class="term-body">
-        <div class="input-row">
-            <div class="input-wrap">
-                <span>#</span>
-                <input id="sym" placeholder="TOKEN — ej. BANK" autocomplete="off">
+
+    <div class="card">
+        <div class="search-row">
+            <div class="search-wrap">
+                <span>🔎</span>
+                <input id="sym" placeholder="Ej: BTC" autocomplete="off">
             </div>
-            <button id="btn">RUN →</button>
+            <button id="btn">Buscar</button>
         </div>
-        <div class="empty-hint">Analiza el libro de órdenes de Binance Futures, el Market Cap real, la energía de choque ballena vs. pared, y sondea cada 5s el consumo real de la pared (CVD + tensión de proximidad).</div>
-        <div id="out"></div>
+        <div class="status-line">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Esperando que busques algo…</span>
+        </div>
     </div>
+
+    <div id="out"></div>
 </div>
 
 <script>
-let prevRes = 0;
-let wallWatch = null;               // { priceLow, priceHigh, lastUsd, lastTradeTime } — pared vigilada por el módulo Pre-Ruptura
-let pollTimer = null;               // intervalo de sondeo Pre-Ruptura
-const POLL_MS = 5000;               // frecuencia de sondeo (ms)
-const TENSION_THRESHOLD_PCT = 0.1;  // % de distancia precio↔pared que dispara la alerta de tensión
+let wallWatch = null;
+let pollTimer = null;
+const POLL_MS = 5000;
+const TENSION_THRESHOLD_PCT = 0.1;
 const RNG_PCT = 0.15;
+const UMBRAL_PENDIENTE_CRITICO_PCT = 0.15;
+const UMBRAL_FALLBACK_MULTIPLIER = 3;
+const CACHE_TTL_MS = 60 * 60 * 1000;
+const CONFIG_UMBRALES = { BTC: 3_000_000_000_000, ETH: 1_000_000_000_000, SOL: 500_000_000_000, BNB: 300_000_000_000 };
+
 const statusDot = document.getElementById('statusDot');
 const statusText = document.getElementById('statusText');
-
-/* ============================================================
-   CONFIGURACIÓN — MÓDULO 1: REALIDAD FUNDAMENTAL (MARKET CAP)
-   ============================================================
-   El programador define aquí el "techo lógico" (Umbral_Maximo_Logico)
-   en USD para cada token que quiera vigilar de cerca. Si el símbolo
-   no está en esta lista, se usa como respaldo el Fully Diluted
-   Valuation (FDV) que entrega CoinGecko, y si tampoco existe, se usa
-   un múltiplo del Market Cap actual (UMBRAL_FALLBACK_MULTIPLIER).
-*/
-const CONFIG_UMBRALES = {
-    BTC: 3_000_000_000_000,
-    ETH: 1_000_000_000_000,
-    SOL: 500_000_000_000,
-    BNB: 300_000_000_000,
-    // Agrega aquí más pares "SYMBOL: valor_en_usd" según tu propio criterio de burbuja.
-};
-const UMBRAL_FALLBACK_MULTIPLIER = 3; // si no hay umbral definido ni FDV disponible
-const CACHE_TTL_MS = 60 * 60 * 1000; // 60 minutos de caché para circulating_supply
-
-/* Umbral de pendiente que dispara el "modo vertical" (spike): % del precio por minuto */
-const UMBRAL_PENDIENTE_CRITICO_PCT = 0.15;
 
 function fmtPrice(p){
     if(p >= 100) return p.toFixed(2);
     if(p >= 1) return p.toFixed(4);
     return p.toPrecision(4);
 }
-
 function formatCompact(n){
     if(n === null || n === undefined || isNaN(n)) return '—';
     const abs = Math.abs(n);
-    if(abs >= 1e12) return (n/1e12).toFixed(2)+'T';
-    if(abs >= 1e9) return (n/1e9).toFixed(2)+'B';
-    if(abs >= 1e6) return (n/1e6).toFixed(2)+'M';
+    if(abs >= 1e12) return (n/1e12).toFixed(2)+' billones';
+    if(abs >= 1e9) return (n/1e9).toFixed(2)+' mil millones';
+    if(abs >= 1e6) return (n/1e6).toFixed(2)+' millones';
     if(abs >= 1e3) return (n/1e3).toFixed(2)+'K';
     return n.toFixed(2);
 }
 
-/* ============================================================
-   CACHÉ EN localStorage (60 min) — evita golpear CoinGecko en
-   cada iteración del escáner
-   ============================================================ */
+// caché simple en memoria (no usamos localStorage aquí)
+const memCache = {};
 function getCachedTokenData(symbol){
-    try{
-        const raw = localStorage.getItem(`cg_cache_${symbol}`);
-        if(!raw) return null;
-        const data = JSON.parse(raw);
-        if(Date.now() - data.ts > CACHE_TTL_MS) return null;
-        return data;
-    }catch(e){
-        return null; // localStorage bloqueado o corrupto: seguimos sin caché
-    }
+    const d = memCache[symbol];
+    if(!d) return null;
+    if(Date.now() - d.ts > CACHE_TTL_MS) return null;
+    return d;
 }
-
 function setCachedTokenData(symbol, data){
-    try{
-        localStorage.setItem(`cg_cache_${symbol}`, JSON.stringify({ ...data, ts: Date.now() }));
-    }catch(e){ /* localStorage lleno/bloqueado: no rompemos el escáner por esto */ }
+    memCache[symbol] = { ...data, ts: Date.now() };
 }
 
-/* Consulta CoinGecko: id del token -> circulating_supply + FDV (para fallback de umbral) */
 async function fetchCoinGeckoData(symbol){
     const cached = getCachedTokenData(symbol);
     if(cached) return cached;
-
     const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(symbol)}`).then(r=>r.json());
     const coins = searchRes.coins || [];
     const match = coins.find(c => (c.symbol||'').toUpperCase() === symbol) || coins[0];
-    if(!match) throw new Error(`CoinGecko no encontró ${symbol}`);
-
+    if(!match) throw new Error(`No encontré esa moneda`);
     const coinData = await fetch(`https://api.coingecko.com/api/v3/coins/${match.id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`).then(r=>r.json());
-
     const supply = coinData.market_data?.circulating_supply || 0;
     const fdv = coinData.market_data?.fully_diluted_valuation?.usd || null;
-    if(!supply) throw new Error(`CoinGecko no reporta circulating_supply para ${symbol}`);
-
+    if(!supply) throw new Error(`Faltan datos de esta moneda`);
     const data = { id: match.id, supply, fdv };
     setCachedTokenData(symbol, data);
     return data;
 }
 
-/* Market_Cap = Precio_Actual * Circulating_Supply ; Ratio_Burbuja = Market_Cap / Umbral_Maximo_Logico */
 function computeMarketCap(symbol, price, tokenData){
     const marketCap = price * tokenData.supply;
     const umbral = CONFIG_UMBRALES[symbol] || tokenData.fdv || (marketCap * UMBRAL_FALLBACK_MULTIPLIER);
@@ -580,143 +342,94 @@ function computeMarketCap(symbol, price, tokenData){
     return { marketCap, umbral, ratioBurbuja };
 }
 
-/* ============================================================
-   MÓDULO 2: ENERGÍA DE CHOQUE (ballena vs. resistencia)
-   ============================================================
-   Usa velas de 1m (limit=6): las 5 primeras dan el promedio base,
-   la 6ta (más reciente) es el volumen/precio "actual".
-*/
 async function fetchShockEnergy(pair){
     const klines = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1m&limit=6`).then(r=>r.json());
-    if(!Array.isArray(klines) || klines.length < 6) throw new Error('Velas 1m insuficientes.');
-
+    if(!Array.isArray(klines) || klines.length < 6) throw new Error('No hay suficientes datos de precio reciente.');
     const volumenesPrevios = klines.slice(0,5).map(k => +k[5]);
     const volumenPromedio5m = volumenesPrevios.reduce((a,b)=>a+b,0) / volumenesPrevios.length;
     const volumenActual = +klines[5][5];
-
     const precioHace5min = +klines[0][4];
     const precioActual = +klines[5][4];
     const variacionPrecio5m = ((precioActual - precioHace5min) / precioHace5min) * 100;
-    const pendiente = (precioActual - precioHace5min) / 5; // USD por minuto
-
+    const pendiente = (precioActual - precioHace5min) / 5;
     let estado = 'neutro';
-    if(volumenActual > volumenPromedio5m*1.5 && Math.abs(variacionPrecio5m) < 0.2){
-        estado = 'carga';       // Estado 1 — Modo Azul Neón
-    }else if(variacionPrecio5m > 0.5 && volumenActual < volumenPromedio5m*0.8){
-        estado = 'debilidad';   // Estado 2 — Modo Amarillo
-    }else if(volumenActual > volumenPromedio5m*2 && variacionPrecio5m > 1){
-        estado = 'ruptura';     // Estado 3 — Modo Alerta Roja
-    }
-
+    if(volumenActual > volumenPromedio5m*1.5 && Math.abs(variacionPrecio5m) < 0.2) estado = 'carga';
+    else if(variacionPrecio5m > 0.5 && volumenActual < volumenPromedio5m*0.8) estado = 'debilidad';
+    else if(volumenActual > volumenPromedio5m*2 && variacionPrecio5m > 1) estado = 'ruptura';
     return { volumenPromedio5m, volumenActual, variacionPrecio5m, pendiente, estado, precioActual };
 }
 
-/* ============================================================
-   Orquesta Módulo 1 + Módulo 2/3 y pinta el feedback visual
-   ============================================================ */
 async function updateRiskModules(symbol, pair, price){
-    const terminal = document.querySelector('.terminal');
-    const mcapValue = document.getElementById('mcapValue');
+    const banner = document.getElementById('banner');
+    const mcapPill = document.getElementById('mcapPill');
+    const mcapBar = document.getElementById('mcapBar');
     const mcapSub = document.getElementById('mcapSub');
-    const mcapGauge = document.getElementById('mcapGauge');
-    const energyValue = document.getElementById('energyValue');
-    const energyBarFill = document.getElementById('energyBarFill');
-    const lightningIcon = document.getElementById('lightningIcon');
+    const energyPill = document.getElementById('energyPill');
+    const energyBar = document.getElementById('energyBar');
+    const energySub = document.getElementById('energySub');
 
-    // --- Módulo 1: Market Cap real ---
     try{
         const tokenData = await fetchCoinGeckoData(symbol);
         const { marketCap, umbral, ratioBurbuja } = computeMarketCap(symbol, price, tokenData);
-
-        const mcapColor = ratioBurbuja > 1 ? 'var(--danger)' : ratioBurbuja > 0.6 ? 'var(--gold)' : 'var(--safe)';
-        mcapValue.style.color = mcapColor;
-        mcapValue.textContent = `${ratioBurbuja.toFixed(2)}x`;
-        mcapSub.textContent = `MCap $${formatCompact(marketCap)} · Umbral $${formatCompact(umbral)} · Supply ${formatCompact(tokenData.supply)}`;
-
-        const gaugeCells = mcapGauge.querySelectorAll('div');
-        const filled = Math.max(0, Math.min(Math.round(ratioBurbuja*10), 10));
-        gaugeCells.forEach((cell,i) => { cell.style.background = i < filled ? mcapColor : 'var(--line-soft)'; });
-
-        terminal.classList.toggle('zona-peligro', ratioBurbuja > 1.0);
+        let cls = 'green', txt = `😌 Precio con espacio para crecer (${ratioBurbuja.toFixed(2)}x)`;
+        if(ratioBurbuja > 1){ cls='red'; txt = `🚨 Se ve carísimo para lo que vale de verdad (${ratioBurbuja.toFixed(2)}x)`; }
+        else if(ratioBurbuja > 0.6){ cls='yellow'; txt = `😐 Empezando a verse caro (${ratioBurbuja.toFixed(2)}x)`; }
+        mcapPill.className = `pill ${cls}`;
+        mcapPill.textContent = txt;
+        mcapBar.className = `bar-fill`;
+        mcapBar.style.background = cls==='red'?'var(--red)':cls==='yellow'?'var(--yellow)':'var(--green)';
+        mcapBar.style.width = `${Math.max(Math.min(ratioBurbuja*100,100),4)}%`;
+        mcapSub.textContent = `Vale en total ${formatCompact(marketCap)} de dólares. Nuestro techo de referencia es ${formatCompact(umbral)}.`;
+        banner.classList.toggle('peligro', ratioBurbuja > 1.0);
     }catch(err){
-        mcapValue.style.color = 'var(--text-faint)';
-        mcapValue.textContent = '--';
-        mcapSub.textContent = `⚠ Sin datos de Market Cap (${err.message})`;
-        terminal.classList.remove('zona-peligro');
+        mcapPill.className = 'pill gray';
+        mcapPill.textContent = '😕 No pude calcular esto';
+        mcapBar.style.width = '0%';
+        mcapSub.textContent = `Motivo: ${err.message}`;
     }
 
-    // --- Módulo 2 y 3: Energía de choque + pendiente vertical ---
     try{
         const shock = await fetchShockEnergy(pair);
         const { volumenPromedio5m, volumenActual, estado, pendiente, precioActual } = shock;
-
-        const estadoConfig = {
-            carga:     { label:'CARGA · BALLENA ABSORBIENDO', color:'var(--blue-neon)', cls:'carga',     pct: Math.min((volumenActual/Math.max(volumenPromedio5m,1e-9))*40, 100) },
-            debilidad: { label:'DEBILIDAD · SUBIDA SIN VOLUMEN', color:'var(--gold)',    cls:'debilidad', pct: 45 },
-            ruptura:   { label:'RUPTURA · PARED ROTA', color:'var(--danger)',            cls:'ruptura',   pct: 100 },
-            neutro:    { label:'SIN SEÑAL CLARA', color:'var(--text-faint)',             cls:'',          pct: Math.min((volumenActual/Math.max(volumenPromedio5m,1e-9))*30, 60) }
+        const map = {
+            carga:     { cls:'blue',   txt:'🔵 Una ballena está comprando en silencio', sub:'Se mueve mucho dinero pero el precio casi no cambia: alguien grande está acumulando sin llamar la atención.', pct: Math.min((volumenActual/Math.max(volumenPromedio5m,1e-9))*40,100) },
+            debilidad: { cls:'yellow', txt:'🟡 Subida sospechosa, sin fuerza real', sub:'El precio sube pero casi nadie está comprando de verdad. Podría bajar pronto.', pct: 45 },
+            ruptura:   { cls:'red',    txt:'🔴 ¡Rompió la pared!', sub:'Mucho dinero entró de golpe y el precio salió disparado. Algo grande acaba de pasar.', pct: 100 },
+            neutro:    { cls:'gray',  txt:'⚪ Todo tranquilo por ahora', sub:'No hay señales fuertes en este momento.', pct: Math.min((volumenActual/Math.max(volumenPromedio5m,1e-9))*30,60) }
         };
-        const cfg = estadoConfig[estado];
+        const cfg = map[estado];
+        energyPill.className = `pill ${cfg.cls}`;
+        energyPill.textContent = cfg.txt;
+        energyBar.style.background = cfg.cls==='blue'?'var(--blue)':cfg.cls==='yellow'?'var(--yellow)':cfg.cls==='red'?'var(--red)':'#cbd2e8';
+        energyBar.style.width = `${Math.max(cfg.pct,4)}%`;
+        energySub.textContent = cfg.sub;
 
-        energyValue.style.color = cfg.color;
-        energyValue.textContent = cfg.label;
-        energyBarFill.className = `energy-bar-fill ${cfg.cls}`.trim();
-        energyBarFill.style.width = `${Math.max(cfg.pct, 4)}%`;
-
-        // Icono de "rayo" solo en Estado 1 (carga)
-        lightningIcon.classList.toggle('show', estado === 'carga');
-
-        // Módulo 3: pendiente (spike) -> modo vertical (glow rojo + pulse en TODO el panel)
-        const umbralPendiente = precioActual * (UMBRAL_PENDIENTE_CRITICO_PCT / 100);
+        const umbralPendiente = precioActual * (UMBRAL_PENDIENTE_CRITICO_PCT/100);
         const esVertical = Math.abs(pendiente) > umbralPendiente;
-        terminal.classList.toggle('modo-vertical', esVertical);
+        banner.classList.toggle('peligro', banner.classList.contains('peligro') || esVertical);
     }catch(err){
-        energyValue.style.color = 'var(--text-faint)';
-        energyValue.textContent = '--';
-        energyBarFill.className = 'energy-bar-fill';
-        energyBarFill.style.width = '0%';
-        lightningIcon.classList.remove('show');
-        terminal.classList.remove('modo-vertical');
+        energyPill.className = 'pill gray';
+        energyPill.textContent = '😕 No pude calcular esto';
+        energyBar.style.width = '0%';
+        energySub.textContent = `Motivo: ${err.message}`;
     }
 }
 
-/* ============================================================
-   MÓDULOS PRE-RUPTURA
-   ============================================================
-   1) Consumo de Pared: compara el volumen USD de la pared vigilada
-      entre este sondeo (T0) y el anterior (T-1).
-   2) CVD estimado en la pared: usa aggTrades y el flag isBuyerMaker
-      para distinguir Market Buy agresivo vs Market Sell, filtrado
-      SOLO a las órdenes ejecutadas dentro del rango de precio de
-      la pared vigilada (no el mercado completo).
-   3) Cruce de ambas señales para diferenciar "pared comida" (consumo
-      real) de "pared cancelada" (fake wall retirada).
-   4) Tensión: distancia % entre precio actual y la pared vigilada.
-*/
 function classifyWallState(consumptionPct, cvdDelta){
-    if(consumptionPct > 15 && cvdDelta > 0){
-        return { label:'CONSUMO REAL · COMPRA AGRESIVA', cls:'consumo-real', color:'#ff9900' };
-    }
-    if(consumptionPct > 15 && cvdDelta <= 0){
-        return { label:'RETIRO DE ORDEN (FAKE WALL)', cls:'retiro', color:'var(--text-dim)' };
-    }
-    if(consumptionPct < -5){
-        return { label:'PARED REFORZÁNDOSE', cls:'reforzando', color:'var(--safe)' };
-    }
-    return { label:'PARED ESTABLE', cls:'estable', color:'var(--text-faint)' };
+    if(consumptionPct > 15 && cvdDelta > 0) return { txt:'🟠 ¡La están comiendo de verdad!', cls:'yellow', sub:'Hay compras fuertes justo en esta zona: la pared se está gastando en serio.' };
+    if(consumptionPct > 15 && cvdDelta <= 0) return { txt:'🫥 Falsa alarma: retiraron la orden', cls:'gray', sub:'La pared se achicó, pero no fue porque alguien compró: probablemente la cancelaron.' };
+    if(consumptionPct < -5) return { txt:'💪 La pared se está reforzando', cls:'green', sub:'Están poniendo aún más órdenes de venta aquí: se hace más difícil de romper.' };
+    return { txt:'😴 Sin cambios importantes', cls:'gray', sub:'La pared sigue prácticamente igual.' };
 }
 
 async function pollPreRuptura(pair){
     if(!wallWatch) return;
-    const consumoValue = document.getElementById('consumoValue');
-    const consumoBarFill = document.getElementById('consumoBarFill');
+    const consumoPill = document.getElementById('consumoPill');
+    const consumoBar = document.getElementById('consumoBar');
     const consumoSub = document.getElementById('consumoSub');
-    const cvdValue = document.getElementById('cvdValue');
-    const cvdBarFill = document.getElementById('cvdBarFill');
-    const cvdSub = document.getElementById('cvdSub');
-    const tensionValue = document.getElementById('tensionValue');
-    const terminal = document.querySelector('.terminal');
-    if(!consumoValue || !cvdValue || !tensionValue) return; // el panel fue reemplazado por un nuevo RUN
+    const tensionPill = document.getElementById('tensionPill');
+    const banner = document.getElementById('banner');
+    if(!consumoPill || !tensionPill) return;
 
     try{
         const now = Date.now();
@@ -724,16 +437,12 @@ async function pollPreRuptura(pair){
             fetch(`https://fapi.binance.com/fapi/v1/depth?symbol=${pair}&limit=1000`).then(r=>r.json()),
             fetch(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${pair}`).then(r=>r.json())
         ]);
-
         const currentPrice = +bt.price;
-        const asksInBucket = dep.asks
-            .map(a => ({ p:+a[0], u:+a[0]*+a[1] }))
-            .filter(a => a.p >= wallWatch.priceLow && a.p < wallWatch.priceHigh);
+        const asksInBucket = dep.asks.map(a => ({ p:+a[0], u:+a[0]*+a[1] })).filter(a => a.p >= wallWatch.priceLow && a.p < wallWatch.priceHigh);
         const currUsd = asksInBucket.reduce((s,a) => s+a.u, 0);
         const prevUsd = wallWatch.lastUsd;
         const consumptionPct = prevUsd > 0 ? ((prevUsd - currUsd) / prevUsd) * 100 : 0;
 
-        // Trades agresivos dentro de la zona de la pared desde el último sondeo
         let buyVol = 0, sellVol = 0;
         try{
             const trades = await fetch(`https://fapi.binance.com/fapi/v1/aggTrades?symbol=${pair}&startTime=${wallWatch.lastTradeTime}&endTime=${now}&limit=1000`).then(r=>r.json());
@@ -741,53 +450,30 @@ async function pollPreRuptura(pair){
                 trades.forEach(t => {
                     const p = +t.p, q = +t.p * +t.q;
                     if(p >= wallWatch.priceLow && p < wallWatch.priceHigh){
-                        // m=false -> el comprador fue el "taker" (agresor) -> Market Buy real
-                        // m=true  -> el vendedor fue el "taker" -> Market Sell
                         if(t.m === false) buyVol += q; else sellVol += q;
                     }
                 });
             }
-        }catch(e){ /* si aggTrades falla, seguimos solo con la señal de tamaño */ }
+        }catch(e){}
 
         const cvdDelta = buyVol - sellVol;
-        const totalVol = buyVol + sellVol;
-
-        // --- Render: Consumo de Pared ---
         const stateInfo = classifyWallState(consumptionPct, cvdDelta);
-        consumoValue.style.color = stateInfo.color;
-        consumoValue.textContent = `${stateInfo.label} (${consumptionPct >= 0 ? '-' : '+'}${Math.abs(consumptionPct).toFixed(1)}%)`;
-        consumoBarFill.className = `energy-bar-fill ${stateInfo.cls}`;
-        consumoBarFill.style.width = `${Math.max(Math.min(Math.abs(consumptionPct)*4, 100), 4)}%`;
-        consumoSub.textContent = `Pared: $${formatCompact(prevUsd)} → $${formatCompact(currUsd)}  (T-1 vs T0, cada ${POLL_MS/1000}s)`;
+        consumoPill.className = `pill ${stateInfo.cls}`;
+        consumoPill.textContent = stateInfo.txt;
+        consumoBar.style.background = stateInfo.cls==='yellow'?'var(--yellow)':stateInfo.cls==='green'?'var(--green)':'#cbd2e8';
+        consumoBar.style.width = `${Math.max(Math.min(Math.abs(consumptionPct)*4,100),4)}%`;
+        consumoSub.textContent = `${stateInfo.sub} (revisamos cada ${POLL_MS/1000} segundos)`;
 
-        // --- Render: CVD estimado en la pared ---
-        if(totalVol > 0){
-            const buyPct = (buyVol/totalVol)*100;
-            cvdValue.style.color = cvdDelta > 0 ? 'var(--safe)' : 'var(--danger)';
-            cvdValue.textContent = `${cvdDelta > 0 ? '▲' : '▼'} $${formatCompact(Math.abs(cvdDelta))}`;
-            cvdBarFill.className = `energy-bar-fill ${cvdDelta > 0 ? 'cvd-buy' : 'cvd-sell'}`;
-            cvdBarFill.style.width = `${Math.max(buyPct,4)}%`;
-            cvdSub.textContent = `Market Buy $${formatCompact(buyVol)} · Market Sell $${formatCompact(sellVol)} dentro de la pared`;
-        }else{
-            cvdValue.style.color = 'var(--text-faint)';
-            cvdValue.textContent = 'Sin trades en la zona';
-            cvdBarFill.className = 'energy-bar-fill';
-            cvdBarFill.style.width = '0%';
-            cvdSub.textContent = 'No hubo ejecuciones dentro del rango de precio de la pared en este intervalo.';
-        }
-
-        // --- Render: Tensión / Proximidad Crítica ---
         const distPct = ((wallWatch.priceLow - currentPrice) / currentPrice) * 100;
         const enTension = distPct >= 0 && distPct < TENSION_THRESHOLD_PCT;
-        tensionValue.textContent = `${distPct.toFixed(3)}%${enTension ? '  ⚠ CRÍTICA' : ''}`;
-        tensionValue.classList.toggle('critica', enTension);
-        tensionValue.style.color = enTension ? '#ff9900' : (distPct < 0 ? 'var(--danger)' : 'var(--text)');
-        terminal.classList.toggle('tension-critica', enTension);
+        tensionPill.className = `pill ${enTension ? 'red' : distPct < 0 ? 'purple' : 'blue'}`;
+        tensionPill.textContent = enTension ? `⚠️ ¡Está a solo ${distPct.toFixed(3)}%! Puede romper en cualquier momento` : distPct < 0 ? `🎉 ¡Ya la superó!` : `📏 Falta un ${distPct.toFixed(2)}% para llegar a la pared`;
+        banner.classList.toggle('peligro', banner.classList.contains('peligro') || enTension);
 
         wallWatch.lastUsd = currUsd;
         wallWatch.lastTradeTime = now;
     }catch(err){
-        if(consumoSub) consumoSub.textContent = `⚠ Error de sondeo: ${err.message}`;
+        if(consumoSub) consumoSub.textContent = `😕 No pude revisar esto ahora mismo.`;
     }
 }
 
@@ -796,27 +482,23 @@ async function run(){
     if(!raw) return;
     const pair = raw+'USDT';
     const out = document.getElementById('out');
-    const terminal = document.querySelector('.terminal');
 
-    // Reinicia el módulo Pre-Ruptura para el nuevo símbolo
     if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
     wallWatch = null;
 
     statusDot.className = 'status-dot';
-    statusText.textContent = 'SCANNING…';
-    terminal.classList.remove('zona-peligro','modo-vertical','tension-critica');
+    statusText.textContent = 'Buscando…';
+    out.className = '';
 
     try{
         const [tk, dep] = await Promise.all([
             fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${pair}`).then(r=>r.json()),
             fetch(`https://fapi.binance.com/fapi/v1/depth?symbol=${pair}&limit=1000`).then(r=>r.json())
         ]);
-
-        if(!tk.lastPrice) throw new Error(`No se encontró el par ${pair} en Binance Futures.`);
+        if(!tk.lastPrice) throw new Error(`No encontré "${raw}". Prueba con otro nombre, como BTC o ETH.`);
 
         const price = +tk.lastPrice;
         const asks = dep.asks.map(a=>({p:+a[0], u:+a[0]*+a[1]})).filter(a=>a.p > price && a.p <= price*(1+RNG_PCT));
-
         const bucketSize = (price * RNG_PCT) / 20;
         const walls = Array.from({length: 20}, (_, i) => ({
             price: price + (i * bucketSize),
@@ -826,7 +508,6 @@ async function run(){
         const top = [...walls].sort((a,b) => b.usd - a.usd)[0];
         const topIndex = walls.indexOf(top);
 
-        // Fija la pared vigilada para el módulo Pre-Ruptura (rango de precio absoluto)
         wallWatch = {
             priceLow: price + (topIndex * bucketSize),
             priceHigh: price + ((topIndex + 1) * bucketSize),
@@ -834,161 +515,69 @@ async function run(){
             lastTradeTime: Date.now()
         };
 
-        const res = (asks.reduce((s,a)=>s+a.u, 0) / tk.quoteVolume) * 100;
-        const trendUp = res > prevRes;
-        const resColor = res > 5 ? 'var(--safe)' : 'var(--danger)';
-        const gaugeFilled = Math.min(Math.round(res*2), 10);
-        const tagPct = ((topIndex + 0.5) / 20) * 100;
-
         out.innerHTML = `
-            <div class="divider"></div>
-            <div class="label-row">
-                <div class="eyebrow">TECHO SPIKE · PARED MÁS DENSA</div>
-                <div class="pair-tag">${pair}</div>
-            </div>
-            <div class="price-value">${fmtPrice(top.price)}</div>
-
-            <div class="chart-wrap">
-                <div class="lightning-icon" id="lightningIcon">⚡</div>
-                <div class="wall-tag" style="left:${tagPct}%;">$${fmtPrice(top.usd)}</div>
-                <div class="gridlines"><div></div><div></div><div></div><div></div></div>
-                <div class="wallbar">${walls.map((w,i) => `<div class="wcol ${i===topIndex?'top':''}" style="height:${Math.max((w.usd/maxUsd)*76,2)}px"></div>`).join('')}</div>
-                <div class="axis"><span>${fmtPrice(price)}</span><span>${fmtPrice(price*(1+RNG_PCT))}</span></div>
+            <div class="big-banner" id="banner">
+                <span class="emoji">🐋</span>
+                <span class="msg">Analizando ${raw} en vivo…</span>
             </div>
 
-            <div class="metric-row">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">RESISTENCIA</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Suma la liquidez de venta (asks) en el 15% de rango sobre el precio y la compara contra el volumen operado en 24h.<br><br>
-                            <b>Cómo leerlo:</b> % más alto = más liquidez esperando vs. lo que se mueve en un día → cuesta más romper esa zona. % más bajo = pared más débil, el volumen normal podría barrerla.<br><br>
-                            Es una heurística propia del script, no un indicador técnico estándar. La flecha compara contra tu última corrida en esta sesión.
-                        </div>
-                    </div>
-                    <span class="metric-value" style="color:${resColor}">${trendUp ? '▲' : '▼'} ${res.toFixed(2)}%</span>
+            <div class="card">
+                <div class="price-row">
+                    <span class="price-label">PRECIO ACTUAL</span>
+                    <span class="pair-chip">${pair}</span>
                 </div>
-                <div class="gauge">${Array.from({length:10}, (_,i)=>`<div style="background:${i<gaugeFilled?resColor:'var(--line-soft)'}"></div>`).join('')}</div>
-            </div>
-
-            <div class="metric-row" id="mcapRow">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">MARKET CAP · RATIO BURBUJA</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Market Cap = Precio actual × Suministro circulante real (CoinGecko, cacheado 60 min).<br><br>
-                            Ratio Burbuja = Market Cap ÷ Umbral Máximo Lógico definido para este token.<br><br>
-                            Ratio > 1.0 → el mercado ya paga por encima del techo lógico configurado: zona de riesgo matemático (panel se pone rojo).
-                        </div>
-                    </div>
-                    <span class="metric-value" id="mcapValue">--</span>
-                </div>
-                <div class="gauge" id="mcapGauge">${Array.from({length:10}, ()=>'<div></div>').join('')}</div>
-                <div class="mcap-sub" id="mcapSub">Consultando CoinGecko…</div>
-            </div>
-
-            <div class="metric-row" id="energyRow">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">ENERGÍA DE CHOQUE</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Compara el volumen del último minuto contra el promedio de los 5 minutos previos, cruzado con la variación de precio.<br><br>
-                            <b>Azul (Carga):</b> volumen alto, precio casi plano → ballena absorbiendo la pared.<br>
-                            <b>Amarillo (Debilidad):</b> precio sube pero sin volumen real → subida falsa.<br>
-                            <b>Rojo (Ruptura):</b> volumen y precio disparados juntos → pared rota / short liquidado.
-                        </div>
-                    </div>
-                    <span class="metric-value" id="energyValue">--</span>
-                </div>
-                <div class="energy-bar-wrap"><div class="energy-bar-fill" id="energyBarFill"></div></div>
-            </div>
-
-            <div class="metric-row" id="consumoRow">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">CONSUMO DE PARED (T0 vs T-1)</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Compara el volumen USD de la pared vigilada entre este sondeo y el anterior (cada ${POLL_MS/1000}s).<br><br>
-                            Si baja Y hay Market Buy agresivo real dentro de esa zona (ver CVD abajo) → <b>Consumo Real</b>, ruptura probable.<br><br>
-                            Si baja pero el CVD no lo respalda → probablemente fue una <b>orden cancelada</b> (fake wall), no una ruptura.
-                        </div>
-                    </div>
-                    <span class="metric-value" id="consumoValue">--</span>
-                </div>
-                <div class="energy-bar-wrap"><div class="energy-bar-fill" id="consumoBarFill"></div></div>
-                <div class="mcap-sub" id="consumoSub">Esperando primer sondeo…</div>
-            </div>
-
-            <div class="metric-row" id="cvdRow">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">CVD ESTIMADO EN LA PARED</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Delta de volumen agresivo (Market Buy − Market Sell) ejecutado dentro del rango de precio de la pared vigilada, desde el último sondeo.<br><br>
-                            Verde = predominan compras agresivas contra la pared (presión de ruptura). Rojo = predominan ventas o no hay agresión compradora real.
-                        </div>
-                    </div>
-                    <span class="metric-value" id="cvdValue">--</span>
-                </div>
-                <div class="energy-bar-wrap"><div class="energy-bar-fill" id="cvdBarFill"></div></div>
-                <div class="mcap-sub" id="cvdSub">Esperando primer sondeo…</div>
-            </div>
-
-            <div class="metric-row" id="tensionRow">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">TENSIÓN · DISTANCIA A LA PARED</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Distancia porcentual entre el precio actual y el precio de la pared vigilada.<br><br>
-                            Por debajo del ${TENSION_THRESHOLD_PCT}% el panel entero parpadea en naranja — la ruptura puede ocurrir en cualquier momento.
-                        </div>
-                    </div>
-                    <span class="metric-value" id="tensionValue">--</span>
+                <div class="price-value">$${fmtPrice(price)}</div>
+                <div class="explain">Encontré una "pared" grande de gente que quiere vender en <b>$${fmtPrice(top.price)}</b>. Para seguir subiendo, el precio tiene que atravesar esa pared.</div>
+                <div class="chart-wrap">
+                    <div class="wallbar">${walls.map((w,i) => `<div class="wcol ${i===topIndex?'top':''}" style="height:${Math.max((w.usd/maxUsd)*64,2)}px"></div>`).join('')}</div>
+                    <div class="axis"><span>$${fmtPrice(price)}</span><span>$${fmtPrice(price*(1+RNG_PCT))}</span></div>
                 </div>
             </div>
+
+            <div class="card" id="mcapRow">
+                <div class="metric-title"><span class="icon">📏</span><span class="name">¿Está muy caro?</span></div>
+                <span class="pill gray" id="mcapPill">Calculando…</span>
+                <div class="bar-wrap"><div class="bar-fill" id="mcapBar"></div></div>
+                <div class="sub" id="mcapSub">Comparando el valor total de la moneda contra un techo de referencia.</div>
+            </div>
+
+            <div class="card" id="energyRow">
+                <div class="metric-title"><span class="icon">⚡</span><span class="name">¿Qué está haciendo la ballena?</span></div>
+                <span class="pill gray" id="energyPill">Calculando…</span>
+                <div class="bar-wrap"><div class="bar-fill" id="energyBar"></div></div>
+                <div class="sub" id="energySub"></div>
+            </div>
+
+            <div class="card" id="consumoRow">
+                <div class="metric-title"><span class="icon">🧱</span><span class="name">¿Está desapareciendo la pared?</span></div>
+                <span class="pill gray" id="consumoPill">Esperando primer chequeo…</span>
+                <div class="bar-wrap"><div class="bar-fill" id="consumoBar"></div></div>
+                <div class="sub" id="consumoSub"></div>
+            </div>
+
+            <div class="card" id="tensionRow">
+                <div class="metric-title"><span class="icon">📐</span><span class="name">¿Qué tan cerca estamos?</span></div>
+                <span class="pill blue" id="tensionPill">Calculando…</span>
+            </div>
+
+            <div class="footer-note">Esto no es un consejo para invertir, solo un juego para entender mejor lo que pasa en el mercado. 🙂</div>
         `;
-        prevRes = res;
+        out.classList.add('show');
         statusDot.className = 'status-dot on';
-        statusText.textContent = 'LIVE';
+        statusText.textContent = `Mostrando ${raw} en vivo`;
 
-        out.querySelectorAll('.info-icon').forEach(icon => {
-            icon.addEventListener('click', (e) => {
-                e.stopPropagation();
-                icon.classList.toggle('active');
-            });
-        });
-
-        // Módulos de riesgo (no bloquean el render principal si CoinGecko/klines fallan)
         updateRiskModules(raw, pair, price);
-
-        // Inicia el sondeo periódico Pre-Ruptura (Consumo de Pared / CVD / Tensión)
         pollTimer = setInterval(() => pollPreRuptura(pair), POLL_MS);
         pollPreRuptura(pair);
     }catch(err){
-        out.innerHTML = `<div class="divider"></div><div class="err">⚠ ${err.message || 'Error al consultar Binance. Verifica el símbolo.'}</div>`;
-        statusDot.className = 'status-dot';
-        statusText.textContent = 'ERROR';
-        terminal.classList.remove('zona-peligro','modo-vertical','tension-critica');
+        out.innerHTML = `<div class="card"><div class="err-box">⚠ ${err.message || 'No pude conectar con Binance. Revisa el nombre de la moneda.'}</div></div>`;
+        out.classList.add('show');
+        statusDot.className = 'status-dot err';
+        statusText.textContent = 'Ups, algo salió mal';
         if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
         wallWatch = null;
     }
 }
-
-document.addEventListener('click', () => {
-    document.querySelectorAll('.info-icon.active').forEach(i => i.classList.remove('active'));
-});
 
 document.getElementById('btn').onclick = run;
 document.getElementById('sym').addEventListener('keydown', e => { if(e.key === 'Enter') run(); });
