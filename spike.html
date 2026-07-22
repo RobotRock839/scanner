@@ -904,8 +904,24 @@ async function updateSqueezeModule(pair, precioActualHint){
 function startLiqStream(pair){
     stopLiqStream();
     liqEvents = [];
+    setLiqStatus('CONECTANDO…', 'var(--text-faint)');
+
     try{
         liqSocket = new WebSocket(`wss://fstream.binance.com/ws/${pair.toLowerCase()}@forceOrder`);
+
+        // Si en 8s no abrió, probablemente el WS esté bloqueado (red/firewall/extensión) — avisamos en vez de dejar "conectando" para siempre.
+        const openTimeout = setTimeout(() => {
+            if(liqSocket && liqSocket.readyState !== WebSocket.OPEN){
+                setLiqStatus('⚠ SIN CONEXIÓN', 'var(--danger)');
+            }
+        }, 8000);
+
+        liqSocket.onopen = () => {
+            clearTimeout(openTimeout);
+            setLiqStatus('● EN VIVO', 'var(--safe)');
+            const feedEl = document.getElementById('liqFeed');
+            if(feedEl && !liqEvents.length) feedEl.innerHTML = '<div class="liq-row-empty">Conectado. Esperando la primera liquidación…</div>';
+        };
         liqSocket.onmessage = (msg) => {
             try{
                 const data = JSON.parse(msg.data);
@@ -918,18 +934,33 @@ function startLiqStream(pair){
             }catch(e){ /* mensaje mal formado, se ignora */ }
         };
         liqSocket.onerror = () => {
-            const feedEl = document.getElementById('liqFeed');
-            if(feedEl) feedEl.innerHTML = '<div class="liq-row-empty">⚠ Stream de liquidaciones no disponible.</div>';
+            setLiqStatus('⚠ ERROR', 'var(--danger)');
+        };
+        liqSocket.onclose = () => {
+            clearTimeout(openTimeout);
+            setLiqStatus('DESCONECTADO', 'var(--text-faint)');
         };
     }catch(e){
+        setLiqStatus('⚠ NO DISPONIBLE', 'var(--danger)');
         const feedEl = document.getElementById('liqFeed');
         if(feedEl) feedEl.innerHTML = '<div class="liq-row-empty">⚠ No se pudo conectar al stream.</div>';
     }
 }
 
+function setLiqStatus(text, color){
+    const statusEl = document.getElementById('liqStreamStatus');
+    if(statusEl){ statusEl.textContent = text; statusEl.style.color = color; }
+}
+
 function stopLiqStream(){
     if(liqSocket){
-        try{ liqSocket.onmessage = null; liqSocket.onerror = null; liqSocket.close(); }catch(e){}
+        try{
+            liqSocket.onopen = null;
+            liqSocket.onmessage = null;
+            liqSocket.onerror = null;
+            liqSocket.onclose = null;
+            liqSocket.close();
+        }catch(e){}
         liqSocket = null;
     }
 }
@@ -1275,7 +1306,7 @@ async function run(){
                 </div>
 
                 <div class="liq-feed-wrap">
-                    <div class="liq-feed-head"><span>LIQUIDACIONES EN VIVO</span><span>VENTANA 10 MIN</span></div>
+                    <div class="liq-feed-head"><span>LIQUIDACIONES EN VIVO</span><span id="liqStreamStatus">CONECTANDO…</span></div>
                     <div class="liq-feed-totals">
                         <div class="liq-total-block" style="color:var(--safe);">SHORTS LIQUIDADOS<b id="shortLiqTotal">$0</b></div>
                         <div class="liq-total-block" style="color:var(--danger);">LONGS LIQUIDADOS<b id="longLiqTotal">$0</b></div>
