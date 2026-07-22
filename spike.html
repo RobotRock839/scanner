@@ -459,6 +459,112 @@
         color:#ff9900 !important;
         animation:flicker .9s ease-in-out infinite;
     }
+
+    /* ===== MÓDULO SQUEEZE: RIESGO DE SQUEEZE + LIQUIDACIONES EN VIVO ===== */
+    .squeeze-gauge-wrap{
+        display:flex;
+        align-items:center;
+        gap:10px;
+    }
+    .squeeze-gauge-track{
+        position:relative;
+        flex:1;
+        height:8px;
+        border-radius:4px;
+        background:var(--line-soft);
+        overflow:hidden;
+    }
+    .squeeze-gauge-fill{
+        height:100%;
+        border-radius:4px;
+        transition:width .5s ease, background .5s ease, box-shadow .5s ease;
+    }
+    .squeeze-badge{
+        font-size:9px;
+        font-weight:800;
+        letter-spacing:.08em;
+        padding:3px 7px;
+        border-radius:5px;
+        white-space:nowrap;
+    }
+    .squeeze-sub-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr 1fr;
+        gap:8px;
+        margin-top:12px;
+    }
+    .squeeze-stat{
+        background:var(--bg-void);
+        border:1px solid var(--line);
+        border-radius:7px;
+        padding:8px 9px;
+    }
+    .squeeze-stat-label{
+        font-size:8.5px;
+        font-weight:700;
+        letter-spacing:.08em;
+        color:var(--text-faint);
+        margin-bottom:4px;
+    }
+    .squeeze-stat-value{
+        font-size:12px;
+        font-weight:700;
+    }
+    .liq-feed-wrap{
+        margin-top:14px;
+        border:1px solid var(--line);
+        border-radius:7px;
+        overflow:hidden;
+    }
+    .liq-feed-head{
+        display:flex;
+        justify-content:space-between;
+        background:var(--bg-panel-2);
+        padding:7px 10px;
+        font-size:9px;
+        font-weight:700;
+        letter-spacing:.06em;
+        color:var(--text-dim);
+        border-bottom:1px solid var(--line);
+    }
+    .liq-feed-totals{
+        display:flex;
+        justify-content:space-between;
+        padding:8px 10px;
+        background:var(--bg-void);
+        border-bottom:1px solid var(--line);
+    }
+    .liq-total-block{font-size:10px;}
+    .liq-total-block b{display:block;font-size:13px;margin-top:2px;}
+    #liqFeed{
+        max-height:112px;
+        overflow-y:auto;
+        padding:6px 8px;
+    }
+    .liq-row{
+        display:flex;
+        justify-content:space-between;
+        font-size:10.5px;
+        font-weight:600;
+        padding:4px 4px;
+        border-radius:4px;
+        letter-spacing:.02em;
+    }
+    .liq-row.short_liq{color:var(--safe);background:rgba(0,224,164,.06);}
+    .liq-row.long_liq{color:var(--danger);background:rgba(255,59,92,.06);}
+    .liq-row-empty{
+        font-size:10px;
+        color:var(--text-faint);
+        padding:8px 4px;
+        text-align:center;
+    }
+    .squeeze-disclaimer{
+        font-size:8.5px;
+        color:var(--text-faint);
+        margin-top:8px;
+        line-height:1.5;
+        letter-spacing:.01em;
+    }
 </style>
 </head>
 <body>
@@ -485,6 +591,11 @@
 let prevRes = 0;
 let wallWatch = null;               // { priceLow, priceHigh, lastUsd, lastTradeTime } — pared vigilada por el módulo Pre-Ruptura
 let pollTimer = null;               // intervalo de sondeo Pre-Ruptura
+let squeezeTimer = null;            // intervalo de refresco del módulo Riesgo de Squeeze
+let liqSocket = null;                // WebSocket de liquidaciones en vivo (forceOrder)
+let liqEvents = [];                  // { time, side: 'short_liq'|'long_liq', usd }
+const SQUEEZE_POLL_MS = 15000;      // funding/OI/long-short no cambian tan rápido como el order book
+const LIQ_WINDOW_MS = 10 * 60 * 1000; // ventana móvil de 10 min para el feed de liquidaciones
 const POLL_MS = 5000;               // frecuencia de sondeo (ms)
 const TENSION_THRESHOLD_PCT = 0.1;  // % de distancia precio↔pared que dispara la alerta de tensión
 const RNG_PCT = 0.15;
@@ -681,6 +792,170 @@ async function updateRiskModules(symbol, pair, price){
 }
 
 /* ============================================================
+   MÓDULO SQUEEZE: RIESGO DE SQUEEZE (funding + OI + long/short)
+   ============================================================
+   No existe un endpoint público de "liquidation heatmap" predictivo
+   en Binance: lo que sí es real y público es Funding, Open Interest
+   histórico y el ratio Long/Short de cuentas. Con eso se arma una
+   heurística de "cuánto combustible de shorts queda" — más alto,
+   más riesgo de que la suba siga; más bajo, más "quemado" ya está
+   el squeeze.
+*/
+async function fetchSqueezeFuel(pair){
+    const [premium, oiHist] = await Promise.all([
+        fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${pair}`).then(r=>r.json()),
+        fetch(`https://fapi.binance.com/futures/data/openInterestHist?symbol=${pair}&period=5m&limit=13`).then(r=>r.json())
+    ]);
+
+    const fundingPct = premium && premium.lastFundingRate !== undefined ? (+premium.lastFundingRate) * 100 : 0;
+
+    let oiDeltaPct = 0;
+    if(Array.isArray(oiHist) && oiHist.length >= 2){
+        const oiStart = +oiHist[0].sumOpenInterest;
+        const oiEnd = +oiHist[oiHist.length - 1].sumOpenInterest;
+        oiDeltaPct = oiStart > 0 ? ((oiEnd - oiStart) / oiStart) * 100 : 0;
+    }
+
+    // El ratio long/short de cuentas puede no existir para pares chicos/nuevos -> se degrada a neutro (50/50)
+    let shortPct = 50;
+    try{
+        const lsRatio = await fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${pair}&period=5m&limit=1`).then(r=>r.json());
+        if(Array.isArray(lsRatio) && lsRatio[0] && lsRatio[0].shortAccount){
+            shortPct = (+lsRatio[0].shortAccount) * 100;
+        }
+    }catch(e){ /* seguimos con 50/50 neutro si el par no tiene este dato */ }
+
+    return { fundingPct, oiDeltaPct, shortPct };
+}
+
+/* Score 0-100: 50 = neutro. Sube con funding negativo, OI creciendo junto al precio, y más cuentas short. */
+function computeSqueezeScore({ fundingPct, oiDeltaPct, shortPct }, priceChange5mPct){
+    let score = 50;
+    score += Math.max(-18, Math.min(18, -fundingPct * 25));           // funding negativo => +riesgo
+    if(priceChange5mPct > 0){
+        score += Math.max(-16, Math.min(16, oiDeltaPct * 1.1));        // OI subiendo con precio subiendo => +riesgo
+    }else{
+        score -= Math.max(-16, Math.min(16, oiDeltaPct * 1.1)) * 0.5;  // matiz: precio no sube ahora, pesa menos
+    }
+    score += (shortPct - 50) * 0.7;                                     // más cuentas cortas acumuladas => +riesgo
+    return Math.max(0, Math.min(100, score));
+}
+
+async function updateSqueezeModule(pair, precioActualHint){
+    const badge = document.getElementById('squeezeBadge');
+    const gaugeFill = document.getElementById('squeezeGaugeFill');
+    const scoreLabel = document.getElementById('squeezeScoreLabel');
+    const fundingEl = document.getElementById('squeezeFunding');
+    const oiEl = document.getElementById('squeezeOi');
+    const shortPctEl = document.getElementById('squeezeShortPct');
+    if(!badge || !gaugeFill) return; // el panel ya no existe (nuevo RUN)
+
+    try{
+        let priceChange5mPct = 0;
+        try{
+            const klines = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1m&limit=6`).then(r=>r.json());
+            if(Array.isArray(klines) && klines.length >= 6){
+                const p0 = +klines[0][4], p1 = +klines[5][4];
+                priceChange5mPct = p0 > 0 ? ((p1 - p0) / p0) * 100 : 0;
+            }
+        }catch(e){ /* si esto falla seguimos con 0, no bloquea el score */ }
+
+        const fuel = await fetchSqueezeFuel(pair);
+        const score = computeSqueezeScore(fuel, priceChange5mPct);
+
+        const color = score > 65 ? 'var(--danger)' : score > 40 ? 'var(--gold)' : 'var(--safe)';
+        const label = score > 65 ? 'ALTO · ESPERAR' : score > 40 ? 'MEDIO · CAUTELA' : 'BAJO · MÁS SEGURO';
+
+        badge.textContent = label;
+        badge.style.background = score > 65 ? 'rgba(255,59,92,.15)' : score > 40 ? 'rgba(242,183,5,.15)' : 'rgba(0,224,164,.15)';
+        badge.style.color = color;
+        gaugeFill.style.width = `${Math.max(score,4)}%`;
+        gaugeFill.style.background = color;
+        gaugeFill.style.boxShadow = `0 0 10px ${color}`;
+        scoreLabel.textContent = `${Math.round(score)}/100`;
+        scoreLabel.style.color = color;
+
+        fundingEl.textContent = `${fuel.fundingPct >= 0 ? '+' : ''}${fuel.fundingPct.toFixed(4)}%`;
+        fundingEl.style.color = fuel.fundingPct < 0 ? 'var(--danger)' : 'var(--safe)';
+
+        oiEl.textContent = `${fuel.oiDeltaPct >= 0 ? '+' : ''}${fuel.oiDeltaPct.toFixed(2)}%`;
+        oiEl.style.color = fuel.oiDeltaPct > 0 && priceChange5mPct > 0 ? 'var(--danger)' : 'var(--text)';
+
+        shortPctEl.textContent = `${fuel.shortPct.toFixed(1)}%`;
+        shortPctEl.style.color = fuel.shortPct > 55 ? 'var(--danger)' : fuel.shortPct < 45 ? 'var(--safe)' : 'var(--text)';
+    }catch(err){
+        badge.textContent = 'SIN DATOS';
+        badge.style.background = 'transparent';
+        badge.style.color = 'var(--text-faint)';
+        gaugeFill.style.width = '0%';
+        scoreLabel.textContent = '--';
+        [fundingEl, oiEl, shortPctEl].forEach(el => { if(el){ el.textContent = '--'; el.style.color = 'var(--text-faint)'; } });
+    }
+}
+
+/* ============================================================
+   FEED EN VIVO DE LIQUIDACIONES (WebSocket forceOrder)
+   ============================================================
+   S:"BUY"  en el forceOrder = orden forzada de COMPRA => se estaba
+   liquidando un SHORT (combustible de squeeze quemándose ahora).
+   S:"SELL" en el forceOrder = orden forzada de VENTA   => se estaba
+   liquidando un LONG.
+*/
+function startLiqStream(pair){
+    stopLiqStream();
+    liqEvents = [];
+    try{
+        liqSocket = new WebSocket(`wss://fstream.binance.com/ws/${pair.toLowerCase()}@forceOrder`);
+        liqSocket.onmessage = (msg) => {
+            try{
+                const data = JSON.parse(msg.data);
+                const o = data.o;
+                if(!o) return;
+                const usd = (+o.p) * (+o.q);
+                const side = o.S === 'BUY' ? 'short_liq' : 'long_liq';
+                liqEvents.push({ time: Date.now(), side, usd });
+                renderLiqFeed();
+            }catch(e){ /* mensaje mal formado, se ignora */ }
+        };
+        liqSocket.onerror = () => {
+            const feedEl = document.getElementById('liqFeed');
+            if(feedEl) feedEl.innerHTML = '<div class="liq-row-empty">⚠ Stream de liquidaciones no disponible.</div>';
+        };
+    }catch(e){
+        const feedEl = document.getElementById('liqFeed');
+        if(feedEl) feedEl.innerHTML = '<div class="liq-row-empty">⚠ No se pudo conectar al stream.</div>';
+    }
+}
+
+function stopLiqStream(){
+    if(liqSocket){
+        try{ liqSocket.onmessage = null; liqSocket.onerror = null; liqSocket.close(); }catch(e){}
+        liqSocket = null;
+    }
+}
+
+function renderLiqFeed(){
+    const feedEl = document.getElementById('liqFeed');
+    const shortLiqTotalEl = document.getElementById('shortLiqTotal');
+    const longLiqTotalEl = document.getElementById('longLiqTotal');
+    if(!feedEl) return; // panel reemplazado por un nuevo RUN
+
+    const now = Date.now();
+    liqEvents = liqEvents.filter(e => now - e.time < LIQ_WINDOW_MS);
+
+    const shortLiqTotal = liqEvents.filter(e => e.side === 'short_liq').reduce((s,e) => s+e.usd, 0);
+    const longLiqTotal = liqEvents.filter(e => e.side === 'long_liq').reduce((s,e) => s+e.usd, 0);
+
+    if(shortLiqTotalEl) shortLiqTotalEl.textContent = `$${formatCompact(shortLiqTotal)}`;
+    if(longLiqTotalEl) longLiqTotalEl.textContent = `$${formatCompact(longLiqTotal)}`;
+
+    const lastEvents = liqEvents.slice(-8).reverse();
+    feedEl.innerHTML = lastEvents.length
+        ? lastEvents.map(e => `<div class="liq-row ${e.side}"><span>${e.side === 'short_liq' ? '▲ SHORT LIQUIDADO' : '▼ LONG LIQUIDADO'}</span><span>$${formatCompact(e.usd)}</span></div>`).join('')
+        : '<div class="liq-row-empty">Esperando la primera liquidación…</div>';
+}
+
+/* ============================================================
    MÓDULOS PRE-RUPTURA
    ============================================================
    1) Consumo de Pared: compara el volumen USD de la pared vigilada
@@ -801,6 +1076,10 @@ async function run(){
     // Reinicia el módulo Pre-Ruptura para el nuevo símbolo
     if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
     wallWatch = null;
+
+    // Reinicia el módulo Riesgo de Squeeze + feed de liquidaciones para el nuevo símbolo
+    if(squeezeTimer){ clearInterval(squeezeTimer); squeezeTimer = null; }
+    stopLiqStream();
 
     statusDot.className = 'status-dot';
     statusText.textContent = 'SCANNING…';
@@ -958,6 +1237,54 @@ async function run(){
                     <span class="metric-value" id="tensionValue">--</span>
                 </div>
             </div>
+
+            <div class="divider"></div>
+
+            <div class="metric-row" id="squeezeRow">
+                <div class="metric-head">
+                    <div class="metric-label-wrap">
+                        <span class="metric-label">RIESGO DE SQUEEZE</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">
+                            <b>¿Qué mide?</b><br>
+                            Combina Funding Rate + delta de Open Interest (1h) + Ratio Long/Short de cuentas, todo público de Binance Futures.<br><br>
+                            <b>Alto (rojo):</b> funding negativo fuerte y/o muchos shorts acumulados → todavía queda combustible para que la suba continúe. Esperar antes de entrar corto.<br><br>
+                            <b>Bajo (verde):</b> shorts ya se cubrieron (OI cayendo con precio subiendo) y/o funding neutral/positivo → el combustible del squeeze ya se quemó, momento más seguro para evaluar un corto.<br><br>
+                            Es una heurística propia, no un indicador estándar ni garantía de nada — el precio puede seguir moviéndose igual.
+                        </div>
+                    </div>
+                    <span class="squeeze-badge" id="squeezeBadge">--</span>
+                </div>
+                <div class="squeeze-gauge-wrap">
+                    <div class="squeeze-gauge-track"><div class="squeeze-gauge-fill" id="squeezeGaugeFill" style="width:0%"></div></div>
+                    <span class="metric-value" id="squeezeScoreLabel" style="font-size:13px;">--</span>
+                </div>
+                <div class="squeeze-sub-grid">
+                    <div class="squeeze-stat">
+                        <div class="squeeze-stat-label">FUNDING</div>
+                        <div class="squeeze-stat-value" id="squeezeFunding">--</div>
+                    </div>
+                    <div class="squeeze-stat">
+                        <div class="squeeze-stat-label">Δ OI (1H)</div>
+                        <div class="squeeze-stat-value" id="squeezeOi">--</div>
+                    </div>
+                    <div class="squeeze-stat">
+                        <div class="squeeze-stat-label">% CUENTAS SHORT</div>
+                        <div class="squeeze-stat-value" id="squeezeShortPct">--</div>
+                    </div>
+                </div>
+
+                <div class="liq-feed-wrap">
+                    <div class="liq-feed-head"><span>LIQUIDACIONES EN VIVO</span><span>VENTANA 10 MIN</span></div>
+                    <div class="liq-feed-totals">
+                        <div class="liq-total-block" style="color:var(--safe);">SHORTS LIQUIDADOS<b id="shortLiqTotal">$0</b></div>
+                        <div class="liq-total-block" style="color:var(--danger);">LONGS LIQUIDADOS<b id="longLiqTotal">$0</b></div>
+                    </div>
+                    <div id="liqFeed"><div class="liq-row-empty">Conectando al stream…</div></div>
+                </div>
+
+                <div class="squeeze-disclaimer">⚠ Heurística propia basada en datos públicos de Binance Futures. No es asesoramiento financiero ni un indicador de precisión garantizada.</div>
+            </div>
         `;
         prevRes = res;
         statusDot.className = 'status-dot on';
@@ -976,12 +1303,19 @@ async function run(){
         // Inicia el sondeo periódico Pre-Ruptura (Consumo de Pared / CVD / Tensión)
         pollTimer = setInterval(() => pollPreRuptura(pair), POLL_MS);
         pollPreRuptura(pair);
+
+        // Inicia el módulo Riesgo de Squeeze (funding/OI/long-short, cada 15s) + feed en vivo de liquidaciones
+        updateSqueezeModule(pair, price);
+        squeezeTimer = setInterval(() => updateSqueezeModule(pair, price), SQUEEZE_POLL_MS);
+        startLiqStream(pair);
     }catch(err){
         out.innerHTML = `<div class="divider"></div><div class="err">⚠ ${err.message || 'Error al consultar Binance. Verifica el símbolo.'}</div>`;
         statusDot.className = 'status-dot';
         statusText.textContent = 'ERROR';
         terminal.classList.remove('zona-peligro','modo-vertical','tension-critica');
         if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+        if(squeezeTimer){ clearInterval(squeezeTimer); squeezeTimer = null; }
+        stopLiqStream();
         wallWatch = null;
     }
 }
