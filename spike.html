@@ -510,6 +510,17 @@
         font-size:12px;
         font-weight:700;
     }
+    .squeeze-fuel-tag{
+        margin-top:10px;
+        display:inline-block;
+        font-size:9.5px;
+        font-weight:700;
+        letter-spacing:.03em;
+        padding:5px 9px;
+        border-radius:6px;
+        border:1px solid var(--line);
+        background:var(--bg-void);
+    }
     .liq-feed-wrap{
         margin-top:14px;
         border:1px solid var(--line);
@@ -802,9 +813,12 @@ async function updateRiskModules(symbol, pair, price){
    el squeeze.
 */
 async function fetchSqueezeFuel(pair){
-    const [premium, oiHist] = await Promise.all([
+    // oiHist trae 13 puntos de 5m = ventana de 1h (12 intervalos). Usamos klines de 5m/13 velas
+    // para que el Δ precio se calcule EXACTAMENTE sobre la misma ventana que el Δ OI.
+    const [premium, oiHist, klines] = await Promise.all([
         fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${pair}`).then(r=>r.json()),
-        fetch(`https://fapi.binance.com/futures/data/openInterestHist?symbol=${pair}&period=5m&limit=13`).then(r=>r.json())
+        fetch(`https://fapi.binance.com/futures/data/openInterestHist?symbol=${pair}&period=5m&limit=13`).then(r=>r.json()),
+        fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=5m&limit=13`).then(r=>r.json())
     ]);
 
     const fundingPct = premium && premium.lastFundingRate !== undefined ? (+premium.lastFundingRate) * 100 : 0;
@@ -816,6 +830,13 @@ async function fetchSqueezeFuel(pair){
         oiDeltaPct = oiStart > 0 ? ((oiEnd - oiStart) / oiStart) * 100 : 0;
     }
 
+    let priceChange1hPct = 0;
+    if(Array.isArray(klines) && klines.length >= 2){
+        const p0 = +klines[0][1];               // apertura de la primera vela de la ventana (hace ~1h)
+        const p1 = +klines[klines.length-1][4];  // cierre de la última vela (ahora)
+        priceChange1hPct = p0 > 0 ? ((p1 - p0) / p0) * 100 : 0;
+    }
+
     // El ratio long/short de cuentas puede no existir para pares chicos/nuevos -> se degrada a neutro (50/50)
     let shortPct = 50;
     try{
@@ -825,20 +846,36 @@ async function fetchSqueezeFuel(pair){
         }
     }catch(e){ /* seguimos con 50/50 neutro si el par no tiene este dato */ }
 
-    return { fundingPct, oiDeltaPct, shortPct };
+    return { fundingPct, oiDeltaPct, shortPct, priceChange1hPct };
 }
 
 /* Score 0-100: 50 = neutro. Sube con funding negativo, OI creciendo junto al precio, y más cuentas short. */
-function computeSqueezeScore({ fundingPct, oiDeltaPct, shortPct }, priceChange5mPct){
+function computeSqueezeScore({ fundingPct, oiDeltaPct, shortPct }, priceChange1hPct){
     let score = 50;
     score += Math.max(-18, Math.min(18, -fundingPct * 25));           // funding negativo => +riesgo
-    if(priceChange5mPct > 0){
-        score += Math.max(-16, Math.min(16, oiDeltaPct * 1.1));        // OI subiendo con precio subiendo => +riesgo
+    if(priceChange1hPct > 0){
+        score += Math.max(-16, Math.min(16, oiDeltaPct * 1.1));        // OI subiendo con precio subiendo (misma 1h) => +riesgo
     }else{
-        score -= Math.max(-16, Math.min(16, oiDeltaPct * 1.1)) * 0.5;  // matiz: precio no sube ahora, pesa menos
+        score -= Math.max(-16, Math.min(16, oiDeltaPct * 1.1)) * 0.5;  // matiz: precio no subió en esta 1h, pesa menos
     }
     score += (shortPct - 50) * 0.7;                                     // más cuentas cortas acumuladas => +riesgo
     return Math.max(0, Math.min(100, score));
+}
+
+/* Mini leyenda en lenguaje simple: cruza Δ OI (1h) con Δ precio (1h) en un cuadrante de 4 estados.
+   Zona muerta de ±1% en OI para no etiquetar ruido como señal. */
+function classifyFuelState(oiDeltaPct, priceChangePct){
+    const OI_DEADZONE = 1.0;
+    if(Math.abs(oiDeltaPct) < OI_DEADZONE){
+        return { label: '➖ SIN CAMBIOS CLAROS DE OI', color: 'var(--text-faint)' };
+    }
+    if(priceChangePct > 0){
+        if(oiDeltaPct < 0) return { label: '🔥 COMBUSTIBLE QUEMÁNDOSE · shorts cubriendo', color: 'var(--safe)' };
+        return { label: '⛽ COMBUSTIBLE FRESCO · entra plata nueva', color: 'var(--danger)' };
+    }else{
+        if(oiDeltaPct > 0) return { label: '🆕 SHORTS NUEVOS ENTRANDO', color: 'var(--gold)' };
+        return { label: '🧊 DELEVERAGE · cerrando posiciones', color: 'var(--text-dim)' };
+    }
 }
 
 async function updateSqueezeModule(pair, precioActualHint){
@@ -848,20 +885,12 @@ async function updateSqueezeModule(pair, precioActualHint){
     const fundingEl = document.getElementById('squeezeFunding');
     const oiEl = document.getElementById('squeezeOi');
     const shortPctEl = document.getElementById('squeezeShortPct');
+    const fuelTagEl = document.getElementById('squeezeFuelTag');
     if(!badge || !gaugeFill) return; // el panel ya no existe (nuevo RUN)
 
     try{
-        let priceChange5mPct = 0;
-        try{
-            const klines = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1m&limit=6`).then(r=>r.json());
-            if(Array.isArray(klines) && klines.length >= 6){
-                const p0 = +klines[0][4], p1 = +klines[5][4];
-                priceChange5mPct = p0 > 0 ? ((p1 - p0) / p0) * 100 : 0;
-            }
-        }catch(e){ /* si esto falla seguimos con 0, no bloquea el score */ }
-
         const fuel = await fetchSqueezeFuel(pair);
-        const score = computeSqueezeScore(fuel, priceChange5mPct);
+        const score = computeSqueezeScore(fuel, fuel.priceChange1hPct);
 
         const color = score > 65 ? 'var(--danger)' : score > 40 ? 'var(--gold)' : 'var(--safe)';
         const label = score > 65 ? 'ALTO · ESPERAR' : score > 40 ? 'MEDIO · CAUTELA' : 'BAJO · MÁS SEGURO';
@@ -879,10 +908,17 @@ async function updateSqueezeModule(pair, precioActualHint){
         fundingEl.style.color = fuel.fundingPct < 0 ? 'var(--danger)' : 'var(--safe)';
 
         oiEl.textContent = `${fuel.oiDeltaPct >= 0 ? '+' : ''}${fuel.oiDeltaPct.toFixed(2)}%`;
-        oiEl.style.color = fuel.oiDeltaPct > 0 && priceChange5mPct > 0 ? 'var(--danger)' : 'var(--text)';
+        oiEl.style.color = fuel.oiDeltaPct > 0 && fuel.priceChange1hPct > 0 ? 'var(--danger)' : 'var(--text)';
 
         shortPctEl.textContent = `${fuel.shortPct.toFixed(1)}%`;
         shortPctEl.style.color = fuel.shortPct > 55 ? 'var(--danger)' : fuel.shortPct < 45 ? 'var(--safe)' : 'var(--text)';
+
+        if(fuelTagEl){
+            const fuelState = classifyFuelState(fuel.oiDeltaPct, fuel.priceChange1hPct);
+            fuelTagEl.textContent = fuelState.label;
+            fuelTagEl.style.color = fuelState.color;
+            fuelTagEl.style.borderColor = fuelState.color;
+        }
     }catch(err){
         badge.textContent = 'SIN DATOS';
         badge.style.background = 'transparent';
@@ -890,6 +926,7 @@ async function updateSqueezeModule(pair, precioActualHint){
         gaugeFill.style.width = '0%';
         scoreLabel.textContent = '--';
         [fundingEl, oiEl, shortPctEl].forEach(el => { if(el){ el.textContent = '--'; el.style.color = 'var(--text-faint)'; } });
+        if(fuelTagEl){ fuelTagEl.textContent = 'Sin datos suficientes para clasificar'; fuelTagEl.style.color = 'var(--text-faint)'; fuelTagEl.style.borderColor = 'var(--line)'; }
     }
 }
 
@@ -1281,6 +1318,7 @@ async function run(){
                             Combina Funding Rate + delta de Open Interest (1h) + Ratio Long/Short de cuentas, todo público de Binance Futures.<br><br>
                             <b>Alto (rojo):</b> funding negativo fuerte y/o muchos shorts acumulados → todavía queda combustible para que la suba continúe. Esperar antes de entrar corto.<br><br>
                             <b>Bajo (verde):</b> shorts ya se cubrieron (OI cayendo con precio subiendo) y/o funding neutral/positivo → el combustible del squeeze ya se quemó, momento más seguro para evaluar un corto.<br><br>
+                            Δ OI y Δ precio se calculan sobre la misma ventana de 1h, para que sean comparables entre sí. La etiqueta debajo de las 3 casillas traduce ese cruce a lenguaje simple (🔥 quemándose, ⛽ fresco, 🆕 shorts nuevos, 🧊 deleverage).<br><br>
                             Es una heurística propia, no un indicador estándar ni garantía de nada — el precio puede seguir moviéndose igual.
                         </div>
                     </div>
@@ -1304,6 +1342,7 @@ async function run(){
                         <div class="squeeze-stat-value" id="squeezeShortPct">--</div>
                     </div>
                 </div>
+                <div class="squeeze-fuel-tag" id="squeezeFuelTag">Calculando…</div>
 
                 <div class="liq-feed-wrap">
                     <div class="liq-feed-head"><span>LIQUIDACIONES EN VIVO</span><span id="liqStreamStatus">CONECTANDO…</span></div>
