@@ -50,15 +50,12 @@
         transition: background 1s ease;
     }
 
-    /* ===== MÓDULO 3: ALERTA VISUAL DE BURBUJA / VERTICALIDAD ===== */
-    /* Ratio_Burbuja > 1.0 -> textura roja de advertencia sobre el panel completo */
     .terminal.zona-peligro{
         background:
             radial-gradient(circle at 15% 0%, rgba(255,59,92,.10), transparent 45%),
             radial-gradient(circle at 85% 100%, rgba(255,59,92,.10), transparent 45%),
             rgba(255,59,92,.16);
     }
-    /* Pendiente de precio > umbral crítico -> panel completo parpadea con glow rojo */
     .terminal.modo-vertical{
         animation: panelPulse 1.05s ease-in-out infinite;
     }
@@ -170,6 +167,70 @@
         margin:20px 0;
     }
 
+    /* ===== PANEL DE VEREDICTO (lectura en lenguaje simple) ===== */
+    .veredicto-box{
+        border:1px solid var(--line);
+        border-radius:9px;
+        padding:14px 15px;
+        background:var(--bg-panel-2);
+    }
+    .veredicto-eyebrow{
+        font-size:9.5px;
+        font-weight:700;
+        letter-spacing:.16em;
+        color:var(--text-dim);
+        margin-bottom:8px;
+    }
+    .veredicto-headline{
+        font-size:17px;
+        font-weight:800;
+        letter-spacing:-.01em;
+        line-height:1.3;
+        margin-bottom:6px;
+    }
+    .veredicto-sub{
+        font-size:11px;
+        color:var(--text-dim);
+        line-height:1.6;
+        letter-spacing:.01em;
+    }
+    .veredicto-chips{
+        display:flex;
+        flex-wrap:wrap;
+        gap:6px;
+        margin-top:12px;
+    }
+    .chip{
+        font-size:9.5px;
+        font-weight:700;
+        letter-spacing:.04em;
+        padding:5px 9px;
+        border-radius:6px;
+        border:1px solid var(--line);
+        background:var(--bg-void);
+        white-space:nowrap;
+    }
+    .confianza-track{
+        margin-top:12px;
+        height:6px;
+        border-radius:3px;
+        background:var(--line-soft);
+        overflow:hidden;
+    }
+    .confianza-fill{
+        height:100%;
+        border-radius:3px;
+        transition:width .4s ease, background .4s ease;
+    }
+    .confianza-label{
+        display:flex;
+        justify-content:space-between;
+        font-size:8.5px;
+        color:var(--text-faint);
+        margin-top:5px;
+        letter-spacing:.06em;
+    }
+
     .label-row{
         display:flex;
         justify-content:space-between;
@@ -269,7 +330,6 @@
         letter-spacing:.03em;
     }
 
-    /* Icono de "rayo" sobre el gráfico cuando la ballena está cargando (Estado 1) */
     .lightning-icon{
         position:absolute;
         top:-4px;
@@ -384,7 +444,6 @@
         transition:background .3s;
     }
 
-    /* ===== MÓDULO 2: BARRA DE ENERGÍA DE CHOQUE ===== */
     .energy-bar-wrap{
         height:8px;
         border-radius:4px;
@@ -398,17 +457,14 @@
         background:var(--text-faint);
         transition:width .4s ease, background .4s ease, box-shadow .4s ease;
     }
-    /* Estado 1 (Carga): ballena absorbiendo la pared -> Modo Azul Neón */
     .energy-bar-fill.carga{
         background:var(--blue-neon);
         box-shadow:0 0 12px var(--blue-neon-glow);
     }
-    /* Estado 2 (Debilidad): subida sin volumen real -> Modo Amarillo */
     .energy-bar-fill.debilidad{
         background:var(--gold);
         box-shadow:0 0 10px rgba(242,183,5,.45);
     }
-    /* Estado 3 (Ruptura): pared rota / short liquidado -> Modo Alerta Roja */
     .energy-bar-fill.ruptura{
         background:var(--danger);
         box-shadow:0 0 14px var(--danger-glow);
@@ -423,7 +479,6 @@
         line-height:1.5;
     }
 
-    /* ===== MÓDULOS PRE-RUPTURA: Consumo de Pared / CVD / Tensión ===== */
     .energy-bar-fill.consumo-real{
         background:#ff9900;
         box-shadow:0 0 14px rgba(255,153,0,.55);
@@ -447,7 +502,6 @@
         background:var(--danger);
         box-shadow:0 0 10px var(--danger-glow);
     }
-    /* Estado de Tensión: parpadeo naranja en TODO el panel cuando el precio está a <0.1% de la pared */
     .terminal.tension-critica{
         animation: tensionBlink .9s ease-in-out infinite;
     }
@@ -460,7 +514,6 @@
         animation:flicker .9s ease-in-out infinite;
     }
 
-    /* ===== MÓDULO SQUEEZE: RIESGO DE SQUEEZE + LIQUIDACIONES EN VIVO ===== */
     .squeeze-gauge-wrap{
         display:flex;
         align-items:center;
@@ -521,54 +574,6 @@
         border:1px solid var(--line);
         background:var(--bg-void);
     }
-    .liq-feed-wrap{
-        margin-top:14px;
-        border:1px solid var(--line);
-        border-radius:7px;
-        overflow:hidden;
-    }
-    .liq-feed-head{
-        display:flex;
-        justify-content:space-between;
-        background:var(--bg-panel-2);
-        padding:7px 10px;
-        font-size:9px;
-        font-weight:700;
-        letter-spacing:.06em;
-        color:var(--text-dim);
-        border-bottom:1px solid var(--line);
-    }
-    .liq-feed-totals{
-        display:flex;
-        justify-content:space-between;
-        padding:8px 10px;
-        background:var(--bg-void);
-        border-bottom:1px solid var(--line);
-    }
-    .liq-total-block{font-size:10px;}
-    .liq-total-block b{display:block;font-size:13px;margin-top:2px;}
-    #liqFeed{
-        max-height:112px;
-        overflow-y:auto;
-        padding:6px 8px;
-    }
-    .liq-row{
-        display:flex;
-        justify-content:space-between;
-        font-size:10.5px;
-        font-weight:600;
-        padding:4px 4px;
-        border-radius:4px;
-        letter-spacing:.02em;
-    }
-    .liq-row.short_liq{color:var(--safe);background:rgba(0,224,164,.06);}
-    .liq-row.long_liq{color:var(--danger);background:rgba(255,59,92,.06);}
-    .liq-row-empty{
-        font-size:10px;
-        color:var(--text-faint);
-        padding:8px 4px;
-        text-align:center;
-    }
     .squeeze-disclaimer{
         font-size:8.5px;
         color:var(--text-faint);
@@ -603,10 +608,7 @@ let prevRes = 0;
 let wallWatch = null;               // { priceLow, priceHigh, lastUsd, lastTradeTime } — pared vigilada por el módulo Pre-Ruptura
 let pollTimer = null;               // intervalo de sondeo Pre-Ruptura
 let squeezeTimer = null;            // intervalo de refresco del módulo Riesgo de Squeeze
-let liqSocket = null;                // WebSocket de liquidaciones en vivo (forceOrder)
-let liqEvents = [];                  // { time, side: 'short_liq'|'long_liq', usd }
 const SQUEEZE_POLL_MS = 15000;      // funding/OI/long-short no cambian tan rápido como el order book
-const LIQ_WINDOW_MS = 10 * 60 * 1000; // ventana móvil de 10 min para el feed de liquidaciones
 const POLL_MS = 5000;               // frecuencia de sondeo (ms)
 const TENSION_THRESHOLD_PCT = 0.1;  // % de distancia precio↔pared que dispara la alerta de tensión
 const RNG_PCT = 0.15;
@@ -615,25 +617,31 @@ const statusText = document.getElementById('statusText');
 
 /* ============================================================
    CONFIGURACIÓN — MÓDULO 1: REALIDAD FUNDAMENTAL (MARKET CAP)
-   ============================================================
-   El programador define aquí el "techo lógico" (Umbral_Maximo_Logico)
-   en USD para cada token que quiera vigilar de cerca. Si el símbolo
-   no está en esta lista, se usa como respaldo el Fully Diluted
-   Valuation (FDV) que entrega CoinGecko, y si tampoco existe, se usa
-   un múltiplo del Market Cap actual (UMBRAL_FALLBACK_MULTIPLIER).
-*/
+   ============================================================ */
 const CONFIG_UMBRALES = {
     BTC: 3_000_000_000_000,
     ETH: 1_000_000_000_000,
     SOL: 500_000_000_000,
     BNB: 300_000_000_000,
-    // Agrega aquí más pares "SYMBOL: valor_en_usd" según tu propio criterio de burbuja.
 };
-const UMBRAL_FALLBACK_MULTIPLIER = 3; // si no hay umbral definido ni FDV disponible
-const CACHE_TTL_MS = 60 * 60 * 1000; // 60 minutos de caché para circulating_supply
-
-/* Umbral de pendiente que dispara el "modo vertical" (spike): % del precio por minuto */
+const UMBRAL_FALLBACK_MULTIPLIER = 3;
+const CACHE_TTL_MS = 60 * 60 * 1000;
 const UMBRAL_PENDIENTE_CRITICO_PCT = 0.15;
+
+/* ============================================================
+   ESTADO GLOBAL DEL VEREDICTO
+   ============================================================
+   Cada módulo (Energía, Consumo de Pared, CVD, Squeeze) escribe
+   su lectura acá. Tras cada actualización se llama a
+   renderVeredicto() para recalcular el resumen en lenguaje simple.
+*/
+let lecturas = {
+    energia: null,   // 'carga' | 'debilidad' | 'ruptura' | 'neutro'
+    consumo: null,   // 'consumo-real' | 'retiro' | 'reforzando' | 'estable'
+    cvd: null,       // 'compra' | 'venta' | 'sin-datos'
+    squeezeFuel: null, // 'quemandose' | 'fresco' | 'shorts-nuevos' | 'deleverage' | null
+    squeezeScore: null // 0-100
+};
 
 function fmtPrice(p){
     if(p >= 100) return p.toFixed(2);
@@ -651,10 +659,6 @@ function formatCompact(n){
     return n.toFixed(2);
 }
 
-/* ============================================================
-   CACHÉ EN localStorage (60 min) — evita golpear CoinGecko en
-   cada iteración del escáner
-   ============================================================ */
 function getCachedTokenData(symbol){
     try{
         const raw = localStorage.getItem(`cg_cache_${symbol}`);
@@ -663,17 +667,16 @@ function getCachedTokenData(symbol){
         if(Date.now() - data.ts > CACHE_TTL_MS) return null;
         return data;
     }catch(e){
-        return null; // localStorage bloqueado o corrupto: seguimos sin caché
+        return null;
     }
 }
 
 function setCachedTokenData(symbol, data){
     try{
         localStorage.setItem(`cg_cache_${symbol}`, JSON.stringify({ ...data, ts: Date.now() }));
-    }catch(e){ /* localStorage lleno/bloqueado: no rompemos el escáner por esto */ }
+    }catch(e){ }
 }
 
-/* Consulta CoinGecko: id del token -> circulating_supply + FDV (para fallback de umbral) */
 async function fetchCoinGeckoData(symbol){
     const cached = getCachedTokenData(symbol);
     if(cached) return cached;
@@ -694,7 +697,6 @@ async function fetchCoinGeckoData(symbol){
     return data;
 }
 
-/* Market_Cap = Precio_Actual * Circulating_Supply ; Ratio_Burbuja = Market_Cap / Umbral_Maximo_Logico */
 function computeMarketCap(symbol, price, tokenData){
     const marketCap = price * tokenData.supply;
     const umbral = CONFIG_UMBRALES[symbol] || tokenData.fdv || (marketCap * UMBRAL_FALLBACK_MULTIPLIER);
@@ -704,10 +706,7 @@ function computeMarketCap(symbol, price, tokenData){
 
 /* ============================================================
    MÓDULO 2: ENERGÍA DE CHOQUE (ballena vs. resistencia)
-   ============================================================
-   Usa velas de 1m (limit=6): las 5 primeras dan el promedio base,
-   la 6ta (más reciente) es el volumen/precio "actual".
-*/
+   ============================================================ */
 async function fetchShockEnergy(pair){
     const klines = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1m&limit=6`).then(r=>r.json());
     if(!Array.isArray(klines) || klines.length < 6) throw new Error('Velas 1m insuficientes.');
@@ -719,23 +718,20 @@ async function fetchShockEnergy(pair){
     const precioHace5min = +klines[0][4];
     const precioActual = +klines[5][4];
     const variacionPrecio5m = ((precioActual - precioHace5min) / precioHace5min) * 100;
-    const pendiente = (precioActual - precioHace5min) / 5; // USD por minuto
+    const pendiente = (precioActual - precioHace5min) / 5;
 
     let estado = 'neutro';
     if(volumenActual > volumenPromedio5m*1.5 && Math.abs(variacionPrecio5m) < 0.2){
-        estado = 'carga';       // Estado 1 — Modo Azul Neón
+        estado = 'carga';
     }else if(variacionPrecio5m > 0.5 && volumenActual < volumenPromedio5m*0.8){
-        estado = 'debilidad';   // Estado 2 — Modo Amarillo
+        estado = 'debilidad';
     }else if(volumenActual > volumenPromedio5m*2 && variacionPrecio5m > 1){
-        estado = 'ruptura';     // Estado 3 — Modo Alerta Roja
+        estado = 'ruptura';
     }
 
     return { volumenPromedio5m, volumenActual, variacionPrecio5m, pendiente, estado, precioActual };
 }
 
-/* ============================================================
-   Orquesta Módulo 1 + Módulo 2/3 y pinta el feedback visual
-   ============================================================ */
 async function updateRiskModules(symbol, pair, price){
     const terminal = document.querySelector('.terminal');
     const mcapValue = document.getElementById('mcapValue');
@@ -745,7 +741,6 @@ async function updateRiskModules(symbol, pair, price){
     const energyBarFill = document.getElementById('energyBarFill');
     const lightningIcon = document.getElementById('lightningIcon');
 
-    // --- Módulo 1: Market Cap real ---
     try{
         const tokenData = await fetchCoinGeckoData(symbol);
         const { marketCap, umbral, ratioBurbuja } = computeMarketCap(symbol, price, tokenData);
@@ -767,7 +762,6 @@ async function updateRiskModules(symbol, pair, price){
         terminal.classList.remove('zona-peligro');
     }
 
-    // --- Módulo 2 y 3: Energía de choque + pendiente vertical ---
     try{
         const shock = await fetchShockEnergy(pair);
         const { volumenPromedio5m, volumenActual, estado, pendiente, precioActual } = shock;
@@ -785,13 +779,14 @@ async function updateRiskModules(symbol, pair, price){
         energyBarFill.className = `energy-bar-fill ${cfg.cls}`.trim();
         energyBarFill.style.width = `${Math.max(cfg.pct, 4)}%`;
 
-        // Icono de "rayo" solo en Estado 1 (carga)
         lightningIcon.classList.toggle('show', estado === 'carga');
 
-        // Módulo 3: pendiente (spike) -> modo vertical (glow rojo + pulse en TODO el panel)
         const umbralPendiente = precioActual * (UMBRAL_PENDIENTE_CRITICO_PCT / 100);
         const esVertical = Math.abs(pendiente) > umbralPendiente;
         terminal.classList.toggle('modo-vertical', esVertical);
+
+        lecturas.energia = estado;
+        renderVeredicto();
     }catch(err){
         energyValue.style.color = 'var(--text-faint)';
         energyValue.textContent = '--';
@@ -799,22 +794,15 @@ async function updateRiskModules(symbol, pair, price){
         energyBarFill.style.width = '0%';
         lightningIcon.classList.remove('show');
         terminal.classList.remove('modo-vertical');
+        lecturas.energia = null;
+        renderVeredicto();
     }
 }
 
 /* ============================================================
    MÓDULO SQUEEZE: RIESGO DE SQUEEZE (funding + OI + long/short)
-   ============================================================
-   No existe un endpoint público de "liquidation heatmap" predictivo
-   en Binance: lo que sí es real y público es Funding, Open Interest
-   histórico y el ratio Long/Short de cuentas. Con eso se arma una
-   heurística de "cuánto combustible de shorts queda" — más alto,
-   más riesgo de que la suba siga; más bajo, más "quemado" ya está
-   el squeeze.
-*/
+   ============================================================ */
 async function fetchSqueezeFuel(pair){
-    // oiHist trae 13 puntos de 5m = ventana de 1h (12 intervalos). Usamos klines de 5m/13 velas
-    // para que el Δ precio se calcule EXACTAMENTE sobre la misma ventana que el Δ OI.
     const [premium, oiHist, klines] = await Promise.all([
         fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${pair}`).then(r=>r.json()),
         fetch(`https://fapi.binance.com/futures/data/openInterestHist?symbol=${pair}&period=5m&limit=13`).then(r=>r.json()),
@@ -832,49 +820,47 @@ async function fetchSqueezeFuel(pair){
 
     let priceChange1hPct = 0;
     if(Array.isArray(klines) && klines.length >= 2){
-        const p0 = +klines[0][1];               // apertura de la primera vela de la ventana (hace ~1h)
-        const p1 = +klines[klines.length-1][4];  // cierre de la última vela (ahora)
+        const p0 = +klines[0][1];
+        const p1 = +klines[klines.length-1][4];
         priceChange1hPct = p0 > 0 ? ((p1 - p0) / p0) * 100 : 0;
     }
 
-    // El ratio long/short de cuentas puede no existir para pares chicos/nuevos -> se degrada a neutro (50/50)
     let shortPct = 50;
     try{
         const lsRatio = await fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${pair}&period=5m&limit=1`).then(r=>r.json());
         if(Array.isArray(lsRatio) && lsRatio[0] && lsRatio[0].shortAccount){
             shortPct = (+lsRatio[0].shortAccount) * 100;
         }
-    }catch(e){ /* seguimos con 50/50 neutro si el par no tiene este dato */ }
+    }catch(e){ }
 
     return { fundingPct, oiDeltaPct, shortPct, priceChange1hPct };
 }
 
-/* Score 0-100: 50 = neutro. Sube con funding negativo, OI creciendo junto al precio, y más cuentas short. */
 function computeSqueezeScore({ fundingPct, oiDeltaPct, shortPct }, priceChange1hPct){
     let score = 50;
-    score += Math.max(-18, Math.min(18, -fundingPct * 25));           // funding negativo => +riesgo
+    score += Math.max(-18, Math.min(18, -fundingPct * 25));
     if(priceChange1hPct > 0){
-        score += Math.max(-16, Math.min(16, oiDeltaPct * 1.1));        // OI subiendo con precio subiendo (misma 1h) => +riesgo
+        score += Math.max(-16, Math.min(16, oiDeltaPct * 1.1));
     }else{
-        score -= Math.max(-16, Math.min(16, oiDeltaPct * 1.1)) * 0.5;  // matiz: precio no subió en esta 1h, pesa menos
+        score -= Math.max(-16, Math.min(16, oiDeltaPct * 1.1)) * 0.5;
     }
-    score += (shortPct - 50) * 0.7;                                     // más cuentas cortas acumuladas => +riesgo
+    score += (shortPct - 50) * 0.7;
     return Math.max(0, Math.min(100, score));
 }
 
-/* Mini leyenda en lenguaje simple: cruza Δ OI (1h) con Δ precio (1h) en un cuadrante de 4 estados.
-   Zona muerta de ±1% en OI para no etiquetar ruido como señal. */
+/* Cuadrante Δ OI (1h) x Δ precio (1h). Devuelve además una key corta
+   para que el veredicto global la use sin re-parsear el texto. */
 function classifyFuelState(oiDeltaPct, priceChangePct){
     const OI_DEADZONE = 1.0;
     if(Math.abs(oiDeltaPct) < OI_DEADZONE){
-        return { label: '➖ SIN CAMBIOS CLAROS DE OI', color: 'var(--text-faint)' };
+        return { key:'sin-cambios', label: '➖ SIN CAMBIOS CLAROS DE OI', color: 'var(--text-faint)' };
     }
     if(priceChangePct > 0){
-        if(oiDeltaPct < 0) return { label: '🔥 COMBUSTIBLE QUEMÁNDOSE · shorts cubriendo', color: 'var(--safe)' };
-        return { label: '⛽ COMBUSTIBLE FRESCO · entra plata nueva', color: 'var(--danger)' };
+        if(oiDeltaPct < 0) return { key:'quemandose', label: '🔥 COMBUSTIBLE QUEMÁNDOSE · shorts cubriendo', color: 'var(--safe)' };
+        return { key:'fresco', label: '⛽ COMBUSTIBLE FRESCO · entra plata nueva', color: 'var(--danger)' };
     }else{
-        if(oiDeltaPct > 0) return { label: '🆕 SHORTS NUEVOS ENTRANDO', color: 'var(--gold)' };
-        return { label: '🧊 DELEVERAGE · cerrando posiciones', color: 'var(--text-dim)' };
+        if(oiDeltaPct > 0) return { key:'shorts-nuevos', label: '🆕 SHORTS NUEVOS ENTRANDO', color: 'var(--gold)' };
+        return { key:'deleverage', label: '🧊 DELEVERAGE · cerrando posiciones', color: 'var(--text-dim)' };
     }
 }
 
@@ -886,7 +872,7 @@ async function updateSqueezeModule(pair, precioActualHint){
     const oiEl = document.getElementById('squeezeOi');
     const shortPctEl = document.getElementById('squeezeShortPct');
     const fuelTagEl = document.getElementById('squeezeFuelTag');
-    if(!badge || !gaugeFill) return; // el panel ya no existe (nuevo RUN)
+    if(!badge || !gaugeFill) return;
 
     try{
         const fuel = await fetchSqueezeFuel(pair);
@@ -913,12 +899,17 @@ async function updateSqueezeModule(pair, precioActualHint){
         shortPctEl.textContent = `${fuel.shortPct.toFixed(1)}%`;
         shortPctEl.style.color = fuel.shortPct > 55 ? 'var(--danger)' : fuel.shortPct < 45 ? 'var(--safe)' : 'var(--text)';
 
+        let fuelState = null;
         if(fuelTagEl){
-            const fuelState = classifyFuelState(fuel.oiDeltaPct, fuel.priceChange1hPct);
+            fuelState = classifyFuelState(fuel.oiDeltaPct, fuel.priceChange1hPct);
             fuelTagEl.textContent = fuelState.label;
             fuelTagEl.style.color = fuelState.color;
             fuelTagEl.style.borderColor = fuelState.color;
         }
+
+        lecturas.squeezeFuel = fuelState ? fuelState.key : null;
+        lecturas.squeezeScore = score;
+        renderVeredicto();
     }catch(err){
         badge.textContent = 'SIN DATOS';
         badge.style.background = 'transparent';
@@ -927,115 +918,15 @@ async function updateSqueezeModule(pair, precioActualHint){
         scoreLabel.textContent = '--';
         [fundingEl, oiEl, shortPctEl].forEach(el => { if(el){ el.textContent = '--'; el.style.color = 'var(--text-faint)'; } });
         if(fuelTagEl){ fuelTagEl.textContent = 'Sin datos suficientes para clasificar'; fuelTagEl.style.color = 'var(--text-faint)'; fuelTagEl.style.borderColor = 'var(--line)'; }
+        lecturas.squeezeFuel = null;
+        lecturas.squeezeScore = null;
+        renderVeredicto();
     }
-}
-
-/* ============================================================
-   FEED EN VIVO DE LIQUIDACIONES (WebSocket forceOrder)
-   ============================================================
-   S:"BUY"  en el forceOrder = orden forzada de COMPRA => se estaba
-   liquidando un SHORT (combustible de squeeze quemándose ahora).
-   S:"SELL" en el forceOrder = orden forzada de VENTA   => se estaba
-   liquidando un LONG.
-*/
-function startLiqStream(pair){
-    stopLiqStream();
-    liqEvents = [];
-    setLiqStatus('CONECTANDO…', 'var(--text-faint)');
-
-    try{
-        liqSocket = new WebSocket(`wss://fstream.binance.com/ws/${pair.toLowerCase()}@forceOrder`);
-
-        // Si en 8s no abrió, probablemente el WS esté bloqueado (red/firewall/extensión) — avisamos en vez de dejar "conectando" para siempre.
-        const openTimeout = setTimeout(() => {
-            if(liqSocket && liqSocket.readyState !== WebSocket.OPEN){
-                setLiqStatus('⚠ SIN CONEXIÓN', 'var(--danger)');
-            }
-        }, 8000);
-
-        liqSocket.onopen = () => {
-            clearTimeout(openTimeout);
-            setLiqStatus('● EN VIVO', 'var(--safe)');
-            const feedEl = document.getElementById('liqFeed');
-            if(feedEl && !liqEvents.length) feedEl.innerHTML = '<div class="liq-row-empty">Conectado. Esperando la primera liquidación…</div>';
-        };
-        liqSocket.onmessage = (msg) => {
-            try{
-                const data = JSON.parse(msg.data);
-                const o = data.o;
-                if(!o) return;
-                const usd = (+o.p) * (+o.q);
-                const side = o.S === 'BUY' ? 'short_liq' : 'long_liq';
-                liqEvents.push({ time: Date.now(), side, usd });
-                renderLiqFeed();
-            }catch(e){ /* mensaje mal formado, se ignora */ }
-        };
-        liqSocket.onerror = () => {
-            setLiqStatus('⚠ ERROR', 'var(--danger)');
-        };
-        liqSocket.onclose = () => {
-            clearTimeout(openTimeout);
-            setLiqStatus('DESCONECTADO', 'var(--text-faint)');
-        };
-    }catch(e){
-        setLiqStatus('⚠ NO DISPONIBLE', 'var(--danger)');
-        const feedEl = document.getElementById('liqFeed');
-        if(feedEl) feedEl.innerHTML = '<div class="liq-row-empty">⚠ No se pudo conectar al stream.</div>';
-    }
-}
-
-function setLiqStatus(text, color){
-    const statusEl = document.getElementById('liqStreamStatus');
-    if(statusEl){ statusEl.textContent = text; statusEl.style.color = color; }
-}
-
-function stopLiqStream(){
-    if(liqSocket){
-        try{
-            liqSocket.onopen = null;
-            liqSocket.onmessage = null;
-            liqSocket.onerror = null;
-            liqSocket.onclose = null;
-            liqSocket.close();
-        }catch(e){}
-        liqSocket = null;
-    }
-}
-
-function renderLiqFeed(){
-    const feedEl = document.getElementById('liqFeed');
-    const shortLiqTotalEl = document.getElementById('shortLiqTotal');
-    const longLiqTotalEl = document.getElementById('longLiqTotal');
-    if(!feedEl) return; // panel reemplazado por un nuevo RUN
-
-    const now = Date.now();
-    liqEvents = liqEvents.filter(e => now - e.time < LIQ_WINDOW_MS);
-
-    const shortLiqTotal = liqEvents.filter(e => e.side === 'short_liq').reduce((s,e) => s+e.usd, 0);
-    const longLiqTotal = liqEvents.filter(e => e.side === 'long_liq').reduce((s,e) => s+e.usd, 0);
-
-    if(shortLiqTotalEl) shortLiqTotalEl.textContent = `$${formatCompact(shortLiqTotal)}`;
-    if(longLiqTotalEl) longLiqTotalEl.textContent = `$${formatCompact(longLiqTotal)}`;
-
-    const lastEvents = liqEvents.slice(-8).reverse();
-    feedEl.innerHTML = lastEvents.length
-        ? lastEvents.map(e => `<div class="liq-row ${e.side}"><span>${e.side === 'short_liq' ? '▲ SHORT LIQUIDADO' : '▼ LONG LIQUIDADO'}</span><span>$${formatCompact(e.usd)}</span></div>`).join('')
-        : '<div class="liq-row-empty">Esperando la primera liquidación…</div>';
 }
 
 /* ============================================================
    MÓDULOS PRE-RUPTURA
-   ============================================================
-   1) Consumo de Pared: compara el volumen USD de la pared vigilada
-      entre este sondeo (T0) y el anterior (T-1).
-   2) CVD estimado en la pared: usa aggTrades y el flag isBuyerMaker
-      para distinguir Market Buy agresivo vs Market Sell, filtrado
-      SOLO a las órdenes ejecutadas dentro del rango de precio de
-      la pared vigilada (no el mercado completo).
-   3) Cruce de ambas señales para diferenciar "pared comida" (consumo
-      real) de "pared cancelada" (fake wall retirada).
-   4) Tensión: distancia % entre precio actual y la pared vigilada.
-*/
+   ============================================================ */
 function classifyWallState(consumptionPct, cvdDelta){
     if(consumptionPct > 15 && cvdDelta > 0){
         return { label:'CONSUMO REAL · COMPRA AGRESIVA', cls:'consumo-real', color:'#ff9900' };
@@ -1059,7 +950,7 @@ async function pollPreRuptura(pair){
     const cvdSub = document.getElementById('cvdSub');
     const tensionValue = document.getElementById('tensionValue');
     const terminal = document.querySelector('.terminal');
-    if(!consumoValue || !cvdValue || !tensionValue) return; // el panel fue reemplazado por un nuevo RUN
+    if(!consumoValue || !cvdValue || !tensionValue) return;
 
     try{
         const now = Date.now();
@@ -1076,7 +967,6 @@ async function pollPreRuptura(pair){
         const prevUsd = wallWatch.lastUsd;
         const consumptionPct = prevUsd > 0 ? ((prevUsd - currUsd) / prevUsd) * 100 : 0;
 
-        // Trades agresivos dentro de la zona de la pared desde el último sondeo
         let buyVol = 0, sellVol = 0;
         try{
             const trades = await fetch(`https://fapi.binance.com/fapi/v1/aggTrades?symbol=${pair}&startTime=${wallWatch.lastTradeTime}&endTime=${now}&limit=1000`).then(r=>r.json());
@@ -1084,26 +974,23 @@ async function pollPreRuptura(pair){
                 trades.forEach(t => {
                     const p = +t.p, q = +t.p * +t.q;
                     if(p >= wallWatch.priceLow && p < wallWatch.priceHigh){
-                        // m=false -> el comprador fue el "taker" (agresor) -> Market Buy real
-                        // m=true  -> el vendedor fue el "taker" -> Market Sell
                         if(t.m === false) buyVol += q; else sellVol += q;
                     }
                 });
             }
-        }catch(e){ /* si aggTrades falla, seguimos solo con la señal de tamaño */ }
+        }catch(e){ }
 
         const cvdDelta = buyVol - sellVol;
         const totalVol = buyVol + sellVol;
 
-        // --- Render: Consumo de Pared ---
         const stateInfo = classifyWallState(consumptionPct, cvdDelta);
         consumoValue.style.color = stateInfo.color;
         consumoValue.textContent = `${stateInfo.label} (${consumptionPct >= 0 ? '-' : '+'}${Math.abs(consumptionPct).toFixed(1)}%)`;
         consumoBarFill.className = `energy-bar-fill ${stateInfo.cls}`;
         consumoBarFill.style.width = `${Math.max(Math.min(Math.abs(consumptionPct)*4, 100), 4)}%`;
         consumoSub.textContent = `Pared: $${formatCompact(prevUsd)} → $${formatCompact(currUsd)}  (T-1 vs T0, cada ${POLL_MS/1000}s)`;
+        lecturas.consumo = stateInfo.cls;
 
-        // --- Render: CVD estimado en la pared ---
         if(totalVol > 0){
             const buyPct = (buyVol/totalVol)*100;
             cvdValue.style.color = cvdDelta > 0 ? 'var(--safe)' : 'var(--danger)';
@@ -1111,15 +998,16 @@ async function pollPreRuptura(pair){
             cvdBarFill.className = `energy-bar-fill ${cvdDelta > 0 ? 'cvd-buy' : 'cvd-sell'}`;
             cvdBarFill.style.width = `${Math.max(buyPct,4)}%`;
             cvdSub.textContent = `Market Buy $${formatCompact(buyVol)} · Market Sell $${formatCompact(sellVol)} dentro de la pared`;
+            lecturas.cvd = cvdDelta > 0 ? 'compra' : 'venta';
         }else{
             cvdValue.style.color = 'var(--text-faint)';
             cvdValue.textContent = 'Sin trades en la zona';
             cvdBarFill.className = 'energy-bar-fill';
             cvdBarFill.style.width = '0%';
             cvdSub.textContent = 'No hubo ejecuciones dentro del rango de precio de la pared en este intervalo.';
+            lecturas.cvd = 'sin-datos';
         }
 
-        // --- Render: Tensión / Proximidad Crítica ---
         const distPct = ((wallWatch.priceLow - currentPrice) / currentPrice) * 100;
         const enTension = distPct >= 0 && distPct < TENSION_THRESHOLD_PCT;
         tensionValue.textContent = `${distPct.toFixed(3)}%${enTension ? '  ⚠ CRÍTICA' : ''}`;
@@ -1129,9 +1017,104 @@ async function pollPreRuptura(pair){
 
         wallWatch.lastUsd = currUsd;
         wallWatch.lastTradeTime = now;
+
+        renderVeredicto();
     }catch(err){
         if(consumoSub) consumoSub.textContent = `⚠ Error de sondeo: ${err.message}`;
     }
+}
+
+/* ============================================================
+   VEREDICTO GLOBAL — traduce todas las lecturas a un titular
+   único en lenguaje simple, con un puntaje de confianza.
+   ============================================================
+   Puntaje: cada señal suma o resta puntos a un eje -100 (VENTA
+   fuerte) .. +100 (COMPRA fuerte). No es una señal de trading,
+   es solo una forma más fácil de leer lo que ya calculan los
+   módulos de arriba.
+*/
+function renderVeredicto(){
+    const box = document.getElementById('veredictoBox');
+    if(!box) return;
+
+    const headline = document.getElementById('veredictoHeadline');
+    const sub = document.getElementById('veredictoSub');
+    const chips = document.getElementById('veredictoChips');
+    const fill = document.getElementById('confianzaFill');
+    const labelIzq = document.getElementById('confianzaLabelIzq');
+    const labelDer = document.getElementById('confianzaLabelDer');
+
+    let puntos = 0;
+    let señalesActivas = 0;
+    const explicaciones = [];
+
+    // Energía de choque
+    if(lecturas.energia === 'carga'){ puntos += 25; señalesActivas++; explicaciones.push({t:'Ballena absorbiendo la pared', c:'var(--blue-neon)'}); }
+    else if(lecturas.energia === 'debilidad'){ puntos -= 20; señalesActivas++; explicaciones.push({t:'Subida sin volumen real', c:'var(--gold)'}); }
+    else if(lecturas.energia === 'ruptura'){ puntos += 30; señalesActivas++; explicaciones.push({t:'Pared rota con volumen', c:'var(--danger)'}); }
+
+    // Consumo de pared
+    if(lecturas.consumo === 'consumo-real'){ puntos += 25; señalesActivas++; explicaciones.push({t:'Pared siendo comida en serio', c:'#ff9900'}); }
+    else if(lecturas.consumo === 'retiro'){ puntos -= 10; señalesActivas++; explicaciones.push({t:'Pared cancelada, no comprada', c:'var(--text-dim)'}); }
+    else if(lecturas.consumo === 'reforzando'){ puntos -= 15; señalesActivas++; explicaciones.push({t:'Vendedor reforzando la pared', c:'var(--safe)'}); }
+
+    // CVD en la pared
+    if(lecturas.cvd === 'compra'){ puntos += 20; señalesActivas++; explicaciones.push({t:'Compra agresiva contra la pared', c:'var(--safe)'}); }
+    else if(lecturas.cvd === 'venta'){ puntos -= 20; señalesActivas++; explicaciones.push({t:'Venta agresiva en la zona', c:'var(--danger)'}); }
+
+    // Combustible de squeeze
+    if(lecturas.squeezeFuel === 'fresco'){ puntos -= 15; señalesActivas++; explicaciones.push({t:'Entra plata nueva a favor de la suba', c:'var(--danger)'}); }
+    else if(lecturas.squeezeFuel === 'quemandose'){ puntos += 15; señalesActivas++; explicaciones.push({t:'Shorts cubriéndose, combustible gastado', c:'var(--safe)'}); }
+    else if(lecturas.squeezeFuel === 'shorts-nuevos'){ puntos += 10; señalesActivas++; explicaciones.push({t:'Shorts nuevos entrando de verdad', c:'var(--gold)'}); }
+    else if(lecturas.squeezeFuel === 'deleverage'){ puntos -= 5; señalesActivas++; explicaciones.push({t:'Cierre de posiciones, no venta nueva', c:'var(--text-dim)'}); }
+
+    if(señalesActivas === 0){
+        headline.textContent = 'ESPERANDO DATOS…';
+        headline.style.color = 'var(--text-faint)';
+        sub.textContent = 'Todavía no hay suficientes lecturas para armar un veredicto.';
+        chips.innerHTML = '';
+        fill.style.width = '0%';
+        fill.style.background = 'var(--text-faint)';
+        labelIzq.textContent = 'VENTA';
+        labelDer.textContent = 'COMPRA';
+        return;
+    }
+
+    let titulo, color, texto;
+    if(puntos >= 30){
+        titulo = '🟢 PRESIÓN COMPRADORA REAL';
+        color = 'var(--safe)';
+        texto = 'Las señales apuntan a que hay compra genuina sosteniendo el precio, no solo mecha.';
+    }else if(puntos >= 10){
+        titulo = '🟡 SESGO A COMPRA, SIN CONFIRMAR';
+        color = 'var(--gold)';
+        texto = 'Hay algo de presión compradora, pero todavía falta que más señales coincidan.';
+    }else if(puntos > -10){
+        titulo = '⚪ SIN SESGO CLARO';
+        color = 'var(--text-dim)';
+        texto = 'Las señales están mezcladas o son insuficientes. No hay una lectura dominante todavía.';
+    }else if(puntos > -30){
+        titulo = '🟡 SESGO A VENTA, SIN CONFIRMAR';
+        color = 'var(--gold)';
+        texto = 'Hay indicios de debilidad o venta, pero todavía no está confirmado por todas las señales.';
+    }else{
+        titulo = '🔴 PRESIÓN VENDEDORA REAL';
+        color = 'var(--danger)';
+        texto = 'Varias señales coinciden en que la subida fue débil o está siendo vendida activamente.';
+    }
+
+    headline.textContent = titulo;
+    headline.style.color = color;
+    sub.textContent = texto;
+
+    chips.innerHTML = explicaciones.map(e => `<span class="chip" style="color:${e.c};border-color:${e.c}">${e.t}</span>`).join('');
+
+    const pctFill = Math.min(Math.abs(puntos), 100);
+    fill.style.width = `${Math.max(pctFill, 3)}%`;
+    fill.style.background = color;
+    fill.style.marginLeft = puntos < 0 ? 'auto' : '0';
+    labelIzq.textContent = 'VENTA';
+    labelDer.textContent = 'COMPRA';
 }
 
 async function run(){
@@ -1141,13 +1124,12 @@ async function run(){
     const out = document.getElementById('out');
     const terminal = document.querySelector('.terminal');
 
-    // Reinicia el módulo Pre-Ruptura para el nuevo símbolo
     if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
     wallWatch = null;
 
-    // Reinicia el módulo Riesgo de Squeeze + feed de liquidaciones para el nuevo símbolo
     if(squeezeTimer){ clearInterval(squeezeTimer); squeezeTimer = null; }
-    stopLiqStream();
+
+    lecturas = { energia:null, consumo:null, cvd:null, squeezeFuel:null, squeezeScore:null };
 
     statusDot.className = 'status-dot';
     statusText.textContent = 'SCANNING…';
@@ -1173,7 +1155,6 @@ async function run(){
         const top = [...walls].sort((a,b) => b.usd - a.usd)[0];
         const topIndex = walls.indexOf(top);
 
-        // Fija la pared vigilada para el módulo Pre-Ruptura (rango de precio absoluto)
         wallWatch = {
             priceLow: price + (topIndex * bucketSize),
             priceHigh: price + ((topIndex + 1) * bucketSize),
@@ -1188,6 +1169,17 @@ async function run(){
         const tagPct = ((topIndex + 0.5) / 20) * 100;
 
         out.innerHTML = `
+            <div class="divider"></div>
+
+            <div class="veredicto-box" id="veredictoBox">
+                <div class="veredicto-eyebrow">VEREDICTO · LECTURA RÁPIDA</div>
+                <div class="veredicto-headline" id="veredictoHeadline">ESPERANDO DATOS…</div>
+                <div class="veredicto-sub" id="veredictoSub">Recopilando las primeras lecturas de los módulos de abajo.</div>
+                <div class="veredicto-chips" id="veredictoChips"></div>
+                <div class="confianza-track"><div class="confianza-fill" id="confianzaFill" style="width:0%"></div></div>
+                <div class="confianza-label"><span id="confianzaLabelIzq">VENTA</span><span id="confianzaLabelDer">COMPRA</span></div>
+            </div>
+
             <div class="divider"></div>
             <div class="label-row">
                 <div class="eyebrow">TECHO SPIKE · PARED MÁS DENSA</div>
@@ -1343,16 +1335,6 @@ async function run(){
                     </div>
                 </div>
                 <div class="squeeze-fuel-tag" id="squeezeFuelTag">Calculando…</div>
-
-                <div class="liq-feed-wrap">
-                    <div class="liq-feed-head"><span>LIQUIDACIONES EN VIVO</span><span id="liqStreamStatus">CONECTANDO…</span></div>
-                    <div class="liq-feed-totals">
-                        <div class="liq-total-block" style="color:var(--safe);">SHORTS LIQUIDADOS<b id="shortLiqTotal">$0</b></div>
-                        <div class="liq-total-block" style="color:var(--danger);">LONGS LIQUIDADOS<b id="longLiqTotal">$0</b></div>
-                    </div>
-                    <div id="liqFeed"><div class="liq-row-empty">Conectando al stream…</div></div>
-                </div>
-
                 <div class="squeeze-disclaimer">⚠ Heurística propia basada en datos públicos de Binance Futures. No es asesoramiento financiero ni un indicador de precisión garantizada.</div>
             </div>
         `;
@@ -1367,17 +1349,15 @@ async function run(){
             });
         });
 
-        // Módulos de riesgo (no bloquean el render principal si CoinGecko/klines fallan)
+        renderVeredicto();
+
         updateRiskModules(raw, pair, price);
 
-        // Inicia el sondeo periódico Pre-Ruptura (Consumo de Pared / CVD / Tensión)
         pollTimer = setInterval(() => pollPreRuptura(pair), POLL_MS);
         pollPreRuptura(pair);
 
-        // Inicia el módulo Riesgo de Squeeze (funding/OI/long-short, cada 15s) + feed en vivo de liquidaciones
         updateSqueezeModule(pair, price);
         squeezeTimer = setInterval(() => updateSqueezeModule(pair, price), SQUEEZE_POLL_MS);
-        startLiqStream(pair);
     }catch(err){
         out.innerHTML = `<div class="divider"></div><div class="err">⚠ ${err.message || 'Error al consultar Binance. Verifica el símbolo.'}</div>`;
         statusDot.className = 'status-dot';
@@ -1385,7 +1365,6 @@ async function run(){
         terminal.classList.remove('zona-peligro','modo-vertical','tension-critica');
         if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
         if(squeezeTimer){ clearInterval(squeezeTimer); squeezeTimer = null; }
-        stopLiqStream();
         wallWatch = null;
     }
 }
