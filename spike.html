@@ -3,1378 +3,431 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPIKE_SCANNER · Techo</title>
+<title>MEGA_PUMP_SCANNER · Todos los pares</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-    :root{
-        --bg-void:#05060a;
-        --bg-panel:#0b0d14;
-        --bg-panel-2:#10121b;
-        --line:#1b1e2b;
-        --line-soft:#141620;
-        --text:#e2e4f1;
-        --text-dim:#565c74;
-        --text-faint:#31344a;
-        --danger:#ff3b5c;
-        --danger-glow:rgba(255,59,92,.45);
-        --safe:#00e0a4;
-        --gold:#f2b705;
-        --blue-neon:#00d4ff;
-        --blue-neon-glow:rgba(0,212,255,.5);
-    }
-    *{box-sizing:border-box;}
-    body{
-        background:
-            radial-gradient(circle at 15% 0%, rgba(255,59,92,.06), transparent 40%),
-            radial-gradient(circle at 85% 100%, rgba(0,224,164,.05), transparent 40%),
-            var(--bg-void);
-        color:var(--text);
-        font-family:'JetBrains Mono', monospace;
-        min-height:100vh;
-        margin:0;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        padding:32px 16px;
-    }
-    .terminal{
-        width:100%;
-        max-width:460px;
-        background:var(--bg-panel);
-        border:1px solid var(--line);
-        border-radius:10px;
-        overflow:hidden;
-        box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset;
-        transition: background 1s ease;
-    }
-
-    .terminal.zona-peligro{
-        background:
-            radial-gradient(circle at 15% 0%, rgba(255,59,92,.10), transparent 45%),
-            radial-gradient(circle at 85% 100%, rgba(255,59,92,.10), transparent 45%),
-            rgba(255,59,92,.16);
-    }
-    .terminal.modo-vertical{
-        animation: panelPulse 1.05s ease-in-out infinite;
-    }
-    @keyframes panelPulse{
-        0%,100%{ box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset, 0 0 0 0 var(--danger-glow); }
-        50%{ box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset, 0 0 46px 8px var(--danger-glow); }
-    }
-
-    .term-bar{
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        padding:11px 16px;
-        background:var(--bg-panel-2);
-        border-bottom:1px solid var(--line);
-    }
-    .dots{display:flex;gap:6px;}
-    .dots span{width:9px;height:9px;border-radius:50%;background:var(--text-faint);}
-    .term-title{
-        font-size:12px;
-        font-weight:700;
-        letter-spacing:.12em;
-        color:var(--text-dim);
-    }
-    .term-title b{color:var(--text);}
-    .status{
-        display:flex;
-        align-items:center;
-        gap:6px;
-        font-size:10px;
-        font-weight:600;
-        letter-spacing:.14em;
-        color:var(--text-faint);
-    }
-    .status-dot{
-        width:6px;height:6px;border-radius:50%;
-        background:var(--text-faint);
-    }
-    .status-dot.on{background:var(--safe);box-shadow:0 0 8px var(--safe);}
-
-    .term-body{padding:20px;}
-
-    .input-row{
-        display:flex;
-        gap:8px;
-        margin-bottom:10px;
-    }
-    .input-wrap{
-        flex:1;
-        display:flex;
-        align-items:center;
-        gap:8px;
-        background:var(--bg-void);
-        border:1px solid var(--line);
-        border-radius:7px;
-        padding:0 12px;
-    }
-    .input-wrap span{color:var(--gold);font-weight:700;}
-    #sym{
-        flex:1;
-        background:transparent;
-        border:none;
-        outline:none;
-        color:var(--text);
-        font-family:inherit;
-        font-size:14px;
-        font-weight:600;
-        letter-spacing:.05em;
-        padding:11px 0;
-    }
-    #sym::placeholder{color:var(--text-faint);}
-    #btn{
-        padding:0 18px;
-        background:var(--text);
-        color:var(--bg-void);
-        border:none;
-        border-radius:7px;
-        font-family:inherit;
-        font-size:12px;
-        font-weight:800;
-        letter-spacing:.1em;
-        cursor:pointer;
-        transition:transform .12s, background .12s;
-    }
-    #btn:hover{background:var(--gold);}
-    #btn:active{transform:scale(.96);}
-
-    #out{min-height:2px;}
-    .empty-hint{
-        font-size:11px;
-        color:var(--text-faint);
-        padding:6px 2px 2px;
-        letter-spacing:.03em;
-    }
-    .err{
-        margin-top:14px;
-        padding:12px 14px;
-        border:1px solid rgba(255,59,92,.3);
-        background:rgba(255,59,92,.06);
-        color:var(--danger);
-        font-size:12px;
-        border-radius:7px;
-        letter-spacing:.02em;
-    }
-
-    .divider{
-        height:1px;
-        background:var(--line);
-        margin:20px 0;
-    }
-
-    /* ===== PANEL DE VEREDICTO (lectura en lenguaje simple) ===== */
-    .veredicto-box{
-        border:1px solid var(--line);
-        border-radius:9px;
-        padding:14px 15px;
-        background:var(--bg-panel-2);
-    }
-    .veredicto-eyebrow{
-        font-size:9.5px;
-        font-weight:700;
-        letter-spacing:.16em;
-        color:var(--text-dim);
-        margin-bottom:8px;
-    }
-    .veredicto-headline{
-        font-size:17px;
-        font-weight:800;
-        letter-spacing:-.01em;
-        line-height:1.3;
-        margin-bottom:6px;
-    }
-    .veredicto-sub{
-        font-size:11px;
-        color:var(--text-dim);
-        line-height:1.6;
-        letter-spacing:.01em;
-    }
-    .veredicto-chips{
-        display:flex;
-        flex-wrap:wrap;
-        gap:6px;
-        margin-top:12px;
-    }
-    .chip{
-        font-size:9.5px;
-        font-weight:700;
-        letter-spacing:.04em;
-        padding:5px 9px;
-        border-radius:6px;
-        border:1px solid var(--line);
-        background:var(--bg-void);
-        white-space:nowrap;
-    }
-    .confianza-track{
-        margin-top:12px;
-        height:6px;
-        border-radius:3px;
-        background:var(--line-soft);
-        overflow:hidden;
-    }
-    .confianza-fill{
-        height:100%;
-        border-radius:3px;
-        transition:width .4s ease, background .4s ease;
-    }
-    .confianza-label{
-        display:flex;
-        justify-content:space-between;
-        font-size:8.5px;
-        color:var(--text-faint);
-        margin-top:5px;
-        letter-spacing:.06em;
-    }
-
-    .label-row{
-        display:flex;
-        justify-content:space-between;
-        align-items:baseline;
-        margin-bottom:4px;
-    }
-    .eyebrow{
-        font-size:10px;
-        font-weight:700;
-        letter-spacing:.16em;
-        color:var(--text-dim);
-    }
-    .pair-tag{
-        font-size:10px;
-        font-weight:600;
-        color:var(--text-faint);
-        letter-spacing:.08em;
-    }
-    .price-value{
-        font-size:36px;
-        font-weight:800;
-        color:var(--danger);
-        text-shadow:0 0 18px var(--danger-glow);
-        letter-spacing:-.01em;
-        line-height:1.1;
-        margin-top:2px;
-    }
-
-    .chart-wrap{
-        position:relative;
-        margin:22px 0 6px;
-        padding-top:22px;
-    }
-    .wall-tag{
-        position:absolute;
-        top:0;
-        transform:translateX(-50%);
-        font-size:9px;
-        font-weight:700;
-        letter-spacing:.1em;
-        color:var(--danger);
-        white-space:nowrap;
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        gap:2px;
-    }
-    .wall-tag::after{
-        content:'';
-        width:1px;
-        height:6px;
-        background:var(--danger);
-    }
-    .gridlines{
-        position:absolute;
-        inset:22px 0 26px 0;
-        display:flex;
-        flex-direction:column;
-        justify-content:space-between;
-        pointer-events:none;
-    }
-    .gridlines div{
-        height:1px;
-        background:var(--line-soft);
-    }
-    .wallbar{
-        position:relative;
-        height:76px;
-        display:flex;
-        align-items:flex-end;
-        gap:3px;
-    }
-    .wcol{
-        flex:1;
-        background:var(--text-faint);
-        opacity:.4;
-        border-radius:2px 2px 0 0;
-        min-height:2px;
-        transition:height .4s cubic-bezier(.2,.8,.2,1);
-    }
-    .wcol.top{
-        background:var(--danger);
-        opacity:1;
-        box-shadow:0 0 14px var(--danger-glow);
-        animation:pulse 1.6s ease-in-out infinite;
-    }
-    @keyframes pulse{
-        0%,100%{opacity:1;}
-        50%{opacity:.55;}
-    }
-    .axis{
-        display:flex;
-        justify-content:space-between;
-        margin-top:8px;
-        font-size:9px;
-        color:var(--text-faint);
-        letter-spacing:.03em;
-    }
-
-    .lightning-icon{
-        position:absolute;
-        top:-4px;
-        right:0;
-        font-size:19px;
-        opacity:0;
-        transform:scale(.5);
-        transition:opacity .3s, transform .3s;
-        filter:drop-shadow(0 0 8px var(--blue-neon-glow));
-        pointer-events:none;
-    }
-    .lightning-icon.show{
-        opacity:1;
-        transform:scale(1);
-        animation:flicker 1.3s ease-in-out infinite;
-    }
-    @keyframes flicker{
-        0%,100%{opacity:1;}
-        50%{opacity:.5;}
-    }
-
-    .metric-row{margin-top:22px;}
-    .metric-head{
-        display:flex;
-        justify-content:space-between;
-        align-items:baseline;
-        margin-bottom:8px;
-    }
-    .metric-label-wrap{
-        position:relative;
-        display:flex;
-        align-items:center;
-        gap:6px;
-    }
-    .metric-label{
-        font-size:10px;
-        font-weight:700;
-        letter-spacing:.14em;
-        color:var(--text-dim);
-    }
-    .info-icon{
-        width:14px;
-        height:14px;
-        border-radius:50%;
-        border:1px solid var(--text-faint);
-        color:var(--text-faint);
-        font-size:9px;
-        font-weight:700;
-        line-height:12px;
-        text-align:center;
-        cursor:pointer;
-        user-select:none;
-        flex-shrink:0;
-        transition:border-color .15s, color .15s;
-    }
-    .info-icon:hover, .info-icon.active{
-        border-color:var(--gold);
-        color:var(--gold);
-    }
-    .tooltip{
-        position:absolute;
-        left:0;
-        bottom:calc(100% + 10px);
-        width:270px;
-        max-width:calc(100vw - 80px);
-        background:var(--bg-panel-2);
-        border:1px solid var(--line);
-        border-radius:8px;
-        padding:12px 13px;
-        font-size:10.5px;
-        line-height:1.55;
-        color:var(--text-dim);
-        letter-spacing:.01em;
-        box-shadow:0 12px 30px -8px rgba(0,0,0,.6);
-        opacity:0;
-        visibility:hidden;
-        transform:translateY(4px);
-        transition:opacity .15s, transform .15s, visibility .15s;
-        z-index:10;
-    }
-    .tooltip b{color:var(--text);font-weight:700;}
-    .tooltip::after{
-        content:'';
-        position:absolute;
-        top:100%;
-        left:9px;
-        border:5px solid transparent;
-        border-top-color:var(--line);
-    }
-    .info-icon.active + .tooltip,
-    .metric-label-wrap:hover .tooltip{
-        opacity:1;
-        visibility:visible;
-        transform:translateY(0);
-    }
-    .metric-value{
-        font-size:15px;
-        font-weight:700;
-        display:flex;
-        align-items:center;
-        gap:6px;
-    }
-    .gauge{
-        display:flex;
-        gap:3px;
-        height:8px;
-    }
-    .gauge div{
-        flex:1;
-        border-radius:2px;
-        background:var(--line-soft);
-        transition:background .3s;
-    }
-
-    .energy-bar-wrap{
-        height:8px;
-        border-radius:4px;
-        background:var(--line-soft);
-        overflow:hidden;
-    }
-    .energy-bar-fill{
-        height:100%;
-        width:0%;
-        border-radius:4px;
-        background:var(--text-faint);
-        transition:width .4s ease, background .4s ease, box-shadow .4s ease;
-    }
-    .energy-bar-fill.carga{
-        background:var(--blue-neon);
-        box-shadow:0 0 12px var(--blue-neon-glow);
-    }
-    .energy-bar-fill.debilidad{
-        background:var(--gold);
-        box-shadow:0 0 10px rgba(242,183,5,.45);
-    }
-    .energy-bar-fill.ruptura{
-        background:var(--danger);
-        box-shadow:0 0 14px var(--danger-glow);
-        animation:pulse 1s ease-in-out infinite;
-    }
-
-    .mcap-sub{
-        font-size:9px;
-        color:var(--text-faint);
-        margin-top:6px;
-        letter-spacing:.02em;
-        line-height:1.5;
-    }
-
-    .energy-bar-fill.consumo-real{
-        background:#ff9900;
-        box-shadow:0 0 14px rgba(255,153,0,.55);
-        animation:pulse 1s ease-in-out infinite;
-    }
-    .energy-bar-fill.retiro{
-        background:var(--text-dim);
-    }
-    .energy-bar-fill.reforzando{
-        background:var(--safe);
-        box-shadow:0 0 10px rgba(0,224,164,.4);
-    }
-    .energy-bar-fill.estable{
-        background:var(--text-faint);
-    }
-    .energy-bar-fill.cvd-buy{
-        background:var(--safe);
-        box-shadow:0 0 10px rgba(0,224,164,.4);
-    }
-    .energy-bar-fill.cvd-sell{
-        background:var(--danger);
-        box-shadow:0 0 10px var(--danger-glow);
-    }
-    .terminal.tension-critica{
-        animation: tensionBlink .9s ease-in-out infinite;
-    }
-    @keyframes tensionBlink{
-        0%,100%{ box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset, 0 0 0 0 rgba(255,153,0,0); }
-        50%{ box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset, 0 0 46px 10px rgba(255,153,0,.6); }
-    }
-    #tensionValue.critica{
-        color:#ff9900 !important;
-        animation:flicker .9s ease-in-out infinite;
-    }
-
-    .squeeze-gauge-wrap{
-        display:flex;
-        align-items:center;
-        gap:10px;
-    }
-    .squeeze-gauge-track{
-        position:relative;
-        flex:1;
-        height:8px;
-        border-radius:4px;
-        background:var(--line-soft);
-        overflow:hidden;
-    }
-    .squeeze-gauge-fill{
-        height:100%;
-        border-radius:4px;
-        transition:width .5s ease, background .5s ease, box-shadow .5s ease;
-    }
-    .squeeze-badge{
-        font-size:9px;
-        font-weight:800;
-        letter-spacing:.08em;
-        padding:3px 7px;
-        border-radius:5px;
-        white-space:nowrap;
-    }
-    .squeeze-sub-grid{
-        display:grid;
-        grid-template-columns:1fr 1fr 1fr;
-        gap:8px;
-        margin-top:12px;
-    }
-    .squeeze-stat{
-        background:var(--bg-void);
-        border:1px solid var(--line);
-        border-radius:7px;
-        padding:8px 9px;
-    }
-    .squeeze-stat-label{
-        font-size:8.5px;
-        font-weight:700;
-        letter-spacing:.08em;
-        color:var(--text-faint);
-        margin-bottom:4px;
-    }
-    .squeeze-stat-value{
-        font-size:12px;
-        font-weight:700;
-    }
-    .squeeze-fuel-tag{
-        margin-top:10px;
-        display:inline-block;
-        font-size:9.5px;
-        font-weight:700;
-        letter-spacing:.03em;
-        padding:5px 9px;
-        border-radius:6px;
-        border:1px solid var(--line);
-        background:var(--bg-void);
-    }
-    .squeeze-disclaimer{
-        font-size:8.5px;
-        color:var(--text-faint);
-        margin-top:8px;
-        line-height:1.5;
-        letter-spacing:.01em;
-    }
+:root{
+  --bg-void:#05060a;--bg-panel:#0b0d14;--bg-panel-2:#10121b;
+  --line:#1b1e2b;--line-soft:#141620;
+  --text:#e2e4f1;--text-dim:#565c74;--text-faint:#31344a;
+  --danger:#ff3b5c;--danger-glow:rgba(255,59,92,.45);
+  --safe:#00e0a4;--gold:#f2b705;
+  --blue-neon:#00d4ff;--blue-neon-glow:rgba(0,212,255,.5);
+  --cyan:#00e5ff;
+}
+*{box-sizing:border-box;}
+body{
+  background:radial-gradient(circle at 15% 0%, rgba(255,59,92,.06), transparent 40%),
+             radial-gradient(circle at 85% 100%, rgba(0,224,164,.05), transparent 40%),
+             var(--bg-void);
+  color:var(--text);font-family:'JetBrains Mono', monospace;min-height:100vh;margin:0;padding:24px 16px;
+}
+.wrap{max-width:720px;margin:0 auto;}
+.panel{
+  background:var(--bg-panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;
+  box-shadow:0 30px 60px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset;
+}
+.bar{
+  display:flex;align-items:center;justify-content:space-between;padding:12px 18px;
+  background:var(--bg-panel-2);border-bottom:1px solid var(--line);flex-wrap:wrap;gap:10px;
+}
+.title{font-size:13px;font-weight:800;letter-spacing:.12em;color:var(--text-dim);}
+.title b{color:var(--cyan);}
+.bar-right{display:flex;align-items:center;gap:14px;}
+.tg-icon{cursor:pointer;font-size:15px;opacity:.6;transition:opacity .15s, transform .15s;}
+.tg-icon:hover{opacity:1;transform:scale(1.15);}
+.tg-icon.configured{opacity:1;filter:drop-shadow(0 0 4px var(--blue-neon-glow));}
+.status{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--text-faint);}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);}
+.status-dot.on{background:var(--safe);box-shadow:0 0 8px var(--safe);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.body{padding:18px;}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+.btn{
+  padding:10px 20px;background:var(--cyan);color:#000;border:none;border-radius:7px;
+  font-family:inherit;font-size:12px;font-weight:800;letter-spacing:.08em;cursor:pointer;transition:opacity .15s;
+}
+.btn:hover{opacity:.85;}
+.btn.stop{background:var(--danger);color:#fff;}
+.btn:disabled{background:var(--line-soft);color:var(--text-faint);cursor:not-allowed;}
+.mini{
+  padding:7px 12px;background:transparent;border:1px solid var(--line);border-radius:6px;color:var(--text-dim);
+  font-family:inherit;font-size:10.5px;letter-spacing:.05em;cursor:pointer;
+}
+.mini:hover{border-color:var(--cyan);color:var(--cyan);}
+.stats-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-size:10.5px;color:var(--text-dim);}
+.stat b{display:block;font-size:17px;color:var(--text);font-weight:800;margin-top:2px;}
+.progress-wrap{margin-bottom:14px;}
+.progress-track{height:5px;border-radius:3px;background:var(--line-soft);overflow:hidden;}
+.progress-fill{height:100%;background:var(--cyan);width:0%;transition:width .3s ease;}
+.progress-txt{font-size:9.5px;color:var(--text-faint);margin-top:5px;letter-spacing:.03em;}
+.hint{font-size:10.5px;color:var(--text-faint);line-height:1.6;margin-bottom:14px;letter-spacing:.02em;}
+.list{display:flex;flex-direction:column;gap:8px;}
+.card{
+  background:var(--bg-panel-2);border:1px solid var(--line);border-left:3px solid var(--text-faint);
+  border-radius:7px;padding:12px 14px;
+}
+.card.entrada{border-left-color:var(--cyan);background:rgba(0,229,255,.04);}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.card-sym{font-size:16px;font-weight:800;color:#fff;}
+.card-badge{font-size:9px;font-weight:800;letter-spacing:.06em;padding:3px 8px;border-radius:5px;}
+.badge-entrada{background:rgba(0,229,255,.15);border:1px solid var(--cyan);color:var(--cyan);}
+.badge-candidato{background:rgba(0,224,164,.1);border:1px solid var(--safe);color:var(--safe);}
+.card-metrics{display:flex;gap:14px;flex-wrap:wrap;font-size:10px;color:var(--text-dim);margin-top:6px;}
+.card-metrics b{color:var(--text);font-weight:700;}
+.card-techo{margin-top:8px;font-size:11px;color:var(--gold);font-weight:700;}
+.card-time{font-size:9px;color:var(--text-faint);margin-top:4px;}
+.empty{text-align:center;padding:40px 20px;color:var(--text-faint);font-size:11px;line-height:1.8;}
+.spinner{display:inline-block;width:11px;height:11px;border:2px solid var(--line-soft);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin-right:6px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
-<div class="terminal">
-    <div class="term-bar">
-        <div class="dots"><span></span><span></span><span></span></div>
-        <div class="term-title"><b>SPIKE</b>_SCANNER</div>
-        <div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">IDLE</span></div>
+<div class="wrap">
+  <div class="panel">
+    <div class="bar">
+      <div class="title"><b>MEGA_PUMP</b>_SCANNER · TODOS LOS PARES</div>
+      <div class="bar-right">
+        <span class="tg-icon" id="tgIcon" onclick="configurarTelegram()" title="Configurar Telegram">📲</span>
+        <div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">DETENIDO</span></div>
+      </div>
     </div>
-    <div class="term-body">
-        <div class="input-row">
-            <div class="input-wrap">
-                <span>#</span>
-                <input id="sym" placeholder="TOKEN — ej. BANK" autocomplete="off">
-            </div>
-            <button id="btn">RUN →</button>
-        </div>
-        <div class="empty-hint">Analiza el libro de órdenes de Binance Futures, el Market Cap real, la energía de choque ballena vs. pared, y sondea cada 5s el consumo real de la pared (CVD + tensión de proximidad).</div>
-        <div id="out"></div>
+    <div class="body">
+      <div class="hint">Escanea <b style="color:var(--text)">todos</b> los pares USDT-M de Binance Futures cada 5 minutos. Busca funding negativo + compresión (ADX bajo) + volumen seco + Squeeze Momentum virando + absorción CVD. Cuando además confirma <b style="color:var(--cyan)">Whale BUY</b> real, calcula el techo (pared de venta más densa) y te avisa por Telegram.</div>
+      <div class="controls">
+        <button class="btn" id="toggleBtn" onclick="toggleScan()">▶ INICIAR ESCANEO</button>
+        <button class="mini" onclick="runScanOnce()">↺ ESCANEAR AHORA</button>
+        <button class="mini" onclick="limpiarHistorial()">🗑 LIMPIAR HISTORIAL</button>
+      </div>
+      <div class="stats-row">
+        <div class="stat">PARES ESCANEADOS<b id="statPares">—</b></div>
+        <div class="stat">CANDIDATOS<b id="statCandidatos" style="color:var(--safe)">—</b></div>
+        <div class="stat">ENTRADAS CONFIRMADAS<b id="statEntradas" style="color:var(--cyan)">—</b></div>
+        <div class="stat">ÚLTIMO SCAN<b id="statUltimo" style="font-size:11px">—</b></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-txt" id="progressTxt">Inactivo</div>
+      </div>
+      <div class="list" id="list">
+        <div class="empty">Sin resultados todavía.<br>Presioná ▶ INICIAR ESCANEO para empezar.</div>
+      </div>
     </div>
+  </div>
 </div>
 
 <script>
-let prevRes = 0;
-let wallWatch = null;               // { priceLow, priceHigh, lastUsd, lastTradeTime } — pared vigilada por el módulo Pre-Ruptura
-let pollTimer = null;               // intervalo de sondeo Pre-Ruptura
-let squeezeTimer = null;            // intervalo de refresco del módulo Riesgo de Squeeze
-const SQUEEZE_POLL_MS = 15000;      // funding/OI/long-short no cambian tan rápido como el order book
-const POLL_MS = 5000;               // frecuencia de sondeo (ms)
-const TENSION_THRESHOLD_PCT = 0.1;  // % de distancia precio↔pared que dispara la alerta de tensión
-const RNG_PCT = 0.15;
-const statusDot = document.getElementById('statusDot');
-const statusText = document.getElementById('statusText');
+'use strict';
 
 /* ============================================================
-   CONFIGURACIÓN — MÓDULO 1: REALIDAD FUNDAMENTAL (MARKET CAP)
+   TELEGRAM
    ============================================================ */
-const CONFIG_UMBRALES = {
-    BTC: 3_000_000_000_000,
-    ETH: 1_000_000_000_000,
-    SOL: 500_000_000_000,
-    BNB: 300_000_000_000,
-};
-const UMBRAL_FALLBACK_MULTIPLIER = 3;
-const CACHE_TTL_MS = 60 * 60 * 1000;
-const UMBRAL_PENDIENTE_CRITICO_PCT = 0.15;
-
-/* ============================================================
-   ESTADO GLOBAL DEL VEREDICTO
-   ============================================================
-   Cada módulo (Energía, Consumo de Pared, CVD, Squeeze) escribe
-   su lectura acá. Tras cada actualización se llama a
-   renderVeredicto() para recalcular el resumen en lenguaje simple.
-*/
-let lecturas = {
-    energia: null,   // 'carga' | 'debilidad' | 'ruptura' | 'neutro'
-    consumo: null,   // 'consumo-real' | 'retiro' | 'reforzando' | 'estable'
-    cvd: null,       // 'compra' | 'venta' | 'sin-datos'
-    squeezeFuel: null, // 'quemandose' | 'fresco' | 'shorts-nuevos' | 'deleverage' | null
-    squeezeScore: null // 0-100
-};
-
-function fmtPrice(p){
-    if(p >= 100) return p.toFixed(2);
-    if(p >= 1) return p.toFixed(4);
-    return p.toPrecision(4);
+const TG_BOT_TOKEN = '8897432895:AAFzZi16HUsO35c0U6NhfiwqyR7ghpotMGk';
+function getTgChatId(){ return localStorage.getItem('spike_tg_chatid') || ''; }
+function setTgChatId(id){ localStorage.setItem('spike_tg_chatid', id); }
+function tgConfigured(){ return !!getTgChatId(); }
+function updateTgIcon(){
+  const icon = document.getElementById('tgIcon');
+  if(tgConfigured()){ icon.classList.add('configured'); icon.title='Telegram conectado (click para cambiar)'; }
+  else{ icon.classList.remove('configured'); icon.title='Configurar Telegram'; }
 }
-
-function formatCompact(n){
-    if(n === null || n === undefined || isNaN(n)) return '—';
-    const abs = Math.abs(n);
-    if(abs >= 1e12) return (n/1e12).toFixed(2)+'T';
-    if(abs >= 1e9) return (n/1e9).toFixed(2)+'B';
-    if(abs >= 1e6) return (n/1e6).toFixed(2)+'M';
-    if(abs >= 1e3) return (n/1e3).toFixed(2)+'K';
-    return n.toFixed(2);
+function configurarTelegram(){
+  const cur = getTgChatId();
+  const msg = cur ? ('Chat ID actual: '+cur+'\n\nPegá uno nuevo o cancelá.') : 'Pegá tu Chat ID de Telegram.\n\nSi no lo tenés: hablale a @userinfobot, te responde con tu "Id: 123456789".';
+  const id = prompt(msg, cur||'');
+  if(id===null) return;
+  const clean = id.trim();
+  if(!clean){ alert('Vacío, no se guardó.'); return; }
+  setTgChatId(clean); updateTgIcon();
+  sendTelegram('✅ <b>MEGA_PUMP_SCANNER conectado</b>\nTe voy a avisar cuando detecte una entrada confirmada en cualquier par.');
 }
-
-function getCachedTokenData(symbol){
-    try{
-        const raw = localStorage.getItem(`cg_cache_${symbol}`);
-        if(!raw) return null;
-        const data = JSON.parse(raw);
-        if(Date.now() - data.ts > CACHE_TTL_MS) return null;
-        return data;
-    }catch(e){
-        return null;
-    }
-}
-
-function setCachedTokenData(symbol, data){
-    try{
-        localStorage.setItem(`cg_cache_${symbol}`, JSON.stringify({ ...data, ts: Date.now() }));
-    }catch(e){ }
-}
-
-async function fetchCoinGeckoData(symbol){
-    const cached = getCachedTokenData(symbol);
-    if(cached) return cached;
-
-    const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(symbol)}`).then(r=>r.json());
-    const coins = searchRes.coins || [];
-    const match = coins.find(c => (c.symbol||'').toUpperCase() === symbol) || coins[0];
-    if(!match) throw new Error(`CoinGecko no encontró ${symbol}`);
-
-    const coinData = await fetch(`https://api.coingecko.com/api/v3/coins/${match.id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`).then(r=>r.json());
-
-    const supply = coinData.market_data?.circulating_supply || 0;
-    const fdv = coinData.market_data?.fully_diluted_valuation?.usd || null;
-    if(!supply) throw new Error(`CoinGecko no reporta circulating_supply para ${symbol}`);
-
-    const data = { id: match.id, supply, fdv };
-    setCachedTokenData(symbol, data);
-    return data;
-}
-
-function computeMarketCap(symbol, price, tokenData){
-    const marketCap = price * tokenData.supply;
-    const umbral = CONFIG_UMBRALES[symbol] || tokenData.fdv || (marketCap * UMBRAL_FALLBACK_MULTIPLIER);
-    const ratioBurbuja = marketCap / umbral;
-    return { marketCap, umbral, ratioBurbuja };
+async function sendTelegram(text){
+  const chatId = getTgChatId();
+  if(!chatId) return;
+  try{
+    await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:chatId, text, parse_mode:'HTML'})
+    });
+  }catch(e){ console.error('Telegram error:', e); }
 }
 
 /* ============================================================
-   MÓDULO 2: ENERGÍA DE CHOQUE (ballena vs. resistencia)
+   UTILS
    ============================================================ */
-async function fetchShockEnergy(pair){
-    const klines = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1m&limit=6`).then(r=>r.json());
-    if(!Array.isArray(klines) || klines.length < 6) throw new Error('Velas 1m insuficientes.');
-
-    const volumenesPrevios = klines.slice(0,5).map(k => +k[5]);
-    const volumenPromedio5m = volumenesPrevios.reduce((a,b)=>a+b,0) / volumenesPrevios.length;
-    const volumenActual = +klines[5][5];
-
-    const precioHace5min = +klines[0][4];
-    const precioActual = +klines[5][4];
-    const variacionPrecio5m = ((precioActual - precioHace5min) / precioHace5min) * 100;
-    const pendiente = (precioActual - precioHace5min) / 5;
-
-    let estado = 'neutro';
-    if(volumenActual > volumenPromedio5m*1.5 && Math.abs(variacionPrecio5m) < 0.2){
-        estado = 'carga';
-    }else if(variacionPrecio5m > 0.5 && volumenActual < volumenPromedio5m*0.8){
-        estado = 'debilidad';
-    }else if(volumenActual > volumenPromedio5m*2 && variacionPrecio5m > 1){
-        estado = 'ruptura';
-    }
-
-    return { volumenPromedio5m, volumenActual, variacionPrecio5m, pendiente, estado, precioActual };
+function fmtPrice(p){ if(p>=100) return p.toFixed(2); if(p>=1) return p.toFixed(4); return p.toPrecision(4); }
+function fmtBig(n){
+  if(n===null||n===undefined||isNaN(n)) return '—';
+  const a=Math.abs(n);
+  if(a>=1e9) return (n/1e9).toFixed(2)+'B';
+  if(a>=1e6) return (n/1e6).toFixed(2)+'M';
+  if(a>=1e3) return (n/1e3).toFixed(2)+'K';
+  return n.toFixed(2);
 }
-
-async function updateRiskModules(symbol, pair, price){
-    const terminal = document.querySelector('.terminal');
-    const mcapValue = document.getElementById('mcapValue');
-    const mcapSub = document.getElementById('mcapSub');
-    const mcapGauge = document.getElementById('mcapGauge');
-    const energyValue = document.getElementById('energyValue');
-    const energyBarFill = document.getElementById('energyBarFill');
-    const lightningIcon = document.getElementById('lightningIcon');
-
-    try{
-        const tokenData = await fetchCoinGeckoData(symbol);
-        const { marketCap, umbral, ratioBurbuja } = computeMarketCap(symbol, price, tokenData);
-
-        const mcapColor = ratioBurbuja > 1 ? 'var(--danger)' : ratioBurbuja > 0.6 ? 'var(--gold)' : 'var(--safe)';
-        mcapValue.style.color = mcapColor;
-        mcapValue.textContent = `${ratioBurbuja.toFixed(2)}x`;
-        mcapSub.textContent = `MCap $${formatCompact(marketCap)} · Umbral $${formatCompact(umbral)} · Supply ${formatCompact(tokenData.supply)}`;
-
-        const gaugeCells = mcapGauge.querySelectorAll('div');
-        const filled = Math.max(0, Math.min(Math.round(ratioBurbuja*10), 10));
-        gaugeCells.forEach((cell,i) => { cell.style.background = i < filled ? mcapColor : 'var(--line-soft)'; });
-
-        terminal.classList.toggle('zona-peligro', ratioBurbuja > 1.0);
-    }catch(err){
-        mcapValue.style.color = 'var(--text-faint)';
-        mcapValue.textContent = '--';
-        mcapSub.textContent = `⚠ Sin datos de Market Cap (${err.message})`;
-        terminal.classList.remove('zona-peligro');
-    }
-
-    try{
-        const shock = await fetchShockEnergy(pair);
-        const { volumenPromedio5m, volumenActual, estado, pendiente, precioActual } = shock;
-
-        const estadoConfig = {
-            carga:     { label:'CARGA · BALLENA ABSORBIENDO', color:'var(--blue-neon)', cls:'carga',     pct: Math.min((volumenActual/Math.max(volumenPromedio5m,1e-9))*40, 100) },
-            debilidad: { label:'DEBILIDAD · SUBIDA SIN VOLUMEN', color:'var(--gold)',    cls:'debilidad', pct: 45 },
-            ruptura:   { label:'RUPTURA · PARED ROTA', color:'var(--danger)',            cls:'ruptura',   pct: 100 },
-            neutro:    { label:'SIN SEÑAL CLARA', color:'var(--text-faint)',             cls:'',          pct: Math.min((volumenActual/Math.max(volumenPromedio5m,1e-9))*30, 60) }
-        };
-        const cfg = estadoConfig[estado];
-
-        energyValue.style.color = cfg.color;
-        energyValue.textContent = cfg.label;
-        energyBarFill.className = `energy-bar-fill ${cfg.cls}`.trim();
-        energyBarFill.style.width = `${Math.max(cfg.pct, 4)}%`;
-
-        lightningIcon.classList.toggle('show', estado === 'carga');
-
-        const umbralPendiente = precioActual * (UMBRAL_PENDIENTE_CRITICO_PCT / 100);
-        const esVertical = Math.abs(pendiente) > umbralPendiente;
-        terminal.classList.toggle('modo-vertical', esVertical);
-
-        lecturas.energia = estado;
-        renderVeredicto();
-    }catch(err){
-        energyValue.style.color = 'var(--text-faint)';
-        energyValue.textContent = '--';
-        energyBarFill.className = 'energy-bar-fill';
-        energyBarFill.style.width = '0%';
-        lightningIcon.classList.remove('show');
-        terminal.classList.remove('modo-vertical');
-        lecturas.energia = null;
-        renderVeredicto();
-    }
+async function fwr(url, retries=1){
+  for(let i=0;i<=retries;i++){
+    try{ const r=await fetch(url); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json(); }
+    catch(e){ if(i===retries) throw e; await new Promise(res=>setTimeout(res,400)); }
+  }
 }
 
 /* ============================================================
-   MÓDULO SQUEEZE: RIESGO DE SQUEEZE (funding + OI + long/short)
+   INDICADORES (mismos que LIQSCAN)
    ============================================================ */
-async function fetchSqueezeFuel(pair){
-    const [premium, oiHist, klines] = await Promise.all([
-        fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${pair}`).then(r=>r.json()),
-        fetch(`https://fapi.binance.com/futures/data/openInterestHist?symbol=${pair}&period=5m&limit=13`).then(r=>r.json()),
-        fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=5m&limit=13`).then(r=>r.json())
+function cSMA(arr,n){ return arr.slice(-n).reduce((a,b)=>a+b,0)/Math.min(arr.length,n); }
+function cRSI(cls,n=14){
+  if(cls.length<n+1) return 50;
+  let g=0,l=0;
+  for(let i=cls.length-n;i<cls.length;i++){ const d=cls[i]-cls[i-1]; if(d>0)g+=d; else l+=Math.abs(d); }
+  const ag=g/n,al=l/n; if(al===0) return 100; return 100-(100/(1+ag/al));
+}
+function cStochRSI(cls,rl=14,sl=14,ks=3,ds=3){
+  if(cls.length<rl+sl+ks+ds+5) return{k:50};
+  const ra=[]; for(let i=rl;i<cls.length;i++) ra.push(cRSI(cls.slice(0,i+1),rl));
+  const sr=[]; for(let i=sl-1;i<ra.length;i++){ const w=ra.slice(i-sl+1,i+1),hi=Math.max(...w),lo=Math.min(...w); sr.push(hi===lo?50:(ra[i]-lo)/(hi-lo)*100); }
+  const ka=[]; for(let i=ks-1;i<sr.length;i++) ka.push(cSMA(sr.slice(i-ks+1,i+1),ks));
+  return{k:ka[ka.length-1]||50};
+}
+function cADX(kl,n=14){
+  if(kl.length<n*2) return 20;
+  const h=kl.map(k=>parseFloat(k[2])),l=kl.map(k=>parseFloat(k[3])),c=kl.map(k=>parseFloat(k[4]));
+  const tr=[],pd=[],md=[];
+  for(let i=1;i<kl.length;i++){
+    tr.push(Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])));
+    const u=h[i]-h[i-1],d=l[i-1]-l[i]; pd.push(u>d&&u>0?u:0); md.push(d>u&&d>0?d:0);
+  }
+  let a=tr.slice(0,n).reduce((a,b)=>a+b,0),p=pd.slice(0,n).reduce((a,b)=>a+b,0),m=md.slice(0,n).reduce((a,b)=>a+b,0);
+  const dx=[];
+  for(let i=n;i<tr.length;i++){ a=a-a/n+tr[i]; p=p-p/n+pd[i]; m=m-m/n+md[i]; const pi=a>0?p/a*100:0,mi=a>0?m/a*100:0,den=pi+mi; dx.push(den>0?Math.abs(pi-mi)/den*100:0); }
+  return dx.length<n?20:dx.slice(-n).reduce((a,b)=>a+b,0)/n;
+}
+function cSqzMom(kl,n=20){
+  if(kl.length<n*2) return{positivo:false,subiendo:false,virando:false};
+  const cls=kl.map(k=>parseFloat(k[4])),highs=kl.map(k=>parseFloat(k[2])),lows=kl.map(k=>parseFloat(k[3]));
+  const vals=[];
+  for(let i=n;i<kl.length;i++){
+    const sl=cls.slice(i-n,i),hl=highs.slice(i-n,i),ll=lows.slice(i-n,i);
+    const hh=Math.max(...hl),ll2=Math.min(...ll),mid=(hh+ll2)/2,sma=sl.reduce((a,b)=>a+b,0)/n;
+    vals.push(cls[i]-(mid+sma)/2);
+  }
+  if(vals.length<4) return{positivo:false,subiendo:false,virando:false};
+  const last=vals[vals.length-1],prev=vals[vals.length-2];
+  return{positivo:last>0,subiendo:last>prev&&last<0,virando:prev<=0&&last>0};
+}
+function detectAbsorcion(klines){
+  if(!klines||klines.length<12) return{count:0};
+  let count=0;
+  for(let i=10;i<Math.min(60,klines.length);i+=5){
+    const sl=klines.slice(i,i+10); if(sl.length<10) continue;
+    const dd=sl.map(k=>{ const o=parseFloat(k[1]),c=parseFloat(k[4]),v=parseFloat(k[5]); return c>o?v:c<o?-v:0; });
+    const c1=dd.slice(0,5).reduce((a,b)=>a+b,0),c2=dd.slice(5).reduce((a,b)=>a+b,0);
+    if(c1>0&&c2<c1*0.8) count++;
+  }
+  return{count};
+}
+
+/* ============================================================
+   DETECCIÓN MEGA PUMP (igual criterio que LIQSCAN)
+   ============================================================ */
+async function fetchMegaData(symbol){
+  const pair=symbol+'USDT';
+  try{
+    const[kl,fr]=await Promise.allSettled([
+      fwr('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=4h&limit=80'),
+      fwr('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=1')
     ]);
-
-    const fundingPct = premium && premium.lastFundingRate !== undefined ? (+premium.lastFundingRate) * 100 : 0;
-
-    let oiDeltaPct = 0;
-    if(Array.isArray(oiHist) && oiHist.length >= 2){
-        const oiStart = +oiHist[0].sumOpenInterest;
-        const oiEnd = +oiHist[oiHist.length - 1].sumOpenInterest;
-        oiDeltaPct = oiStart > 0 ? ((oiEnd - oiStart) / oiStart) * 100 : 0;
+    if(kl.status!=='fulfilled'||!Array.isArray(kl.value)||kl.value.length<30) return null;
+    const k=kl.value;
+    const funding=fr.status==='fulfilled'&&fr.value[0]?parseFloat(fr.value[0].fundingRate)*100:0;
+    if(funding>=0) return null;
+    const cls=k.map(x=>parseFloat(x[4]));
+    const vols=k.map(x=>parseFloat(x[5]));
+    const vSma=vols.slice(-21,-1).reduce((a,b)=>a+b,0)/20;
+    const vRatio=vSma>0?vols[vols.length-1]/vSma:1;
+    const adx=cADX(k,14);
+    const stR=cStochRSI(cls,14,14,3,3), stochK=stR.k;
+    const sqz=cSqzMom(k);
+    let score=0,tipo='candidato';
+    if(funding<-0.01) score+=2; else score+=1;
+    if(vRatio<0.5) score+=2; else if(vRatio<1.0) score+=1;
+    if(adx<=15) score+=2; else if(adx<=25) score+=1;
+    if(sqz.virando) score+=2; else if(sqz.subiendo||sqz.positivo) score+=1;
+    const absData=detectAbsorcion(k);
+    if(absData.count>=3) score+=2; else if(absData.count>=1) score+=1;
+    if(stochK<15) score+=2; else if(stochK<25) score+=1;
+    if(score<4) return null;
+    const deltas=k.map(x=>{ const o=parseFloat(x[1]),c=parseFloat(x[4]),v=parseFloat(x[5]); return c>o?v:c<o?-v:0; });
+    const cvd20=deltas.slice(-20).reduce((a,b)=>a+b,0);
+    const cvdPv=deltas.slice(-21,-1).reduce((a,b)=>a+b,0);
+    const cvdSm=deltas.slice(-25).reduce((a,b)=>a+b,0)/5;
+    const cvdU=cvd20>cvdPv&&cvd20>cvdSm;
+    let whaleBuy=false;
+    for(let i=Math.max(0,k.length-4);i<k.length;i++){
+      const kk=k[i],o=parseFloat(kk[1]),h=parseFloat(kk[2]),c=parseFloat(kk[4]),v=parseFloat(kk[5]);
+      const rat=vSma>0?v/vSma:1,cpo=Math.abs(c-o)+1e-9;
+      const mS=h-Math.max(o,c),aV=mS>cpo*1.5&&rat>=2&&c>o;
+      if(rat>=2&&c>o&&cvdU&&!aV) whaleBuy=true;
     }
-
-    let priceChange1hPct = 0;
-    if(Array.isArray(klines) && klines.length >= 2){
-        const p0 = +klines[0][1];
-        const p1 = +klines[klines.length-1][4];
-        priceChange1hPct = p0 > 0 ? ((p1 - p0) / p0) * 100 : 0;
-    }
-
-    let shortPct = 50;
-    try{
-        const lsRatio = await fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${pair}&period=5m&limit=1`).then(r=>r.json());
-        if(Array.isArray(lsRatio) && lsRatio[0] && lsRatio[0].shortAccount){
-            shortPct = (+lsRatio[0].shortAccount) * 100;
-        }
-    }catch(e){ }
-
-    return { fundingPct, oiDeltaPct, shortPct, priceChange1hPct };
-}
-
-function computeSqueezeScore({ fundingPct, oiDeltaPct, shortPct }, priceChange1hPct){
-    let score = 50;
-    score += Math.max(-18, Math.min(18, -fundingPct * 25));
-    if(priceChange1hPct > 0){
-        score += Math.max(-16, Math.min(16, oiDeltaPct * 1.1));
-    }else{
-        score -= Math.max(-16, Math.min(16, oiDeltaPct * 1.1)) * 0.5;
-    }
-    score += (shortPct - 50) * 0.7;
-    return Math.max(0, Math.min(100, score));
-}
-
-/* Cuadrante Δ OI (1h) x Δ precio (1h). Devuelve además una key corta
-   para que el veredicto global la use sin re-parsear el texto. */
-function classifyFuelState(oiDeltaPct, priceChangePct){
-    const OI_DEADZONE = 1.0;
-    if(Math.abs(oiDeltaPct) < OI_DEADZONE){
-        return { key:'sin-cambios', label: '➖ SIN CAMBIOS CLAROS DE OI', color: 'var(--text-faint)' };
-    }
-    if(priceChangePct > 0){
-        if(oiDeltaPct < 0) return { key:'quemandose', label: '🔥 COMBUSTIBLE QUEMÁNDOSE · shorts cubriendo', color: 'var(--safe)' };
-        return { key:'fresco', label: '⛽ COMBUSTIBLE FRESCO · entra plata nueva', color: 'var(--danger)' };
-    }else{
-        if(oiDeltaPct > 0) return { key:'shorts-nuevos', label: '🆕 SHORTS NUEVOS ENTRANDO', color: 'var(--gold)' };
-        return { key:'deleverage', label: '🧊 DELEVERAGE · cerrando posiciones', color: 'var(--text-dim)' };
-    }
-}
-
-async function updateSqueezeModule(pair, precioActualHint){
-    const badge = document.getElementById('squeezeBadge');
-    const gaugeFill = document.getElementById('squeezeGaugeFill');
-    const scoreLabel = document.getElementById('squeezeScoreLabel');
-    const fundingEl = document.getElementById('squeezeFunding');
-    const oiEl = document.getElementById('squeezeOi');
-    const shortPctEl = document.getElementById('squeezeShortPct');
-    const fuelTagEl = document.getElementById('squeezeFuelTag');
-    if(!badge || !gaugeFill) return;
-
-    try{
-        const fuel = await fetchSqueezeFuel(pair);
-        const score = computeSqueezeScore(fuel, fuel.priceChange1hPct);
-
-        const color = score > 65 ? 'var(--danger)' : score > 40 ? 'var(--gold)' : 'var(--safe)';
-        const label = score > 65 ? 'ALTO · ESPERAR' : score > 40 ? 'MEDIO · CAUTELA' : 'BAJO · MÁS SEGURO';
-
-        badge.textContent = label;
-        badge.style.background = score > 65 ? 'rgba(255,59,92,.15)' : score > 40 ? 'rgba(242,183,5,.15)' : 'rgba(0,224,164,.15)';
-        badge.style.color = color;
-        gaugeFill.style.width = `${Math.max(score,4)}%`;
-        gaugeFill.style.background = color;
-        gaugeFill.style.boxShadow = `0 0 10px ${color}`;
-        scoreLabel.textContent = `${Math.round(score)}/100`;
-        scoreLabel.style.color = color;
-
-        fundingEl.textContent = `${fuel.fundingPct >= 0 ? '+' : ''}${fuel.fundingPct.toFixed(4)}%`;
-        fundingEl.style.color = fuel.fundingPct < 0 ? 'var(--danger)' : 'var(--safe)';
-
-        oiEl.textContent = `${fuel.oiDeltaPct >= 0 ? '+' : ''}${fuel.oiDeltaPct.toFixed(2)}%`;
-        oiEl.style.color = fuel.oiDeltaPct > 0 && fuel.priceChange1hPct > 0 ? 'var(--danger)' : 'var(--text)';
-
-        shortPctEl.textContent = `${fuel.shortPct.toFixed(1)}%`;
-        shortPctEl.style.color = fuel.shortPct > 55 ? 'var(--danger)' : fuel.shortPct < 45 ? 'var(--safe)' : 'var(--text)';
-
-        let fuelState = null;
-        if(fuelTagEl){
-            fuelState = classifyFuelState(fuel.oiDeltaPct, fuel.priceChange1hPct);
-            fuelTagEl.textContent = fuelState.label;
-            fuelTagEl.style.color = fuelState.color;
-            fuelTagEl.style.borderColor = fuelState.color;
-        }
-
-        lecturas.squeezeFuel = fuelState ? fuelState.key : null;
-        lecturas.squeezeScore = score;
-        renderVeredicto();
-    }catch(err){
-        badge.textContent = 'SIN DATOS';
-        badge.style.background = 'transparent';
-        badge.style.color = 'var(--text-faint)';
-        gaugeFill.style.width = '0%';
-        scoreLabel.textContent = '--';
-        [fundingEl, oiEl, shortPctEl].forEach(el => { if(el){ el.textContent = '--'; el.style.color = 'var(--text-faint)'; } });
-        if(fuelTagEl){ fuelTagEl.textContent = 'Sin datos suficientes para clasificar'; fuelTagEl.style.color = 'var(--text-faint)'; fuelTagEl.style.borderColor = 'var(--line)'; }
-        lecturas.squeezeFuel = null;
-        lecturas.squeezeScore = null;
-        renderVeredicto();
-    }
+    if(whaleBuy){ score+=3; tipo='entrada'; }
+    return{symbol,funding,adx,vRatio,whaleBuy,stochK,score,price:parseFloat(cls[cls.length-1]),tipo};
+  }catch(e){ return null; }
 }
 
 /* ============================================================
-   MÓDULOS PRE-RUPTURA
+   TECHO (pared de venta más densa) — igual lógica que spike.html
    ============================================================ */
-function classifyWallState(consumptionPct, cvdDelta){
-    if(consumptionPct > 15 && cvdDelta > 0){
-        return { label:'CONSUMO REAL · COMPRA AGRESIVA', cls:'consumo-real', color:'#ff9900' };
-    }
-    if(consumptionPct > 15 && cvdDelta <= 0){
-        return { label:'RETIRO DE ORDEN (FAKE WALL)', cls:'retiro', color:'var(--text-dim)' };
-    }
-    if(consumptionPct < -5){
-        return { label:'PARED REFORZÁNDOSE', cls:'reforzando', color:'var(--safe)' };
-    }
-    return { label:'PARED ESTABLE', cls:'estable', color:'var(--text-faint)' };
-}
-
-async function pollPreRuptura(pair){
-    if(!wallWatch) return;
-    const consumoValue = document.getElementById('consumoValue');
-    const consumoBarFill = document.getElementById('consumoBarFill');
-    const consumoSub = document.getElementById('consumoSub');
-    const cvdValue = document.getElementById('cvdValue');
-    const cvdBarFill = document.getElementById('cvdBarFill');
-    const cvdSub = document.getElementById('cvdSub');
-    const tensionValue = document.getElementById('tensionValue');
-    const terminal = document.querySelector('.terminal');
-    if(!consumoValue || !cvdValue || !tensionValue) return;
-
-    try{
-        const now = Date.now();
-        const [dep, bt] = await Promise.all([
-            fetch(`https://fapi.binance.com/fapi/v1/depth?symbol=${pair}&limit=1000`).then(r=>r.json()),
-            fetch(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${pair}`).then(r=>r.json())
-        ]);
-
-        const currentPrice = +bt.price;
-        const asksInBucket = dep.asks
-            .map(a => ({ p:+a[0], u:+a[0]*+a[1] }))
-            .filter(a => a.p >= wallWatch.priceLow && a.p < wallWatch.priceHigh);
-        const currUsd = asksInBucket.reduce((s,a) => s+a.u, 0);
-        const prevUsd = wallWatch.lastUsd;
-        const consumptionPct = prevUsd > 0 ? ((prevUsd - currUsd) / prevUsd) * 100 : 0;
-
-        let buyVol = 0, sellVol = 0;
-        try{
-            const trades = await fetch(`https://fapi.binance.com/fapi/v1/aggTrades?symbol=${pair}&startTime=${wallWatch.lastTradeTime}&endTime=${now}&limit=1000`).then(r=>r.json());
-            if(Array.isArray(trades)){
-                trades.forEach(t => {
-                    const p = +t.p, q = +t.p * +t.q;
-                    if(p >= wallWatch.priceLow && p < wallWatch.priceHigh){
-                        if(t.m === false) buyVol += q; else sellVol += q;
-                    }
-                });
-            }
-        }catch(e){ }
-
-        const cvdDelta = buyVol - sellVol;
-        const totalVol = buyVol + sellVol;
-
-        const stateInfo = classifyWallState(consumptionPct, cvdDelta);
-        consumoValue.style.color = stateInfo.color;
-        consumoValue.textContent = `${stateInfo.label} (${consumptionPct >= 0 ? '-' : '+'}${Math.abs(consumptionPct).toFixed(1)}%)`;
-        consumoBarFill.className = `energy-bar-fill ${stateInfo.cls}`;
-        consumoBarFill.style.width = `${Math.max(Math.min(Math.abs(consumptionPct)*4, 100), 4)}%`;
-        consumoSub.textContent = `Pared: $${formatCompact(prevUsd)} → $${formatCompact(currUsd)}  (T-1 vs T0, cada ${POLL_MS/1000}s)`;
-        lecturas.consumo = stateInfo.cls;
-
-        if(totalVol > 0){
-            const buyPct = (buyVol/totalVol)*100;
-            cvdValue.style.color = cvdDelta > 0 ? 'var(--safe)' : 'var(--danger)';
-            cvdValue.textContent = `${cvdDelta > 0 ? '▲' : '▼'} $${formatCompact(Math.abs(cvdDelta))}`;
-            cvdBarFill.className = `energy-bar-fill ${cvdDelta > 0 ? 'cvd-buy' : 'cvd-sell'}`;
-            cvdBarFill.style.width = `${Math.max(buyPct,4)}%`;
-            cvdSub.textContent = `Market Buy $${formatCompact(buyVol)} · Market Sell $${formatCompact(sellVol)} dentro de la pared`;
-            lecturas.cvd = cvdDelta > 0 ? 'compra' : 'venta';
-        }else{
-            cvdValue.style.color = 'var(--text-faint)';
-            cvdValue.textContent = 'Sin trades en la zona';
-            cvdBarFill.className = 'energy-bar-fill';
-            cvdBarFill.style.width = '0%';
-            cvdSub.textContent = 'No hubo ejecuciones dentro del rango de precio de la pared en este intervalo.';
-            lecturas.cvd = 'sin-datos';
-        }
-
-        const distPct = ((wallWatch.priceLow - currentPrice) / currentPrice) * 100;
-        const enTension = distPct >= 0 && distPct < TENSION_THRESHOLD_PCT;
-        tensionValue.textContent = `${distPct.toFixed(3)}%${enTension ? '  ⚠ CRÍTICA' : ''}`;
-        tensionValue.classList.toggle('critica', enTension);
-        tensionValue.style.color = enTension ? '#ff9900' : (distPct < 0 ? 'var(--danger)' : 'var(--text)');
-        terminal.classList.toggle('tension-critica', enTension);
-
-        wallWatch.lastUsd = currUsd;
-        wallWatch.lastTradeTime = now;
-
-        renderVeredicto();
-    }catch(err){
-        if(consumoSub) consumoSub.textContent = `⚠ Error de sondeo: ${err.message}`;
-    }
+async function calcTecho(symbol, price){
+  const pair=symbol+'USDT';
+  const RNG_PCT=0.15;
+  try{
+    const dep=await fwr('https://fapi.binance.com/fapi/v1/depth?symbol='+pair+'&limit=500');
+    if(!dep||!dep.asks) return null;
+    const asks=dep.asks.map(a=>({p:+a[0],u:+a[0]*+a[1]})).filter(a=>a.p>price&&a.p<=price*(1+RNG_PCT));
+    if(!asks.length) return null;
+    const bucketSize=(price*RNG_PCT)/20;
+    const walls=Array.from({length:20},(_,i)=>({
+      price:price+(i*bucketSize),
+      usd:asks.filter(a=>a.p>=price+(i*bucketSize)&&a.p<price+((i+1)*bucketSize)).reduce((s,a)=>s+a.u,0)
+    }));
+    const top=[...walls].sort((a,b)=>b.usd-a.usd)[0];
+    return{techoPrice:top.price,techoUsd:top.usd,distPct:((top.price-price)/price*100)};
+  }catch(e){ return null; }
 }
 
 /* ============================================================
-   VEREDICTO GLOBAL — traduce todas las lecturas a un titular
-   único en lenguaje simple, con un puntaje de confianza.
-   ============================================================
-   Puntaje: cada señal suma o resta puntos a un eje -100 (VENTA
-   fuerte) .. +100 (COMPRA fuerte). No es una señal de trading,
-   es solo una forma más fácil de leer lo que ya calculan los
-   módulos de arriba.
-*/
-function renderVeredicto(){
-    const box = document.getElementById('veredictoBox');
-    if(!box) return;
+   ESTADO / HISTORIAL
+   ============================================================ */
+const K_HIST='megascan_hist_v1';
+let historial=JSON.parse(localStorage.getItem(K_HIST)||'[]');
+function saveHist(){ localStorage.setItem(K_HIST, JSON.stringify(historial.slice(0,150))); }
 
-    const headline = document.getElementById('veredictoHeadline');
-    const sub = document.getElementById('veredictoSub');
-    const chips = document.getElementById('veredictoChips');
-    const fill = document.getElementById('confianzaFill');
-    const labelIzq = document.getElementById('confianzaLabelIzq');
-    const labelDer = document.getElementById('confianzaLabelDer');
+let scanning=false, loopTimer=null, running=false;
+const SCAN_INTERVAL_MS = 5*60*1000;
+const BATCH=12, BATCH_DELAY=300;
 
-    let puntos = 0;
-    let señalesActivas = 0;
-    const explicaciones = [];
-
-    // Energía de choque
-    if(lecturas.energia === 'carga'){ puntos += 25; señalesActivas++; explicaciones.push({t:'Ballena absorbiendo la pared', c:'var(--blue-neon)'}); }
-    else if(lecturas.energia === 'debilidad'){ puntos -= 20; señalesActivas++; explicaciones.push({t:'Subida sin volumen real', c:'var(--gold)'}); }
-    else if(lecturas.energia === 'ruptura'){ puntos += 30; señalesActivas++; explicaciones.push({t:'Pared rota con volumen', c:'var(--danger)'}); }
-
-    // Consumo de pared
-    if(lecturas.consumo === 'consumo-real'){ puntos += 25; señalesActivas++; explicaciones.push({t:'Pared siendo comida en serio', c:'#ff9900'}); }
-    else if(lecturas.consumo === 'retiro'){ puntos -= 10; señalesActivas++; explicaciones.push({t:'Pared cancelada, no comprada', c:'var(--text-dim)'}); }
-    else if(lecturas.consumo === 'reforzando'){ puntos -= 15; señalesActivas++; explicaciones.push({t:'Vendedor reforzando la pared', c:'var(--safe)'}); }
-
-    // CVD en la pared
-    if(lecturas.cvd === 'compra'){ puntos += 20; señalesActivas++; explicaciones.push({t:'Compra agresiva contra la pared', c:'var(--safe)'}); }
-    else if(lecturas.cvd === 'venta'){ puntos -= 20; señalesActivas++; explicaciones.push({t:'Venta agresiva en la zona', c:'var(--danger)'}); }
-
-    // Combustible de squeeze
-    if(lecturas.squeezeFuel === 'fresco'){ puntos -= 15; señalesActivas++; explicaciones.push({t:'Entra plata nueva a favor de la suba', c:'var(--danger)'}); }
-    else if(lecturas.squeezeFuel === 'quemandose'){ puntos += 15; señalesActivas++; explicaciones.push({t:'Shorts cubriéndose, combustible gastado', c:'var(--safe)'}); }
-    else if(lecturas.squeezeFuel === 'shorts-nuevos'){ puntos += 10; señalesActivas++; explicaciones.push({t:'Shorts nuevos entrando de verdad', c:'var(--gold)'}); }
-    else if(lecturas.squeezeFuel === 'deleverage'){ puntos -= 5; señalesActivas++; explicaciones.push({t:'Cierre de posiciones, no venta nueva', c:'var(--text-dim)'}); }
-
-    if(señalesActivas === 0){
-        headline.textContent = 'ESPERANDO DATOS…';
-        headline.style.color = 'var(--text-faint)';
-        sub.textContent = 'Todavía no hay suficientes lecturas para armar un veredicto.';
-        chips.innerHTML = '';
-        fill.style.width = '0%';
-        fill.style.background = 'var(--text-faint)';
-        labelIzq.textContent = 'VENTA';
-        labelDer.textContent = 'COMPRA';
-        return;
-    }
-
-    let titulo, color, texto;
-    if(puntos >= 30){
-        titulo = '🟢 PRESIÓN COMPRADORA REAL';
-        color = 'var(--safe)';
-        texto = 'Las señales apuntan a que hay compra genuina sosteniendo el precio, no solo mecha.';
-    }else if(puntos >= 10){
-        titulo = '🟡 SESGO A COMPRA, SIN CONFIRMAR';
-        color = 'var(--gold)';
-        texto = 'Hay algo de presión compradora, pero todavía falta que más señales coincidan.';
-    }else if(puntos > -10){
-        titulo = '⚪ SIN SESGO CLARO';
-        color = 'var(--text-dim)';
-        texto = 'Las señales están mezcladas o son insuficientes. No hay una lectura dominante todavía.';
-    }else if(puntos > -30){
-        titulo = '🟡 SESGO A VENTA, SIN CONFIRMAR';
-        color = 'var(--gold)';
-        texto = 'Hay indicios de debilidad o venta, pero todavía no está confirmado por todas las señales.';
-    }else{
-        titulo = '🔴 PRESIÓN VENDEDORA REAL';
-        color = 'var(--danger)';
-        texto = 'Varias señales coinciden en que la subida fue débil o está siendo vendida activamente.';
-    }
-
-    headline.textContent = titulo;
-    headline.style.color = color;
-    sub.textContent = texto;
-
-    chips.innerHTML = explicaciones.map(e => `<span class="chip" style="color:${e.c};border-color:${e.c}">${e.t}</span>`).join('');
-
-    const pctFill = Math.min(Math.abs(puntos), 100);
-    fill.style.width = `${Math.max(pctFill, 3)}%`;
-    fill.style.background = color;
-    fill.style.marginLeft = puntos < 0 ? 'auto' : '0';
-    labelIzq.textContent = 'VENTA';
-    labelDer.textContent = 'COMPRA';
+async function getAllPairs(){
+  const tickers=await fwr('https://fapi.binance.com/fapi/v1/ticker/24hr');
+  return tickers
+    .filter(t=>t.symbol.endsWith('USDT')&&!t.symbol.includes('_'))
+    .filter(t=>!['USDC','BUSD','TUSD','USDP','DAI','FDUSD'].some(s=>t.symbol.startsWith(s)))
+    .map(t=>t.symbol.replace('USDT',''));
 }
 
-async function run(){
-    const raw = document.getElementById('sym').value.trim().toUpperCase();
-    if(!raw) return;
-    const pair = raw+'USDT';
-    const out = document.getElementById('out');
-    const terminal = document.querySelector('.terminal');
-
-    if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
-    wallWatch = null;
-
-    if(squeezeTimer){ clearInterval(squeezeTimer); squeezeTimer = null; }
-
-    lecturas = { energia:null, consumo:null, cvd:null, squeezeFuel:null, squeezeScore:null };
-
-    statusDot.className = 'status-dot';
-    statusText.textContent = 'SCANNING…';
-    terminal.classList.remove('zona-peligro','modo-vertical','tension-critica');
-
-    try{
-        const [tk, dep] = await Promise.all([
-            fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${pair}`).then(r=>r.json()),
-            fetch(`https://fapi.binance.com/fapi/v1/depth?symbol=${pair}&limit=1000`).then(r=>r.json())
-        ]);
-
-        if(!tk.lastPrice) throw new Error(`No se encontró el par ${pair} en Binance Futures.`);
-
-        const price = +tk.lastPrice;
-        const asks = dep.asks.map(a=>({p:+a[0], u:+a[0]*+a[1]})).filter(a=>a.p > price && a.p <= price*(1+RNG_PCT));
-
-        const bucketSize = (price * RNG_PCT) / 20;
-        const walls = Array.from({length: 20}, (_, i) => ({
-            price: price + (i * bucketSize),
-            usd: asks.filter(a => a.p >= price + (i*bucketSize) && a.p < price + ((i+1)*bucketSize)).reduce((s,a) => s+a.u, 0)
-        }));
-        const maxUsd = Math.max(...walls.map(w => w.usd), 1);
-        const top = [...walls].sort((a,b) => b.usd - a.usd)[0];
-        const topIndex = walls.indexOf(top);
-
-        wallWatch = {
-            priceLow: price + (topIndex * bucketSize),
-            priceHigh: price + ((topIndex + 1) * bucketSize),
-            lastUsd: top.usd,
-            lastTradeTime: Date.now()
-        };
-
-        const res = (asks.reduce((s,a)=>s+a.u, 0) / tk.quoteVolume) * 100;
-        const trendUp = res > prevRes;
-        const resColor = res > 5 ? 'var(--safe)' : 'var(--danger)';
-        const gaugeFilled = Math.min(Math.round(res*2), 10);
-        const tagPct = ((topIndex + 0.5) / 20) * 100;
-
-        out.innerHTML = `
-            <div class="divider"></div>
-
-            <div class="veredicto-box" id="veredictoBox">
-                <div class="veredicto-eyebrow">VEREDICTO · LECTURA RÁPIDA</div>
-                <div class="veredicto-headline" id="veredictoHeadline">ESPERANDO DATOS…</div>
-                <div class="veredicto-sub" id="veredictoSub">Recopilando las primeras lecturas de los módulos de abajo.</div>
-                <div class="veredicto-chips" id="veredictoChips"></div>
-                <div class="confianza-track"><div class="confianza-fill" id="confianzaFill" style="width:0%"></div></div>
-                <div class="confianza-label"><span id="confianzaLabelIzq">VENTA</span><span id="confianzaLabelDer">COMPRA</span></div>
-            </div>
-
-            <div class="divider"></div>
-            <div class="label-row">
-                <div class="eyebrow">TECHO SPIKE · PARED MÁS DENSA</div>
-                <div class="pair-tag">${pair}</div>
-            </div>
-            <div class="price-value">${fmtPrice(top.price)}</div>
-
-            <div class="chart-wrap">
-                <div class="lightning-icon" id="lightningIcon">⚡</div>
-                <div class="wall-tag" style="left:${tagPct}%;">$${fmtPrice(top.usd)}</div>
-                <div class="gridlines"><div></div><div></div><div></div><div></div></div>
-                <div class="wallbar">${walls.map((w,i) => `<div class="wcol ${i===topIndex?'top':''}" style="height:${Math.max((w.usd/maxUsd)*76,2)}px"></div>`).join('')}</div>
-                <div class="axis"><span>${fmtPrice(price)}</span><span>${fmtPrice(price*(1+RNG_PCT))}</span></div>
-            </div>
-
-            <div class="metric-row">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">RESISTENCIA</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Suma la liquidez de venta (asks) en el 15% de rango sobre el precio y la compara contra el volumen operado en 24h.<br><br>
-                            <b>Cómo leerlo:</b> % más alto = más liquidez esperando vs. lo que se mueve en un día → cuesta más romper esa zona. % más bajo = pared más débil, el volumen normal podría barrerla.<br><br>
-                            Es una heurística propia del script, no un indicador técnico estándar. La flecha compara contra tu última corrida en esta sesión.
-                        </div>
-                    </div>
-                    <span class="metric-value" style="color:${resColor}">${trendUp ? '▲' : '▼'} ${res.toFixed(2)}%</span>
-                </div>
-                <div class="gauge">${Array.from({length:10}, (_,i)=>`<div style="background:${i<gaugeFilled?resColor:'var(--line-soft)'}"></div>`).join('')}</div>
-            </div>
-
-            <div class="metric-row" id="mcapRow">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">MARKET CAP · RATIO BURBUJA</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Market Cap = Precio actual × Suministro circulante real (CoinGecko, cacheado 60 min).<br><br>
-                            Ratio Burbuja = Market Cap ÷ Umbral Máximo Lógico definido para este token.<br><br>
-                            Ratio > 1.0 → el mercado ya paga por encima del techo lógico configurado: zona de riesgo matemático (panel se pone rojo).
-                        </div>
-                    </div>
-                    <span class="metric-value" id="mcapValue">--</span>
-                </div>
-                <div class="gauge" id="mcapGauge">${Array.from({length:10}, ()=>'<div></div>').join('')}</div>
-                <div class="mcap-sub" id="mcapSub">Consultando CoinGecko…</div>
-            </div>
-
-            <div class="metric-row" id="energyRow">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">ENERGÍA DE CHOQUE</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Compara el volumen del último minuto contra el promedio de los 5 minutos previos, cruzado con la variación de precio.<br><br>
-                            <b>Azul (Carga):</b> volumen alto, precio casi plano → ballena absorbiendo la pared.<br>
-                            <b>Amarillo (Debilidad):</b> precio sube pero sin volumen real → subida falsa.<br>
-                            <b>Rojo (Ruptura):</b> volumen y precio disparados juntos → pared rota / short liquidado.
-                        </div>
-                    </div>
-                    <span class="metric-value" id="energyValue">--</span>
-                </div>
-                <div class="energy-bar-wrap"><div class="energy-bar-fill" id="energyBarFill"></div></div>
-            </div>
-
-            <div class="metric-row" id="consumoRow">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">CONSUMO DE PARED (T0 vs T-1)</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Compara el volumen USD de la pared vigilada entre este sondeo y el anterior (cada ${POLL_MS/1000}s).<br><br>
-                            Si baja Y hay Market Buy agresivo real dentro de esa zona (ver CVD abajo) → <b>Consumo Real</b>, ruptura probable.<br><br>
-                            Si baja pero el CVD no lo respalda → probablemente fue una <b>orden cancelada</b> (fake wall), no una ruptura.
-                        </div>
-                    </div>
-                    <span class="metric-value" id="consumoValue">--</span>
-                </div>
-                <div class="energy-bar-wrap"><div class="energy-bar-fill" id="consumoBarFill"></div></div>
-                <div class="mcap-sub" id="consumoSub">Esperando primer sondeo…</div>
-            </div>
-
-            <div class="metric-row" id="cvdRow">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">CVD ESTIMADO EN LA PARED</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Delta de volumen agresivo (Market Buy − Market Sell) ejecutado dentro del rango de precio de la pared vigilada, desde el último sondeo.<br><br>
-                            Verde = predominan compras agresivas contra la pared (presión de ruptura). Rojo = predominan ventas o no hay agresión compradora real.
-                        </div>
-                    </div>
-                    <span class="metric-value" id="cvdValue">--</span>
-                </div>
-                <div class="energy-bar-wrap"><div class="energy-bar-fill" id="cvdBarFill"></div></div>
-                <div class="mcap-sub" id="cvdSub">Esperando primer sondeo…</div>
-            </div>
-
-            <div class="metric-row" id="tensionRow">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">TENSIÓN · DISTANCIA A LA PARED</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Distancia porcentual entre el precio actual y el precio de la pared vigilada.<br><br>
-                            Por debajo del ${TENSION_THRESHOLD_PCT}% el panel entero parpadea en naranja — la ruptura puede ocurrir en cualquier momento.
-                        </div>
-                    </div>
-                    <span class="metric-value" id="tensionValue">--</span>
-                </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="metric-row" id="squeezeRow">
-                <div class="metric-head">
-                    <div class="metric-label-wrap">
-                        <span class="metric-label">RIESGO DE SQUEEZE</span>
-                        <span class="info-icon">i</span>
-                        <div class="tooltip">
-                            <b>¿Qué mide?</b><br>
-                            Combina Funding Rate + delta de Open Interest (1h) + Ratio Long/Short de cuentas, todo público de Binance Futures.<br><br>
-                            <b>Alto (rojo):</b> funding negativo fuerte y/o muchos shorts acumulados → todavía queda combustible para que la suba continúe. Esperar antes de entrar corto.<br><br>
-                            <b>Bajo (verde):</b> shorts ya se cubrieron (OI cayendo con precio subiendo) y/o funding neutral/positivo → el combustible del squeeze ya se quemó, momento más seguro para evaluar un corto.<br><br>
-                            Δ OI y Δ precio se calculan sobre la misma ventana de 1h, para que sean comparables entre sí. La etiqueta debajo de las 3 casillas traduce ese cruce a lenguaje simple (🔥 quemándose, ⛽ fresco, 🆕 shorts nuevos, 🧊 deleverage).<br><br>
-                            Es una heurística propia, no un indicador estándar ni garantía de nada — el precio puede seguir moviéndose igual.
-                        </div>
-                    </div>
-                    <span class="squeeze-badge" id="squeezeBadge">--</span>
-                </div>
-                <div class="squeeze-gauge-wrap">
-                    <div class="squeeze-gauge-track"><div class="squeeze-gauge-fill" id="squeezeGaugeFill" style="width:0%"></div></div>
-                    <span class="metric-value" id="squeezeScoreLabel" style="font-size:13px;">--</span>
-                </div>
-                <div class="squeeze-sub-grid">
-                    <div class="squeeze-stat">
-                        <div class="squeeze-stat-label">FUNDING</div>
-                        <div class="squeeze-stat-value" id="squeezeFunding">--</div>
-                    </div>
-                    <div class="squeeze-stat">
-                        <div class="squeeze-stat-label">Δ OI (1H)</div>
-                        <div class="squeeze-stat-value" id="squeezeOi">--</div>
-                    </div>
-                    <div class="squeeze-stat">
-                        <div class="squeeze-stat-label">% CUENTAS SHORT</div>
-                        <div class="squeeze-stat-value" id="squeezeShortPct">--</div>
-                    </div>
-                </div>
-                <div class="squeeze-fuel-tag" id="squeezeFuelTag">Calculando…</div>
-                <div class="squeeze-disclaimer">⚠ Heurística propia basada en datos públicos de Binance Futures. No es asesoramiento financiero ni un indicador de precisión garantizada.</div>
-            </div>
-        `;
-        prevRes = res;
-        statusDot.className = 'status-dot on';
-        statusText.textContent = 'LIVE';
-
-        out.querySelectorAll('.info-icon').forEach(icon => {
-            icon.addEventListener('click', (e) => {
-                e.stopPropagation();
-                icon.classList.toggle('active');
-            });
-        });
-
-        renderVeredicto();
-
-        updateRiskModules(raw, pair, price);
-
-        pollTimer = setInterval(() => pollPreRuptura(pair), POLL_MS);
-        pollPreRuptura(pair);
-
-        updateSqueezeModule(pair, price);
-        squeezeTimer = setInterval(() => updateSqueezeModule(pair, price), SQUEEZE_POLL_MS);
-    }catch(err){
-        out.innerHTML = `<div class="divider"></div><div class="err">⚠ ${err.message || 'Error al consultar Binance. Verifica el símbolo.'}</div>`;
-        statusDot.className = 'status-dot';
-        statusText.textContent = 'ERROR';
-        terminal.classList.remove('zona-peligro','modo-vertical','tension-critica');
-        if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
-        if(squeezeTimer){ clearInterval(squeezeTimer); squeezeTimer = null; }
-        wallWatch = null;
-    }
+function renderList(){
+  const list=document.getElementById('list');
+  if(!historial.length){ list.innerHTML='<div class="empty">Sin resultados todavía.<br>Presioná ▶ INICIAR ESCANEO para empezar.</div>'; return; }
+  list.innerHTML=historial.slice(0,40).map(h=>{
+    const isEntrada=h.tipo==='entrada';
+    return `<div class="card ${isEntrada?'entrada':''}">
+      <div class="card-head">
+        <span class="card-sym">${h.symbol}USDT</span>
+        <span class="card-badge ${isEntrada?'badge-entrada':'badge-candidato'}">${isEntrada?'⚡ ENTRADA':'⏳ CANDIDATO'}</span>
+      </div>
+      <div class="card-metrics">
+        <span>Precio: <b>${fmtPrice(h.price)}</b></span>
+        <span>Score: <b>${h.score}/13</b></span>
+        <span>Funding: <b style="color:var(--danger)">${h.funding.toFixed(4)}%</b></span>
+        <span>ADX: <b>${Math.round(h.adx)}</b></span>
+      </div>
+      ${h.techoPrice?`<div class="card-techo">🎯 Techo estimado: ${fmtPrice(h.techoPrice)} (+${h.distPct.toFixed(2)}%) · pared $${fmtBig(h.techoUsd)}</div>`:''}
+      <div class="card-time">${new Date(h.ts).toLocaleString('es-AR')}</div>
+    </div>`;
+  }).join('');
 }
 
-document.addEventListener('click', () => {
-    document.querySelectorAll('.info-icon.active').forEach(i => i.classList.remove('active'));
-});
+function yaAlertado(symbol){
+  const h=historial.find(x=>x.symbol===symbol&&x.tipo==='entrada'&&(Date.now()-x.ts)<6*60*60*1000);
+  return !!h;
+}
 
-document.getElementById('btn').onclick = run;
-document.getElementById('sym').addEventListener('keydown', e => { if(e.key === 'Enter') run(); });
+async function runScanOnce(){
+  if(scanning) return;
+  scanning=true;
+  const toggleBtn=document.getElementById('toggleBtn');
+  const progressFill=document.getElementById('progressFill');
+  const progressTxt=document.getElementById('progressTxt');
+  document.getElementById('statusDot').className='status-dot on';
+  document.getElementById('statusText').textContent='ESCANEANDO';
+
+  try{
+    const pairs=await getAllPairs();
+    let candidatos=0, entradasNuevas=0, procesados=0;
+    for(let i=0;i<pairs.length;i+=BATCH){
+      const batch=pairs.slice(i,i+BATCH);
+      const results=await Promise.all(batch.map(s=>fetchMegaData(s)));
+      for(const d of results){
+        if(!d) continue;
+        candidatos++;
+        if(d.tipo==='entrada' && !yaAlertado(d.symbol)){
+          const techo=await calcTecho(d.symbol, d.price);
+          const record={...d, techoPrice:techo?techo.techoPrice:null, techoUsd:techo?techo.techoUsd:null, distPct:techo?techo.distPct:null, ts:Date.now()};
+          historial.unshift(record);
+          saveHist();
+          entradasNuevas++;
+          const techoTxt = techo ? `\n🎯 Techo estimado: <b>${fmtPrice(techo.techoPrice)}</b> (+${techo.distPct.toFixed(2)}%)\nPared: $${fmtBig(techo.techoUsd)}` : '';
+          sendTelegram(
+            `🚀 <b>MEGA PUMP — ENTRADA CONFIRMADA</b>\n\n`+
+            `<b>${d.symbol}USDT</b>\nPrecio: ${fmtPrice(d.price)}\nScore: ${d.score}/13\n`+
+            `Funding: ${d.funding.toFixed(4)}% · ADX: ${Math.round(d.adx)}\n🐋 Whale BUY confirmado`+
+            techoTxt
+          );
+        }else if(d.tipo!=='entrada'){
+          const exists=historial.find(x=>x.symbol===d.symbol&&(Date.now()-x.ts)<3*60*60*1000);
+          if(!exists){ historial.unshift({...d, ts:Date.now()}); saveHist(); }
+        }
+      }
+      procesados+=batch.length;
+      const pct=Math.round((procesados/pairs.length)*100);
+      progressFill.style.width=pct+'%';
+      progressTxt.textContent=`${procesados}/${pairs.length} pares · ${candidatos} candidatos · ${entradasNuevas} entradas nuevas`;
+      renderList();
+      await new Promise(res=>setTimeout(res,BATCH_DELAY));
+    }
+    document.getElementById('statPares').textContent=pairs.length;
+    document.getElementById('statCandidatos').textContent=historial.filter(h=>(Date.now()-h.ts)<6*60*60*1000).length;
+    document.getElementById('statEntradas').textContent=historial.filter(h=>h.tipo==='entrada'&&(Date.now()-h.ts)<6*60*60*1000).length;
+    document.getElementById('statUltimo').textContent=new Date().toLocaleTimeString('es-AR');
+    progressTxt.textContent=`Completo · ${pairs.length} pares · ${candidatos} candidatos · ${entradasNuevas} entradas nuevas`;
+  }catch(e){
+    progressTxt.textContent='Error: '+e.message;
+  }
+  document.getElementById('statusDot').className='status-dot'+(running?' on':'');
+  document.getElementById('statusText').textContent=running?'EN ESPERA (próximo ciclo)':'DETENIDO';
+  scanning=false;
+}
+
+function toggleScan(){
+  const btn=document.getElementById('toggleBtn');
+  if(running){
+    running=false;
+    clearInterval(loopTimer); loopTimer=null;
+    btn.textContent='▶ INICIAR ESCANEO';
+    btn.classList.remove('stop');
+    document.getElementById('statusDot').className='status-dot';
+    document.getElementById('statusText').textContent='DETENIDO';
+  }else{
+    running=true;
+    btn.textContent='■ DETENER ESCANEO';
+    btn.classList.add('stop');
+    runScanOnce();
+    loopTimer=setInterval(runScanOnce, SCAN_INTERVAL_MS);
+  }
+}
+
+function limpiarHistorial(){
+  if(!confirm('¿Borrar todo el historial de candidatos/entradas?')) return;
+  historial=[]; saveHist(); renderList();
+  document.getElementById('statCandidatos').textContent='—';
+  document.getElementById('statEntradas').textContent='—';
+}
+
+updateTgIcon();
+renderList();
+if(!tgConfigured()){
+  setTimeout(()=>{ if(confirm('📲 ¿Configurar Telegram ahora para recibir avisos de mega pumps?')) configurarTelegram(); },600);
+}
 </script>
 </body>
 </html>
