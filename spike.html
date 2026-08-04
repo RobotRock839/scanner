@@ -235,7 +235,7 @@ async function fetchMegaData(symbol){
   const pair=symbol+'USDT';
   try{
     const[kl,fr]=await Promise.allSettled([
-      fwr('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=4h&limit=80'),
+      fwr('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=1h&limit=80'),
       fwr('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=1')
     ]);
     if(kl.status!=='fulfilled'||!Array.isArray(kl.value)||kl.value.length<30) return null;
@@ -251,13 +251,13 @@ async function fetchMegaData(symbol){
     const sqz=cSqzMom(k);
     let score=0,tipo='candidato';
     if(funding<-0.01) score+=2; else score+=1;
-    if(vRatio<0.5) score+=2; else if(vRatio<1.0) score+=1;
+    if(vRatio<0.6) score+=2; else if(vRatio<1.0) score+=1;
     if(adx<=15) score+=2; else if(adx<=25) score+=1;
     if(sqz.virando) score+=2; else if(sqz.subiendo||sqz.positivo) score+=1;
     const absData=detectAbsorcion(k);
     if(absData.count>=3) score+=2; else if(absData.count>=1) score+=1;
     if(stochK<15) score+=2; else if(stochK<25) score+=1;
-    if(score<4) return null;
+    if(score<5) return null;
     const deltas=k.map(x=>{ const o=parseFloat(x[1]),c=parseFloat(x[4]),v=parseFloat(x[5]); return c>o?v:c<o?-v:0; });
     const cvd20=deltas.slice(-20).reduce((a,b)=>a+b,0);
     const cvdPv=deltas.slice(-21,-1).reduce((a,b)=>a+b,0);
@@ -269,6 +269,14 @@ async function fetchMegaData(symbol){
       const rat=vSma>0?v/vSma:1,cpo=Math.abs(c-o)+1e-9;
       const mS=h-Math.max(o,c),aV=mS>cpo*1.5&&rat>=2&&c>o;
       if(rat>=2&&c>o&&cvdU&&!aV) whaleBuy=true;
+    }
+    // Validación de cierre de vela: si la última vela cerrada trae volumen fuerte (vRatio>1.8),
+    // exigir cuerpo real sólido a favor del impulso para no confirmar "Entrada" sobre una mecha rechazada.
+    if(whaleBuy){
+      const lastK=k[k.length-1];
+      const lo=parseFloat(lastK[1]), lh=parseFloat(lastK[2]), lc=parseFloat(lastK[4]);
+      const lastVRatio=vRatio;
+      if(lastVRatio>1.8 && !((lc-lo) > (lh-lc))) whaleBuy=false;
     }
     if(whaleBuy){ score+=3; tipo='entrada'; }
     return{symbol,funding,adx,vRatio,whaleBuy,stochK,score,price:parseFloat(cls[cls.length-1]),tipo};
