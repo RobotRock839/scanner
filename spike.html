@@ -75,6 +75,9 @@ body{
 .card-badge{font-size:9px;font-weight:800;letter-spacing:.06em;padding:3px 8px;border-radius:5px;}
 .badge-entrada{background:rgba(0,229,255,.15);border:1px solid var(--cyan);color:var(--cyan);}
 .badge-candidato{background:rgba(0,224,164,.1);border:1px solid var(--safe);color:var(--safe);}
+.badge-tp{background:rgba(0,224,164,.15);border:1px solid var(--safe);color:var(--safe);}
+.badge-sl{background:rgba(255,59,92,.15);border:1px solid var(--danger);color:var(--danger);}
+.badge-exp{background:rgba(86,92,116,.15);border:1px solid var(--text-dim);color:var(--text-dim);}
 .card-metrics{display:flex;gap:14px;flex-wrap:wrap;font-size:10px;color:var(--text-dim);margin-top:6px;}
 .card-metrics b{color:var(--text);font-weight:700;}
 .card-techo{margin-top:8px;font-size:11px;color:var(--gold);font-weight:700;}
@@ -105,6 +108,8 @@ body{
         <div class="stat">PARES ESCANEADOS<b id="statPares">—</b></div>
         <div class="stat">CANDIDATOS<b id="statCandidatos" style="color:var(--safe)">—</b></div>
         <div class="stat">ENTRADAS CONFIRMADAS<b id="statEntradas" style="color:var(--cyan)">—</b></div>
+        <div class="stat">RESUELTAS (TP/SL)<b id="statResueltas">—</b></div>
+        <div class="stat">WINRATE<b id="statWinrate" style="color:var(--text)">—</b></div>
         <div class="stat">ÚLTIMO SCAN<b id="statUltimo" style="font-size:11px">—</b></div>
       </div>
       <div class="progress-wrap">
@@ -292,7 +297,7 @@ async function fetchMegaData(symbol){
     const refLow=refWindow.length?Math.min(...refWindow):cls[Math.max(0,cls.length-5)];
     const price=cls[cls.length-1];
     const subidaPct=refLow>0?((price-refLow)/refLow*100):0;
-    return{symbol,funding,adx,vRatio,whaleBuy,stochK,score,price,subidaPct,tipo};
+    return{symbol,funding,adx,vRatio,whaleBuy,stochK,score,price,subidaPct,tipo,refLow};
   }catch(e){ return null; }
 }
 
@@ -318,6 +323,19 @@ async function calcTecho(symbol, price){
 }
 
 /* ============================================================
+   PARÁMETROS DE RESULTADO (TP / SL / ventana)
+   - TP: lo que llegue primero entre el techo estimado (pared de venta)
+     y este % fijo de suba desde el precio de entrada.
+   - SL: que el precio vuelva a cruzar hacia abajo el soporte previo
+     (el mínimo reciente ANTES de la ventana de detección del Whale BUY,
+     ya calculado como "refLow" en fetchMegaData).
+   - Ventana: si en este tiempo no tocó ninguno de los dos, queda
+     "EXPIRADO" (ni ganó ni perdió, no cuenta para el winrate).
+   ============================================================ */
+const TP_FIXED_PCT = 0.10;           // +10% fijo
+const RESULT_WINDOW_MS = 24*60*60*1000; // 24 horas
+
+/* ============================================================
    ESTADO / HISTORIAL
    ============================================================ */
 const K_HIST='megascan_hist_v1';
@@ -330,10 +348,12 @@ const BATCH=20, BATCH_DELAY=150;
 
 async function getAllPairs(){
   const tickers=await fwr('https://fapi.binance.com/fapi/v1/ticker/24hr');
-  return tickers
+  const filtered=tickers
     .filter(t=>t.symbol.endsWith('USDT')&&!t.symbol.includes('_'))
-    .filter(t=>!['USDC','BUSD','TUSD','USDP','DAI','FDUSD'].some(s=>t.symbol.startsWith(s)))
-    .map(t=>t.symbol.replace('USDT',''));
+    .filter(t=>!['USDC','BUSD','TUSD','USDP','DAI','FDUSD'].some(s=>t.symbol.startsWith(s)));
+  const priceMap={};
+  filtered.forEach(t=>{ priceMap[t.symbol.replace('USDT','')]=parseFloat(t.lastPrice); });
+  return{ symbols:filtered.map(t=>t.symbol.replace('USDT','')), priceMap };
 }
 
 function renderList(){
@@ -342,10 +362,16 @@ function renderList(){
   list.innerHTML=historial.slice(0,40).map(h=>{
     const isEntrada=h.tipo==='entrada';
     const sub=clasificarSubida(h.subidaPct);
+    let badgeTxt, badgeClass;
+    if(!isEntrada){ badgeTxt='⏳ CANDIDATO'; badgeClass='badge-candidato'; }
+    else if(h.resultado==='TP'){ badgeTxt='✅ TP +'+h.resultadoPct.toFixed(1)+'%'; badgeClass='badge-tp'; }
+    else if(h.resultado==='SL'){ badgeTxt='❌ SL '+h.resultadoPct.toFixed(1)+'%'; badgeClass='badge-sl'; }
+    else if(h.resultado==='EXPIRADO'){ badgeTxt='⌛ EXPIRADO '+(h.resultadoPct>=0?'+':'')+h.resultadoPct.toFixed(1)+'%'; badgeClass='badge-exp'; }
+    else{ badgeTxt='⚡ PENDIENTE'; badgeClass='badge-entrada'; }
     return `<div class="card ${isEntrada?'entrada':''}">
       <div class="card-head">
         <span class="card-sym">${h.symbol}USDT</span>
-        <span class="card-badge ${isEntrada?'badge-entrada':'badge-candidato'}">${isEntrada?'⚡ ENTRADA':'⏳ CANDIDATO'}</span>
+        <span class="card-badge ${badgeClass}">${badgeTxt}</span>
       </div>
       <div class="card-metrics">
         <span>Precio: <b>${fmtPrice(h.price)}</b></span>
@@ -356,7 +382,8 @@ function renderList(){
       <div class="card-metrics" style="margin-top:2px">
         <span>${sub.emoji} <b style="color:${sub.color}">${sub.txt}</b></span>
       </div>
-      ${h.techoPrice?`<div class="card-techo">🎯 Techo estimado: ${fmtPrice(h.techoPrice)} (+${h.distPct.toFixed(2)}%) · pared $${fmtBig(h.techoUsd)}</div>`:''}
+      ${isEntrada&&h.tpPrice?`<div class="card-techo">🎯 TP: ${fmtPrice(h.tpPrice)} · 🛑 SL (soporte previo): ${h.slPrice?fmtPrice(h.slPrice):'—'}</div>`:''}
+      ${h.techoPrice?`<div class="card-techo" style="color:var(--text-dim);font-weight:500">Techo estimado original: ${fmtPrice(h.techoPrice)} (+${h.distPct.toFixed(2)}%) · pared $${fmtBig(h.techoUsd)}</div>`:''}
       <div class="card-time">${new Date(h.ts).toLocaleString('es-AR')}</div>
     </div>`;
   }).join('');
@@ -365,6 +392,51 @@ function renderList(){
 function yaAlertado(symbol){
   const h=historial.find(x=>x.symbol===symbol&&x.tipo==='entrada'&&(Date.now()-x.ts)<6*60*60*1000);
   return !!h;
+}
+
+/* ============================================================
+   EVALUACIÓN DE RESULTADOS (TP / SL / EXPIRADO)
+   Recorre las entradas confirmadas sin resultado todavía y las
+   compara contra el precio actual (mismo fetch de ticker que ya
+   usa el scan, sin llamadas extra a la API).
+   ============================================================ */
+function evaluarResultados(priceMap){
+  let huboCambios=false;
+  for(const h of historial){
+    if(h.tipo!=='entrada' || h.resultado) continue;
+    const priceNow=priceMap[h.symbol];
+    if(priceNow===undefined||isNaN(priceNow)) continue;
+    const edadMs=Date.now()-h.ts;
+
+    if(h.tpPrice!=null && priceNow>=h.tpPrice){
+      h.resultado='TP';
+      h.resultadoPct=((priceNow-h.price)/h.price*100);
+      h.resueltoTs=Date.now();
+      huboCambios=true;
+      sendTelegram(`✅ <b>TP tocado</b> — ${h.symbol}USDT\nEntrada: ${fmtPrice(h.price)} → Ahora: ${fmtPrice(priceNow)} (+${h.resultadoPct.toFixed(1)}%)`);
+    }else if(h.slPrice!=null && priceNow<=h.slPrice){
+      h.resultado='SL';
+      h.resultadoPct=((priceNow-h.price)/h.price*100);
+      h.resueltoTs=Date.now();
+      huboCambios=true;
+      sendTelegram(`❌ <b>SL tocado</b> — ${h.symbol}USDT\nEntrada: ${fmtPrice(h.price)} → Ahora: ${fmtPrice(priceNow)} (${h.resultadoPct.toFixed(1)}%)\nCruzó el soporte previo (${fmtPrice(h.slPrice)}).`);
+    }else if(edadMs>=RESULT_WINDOW_MS){
+      h.resultado='EXPIRADO';
+      h.resultadoPct=((priceNow-h.price)/h.price*100);
+      h.resueltoTs=Date.now();
+      huboCambios=true;
+    }
+  }
+  if(huboCambios) saveHist();
+  return huboCambios;
+}
+
+function calcularWinrate(){
+  const resueltas=historial.filter(h=>h.tipo==='entrada'&&(h.resultado==='TP'||h.resultado==='SL'));
+  const wins=resueltas.filter(h=>h.resultado==='TP').length;
+  const total=resueltas.length;
+  const expiradas=historial.filter(h=>h.tipo==='entrada'&&h.resultado==='EXPIRADO').length;
+  return{ total, wins, losses: total-wins, expiradas, pct: total>0 ? (wins/total*100) : null };
 }
 
 async function runScanOnce(){
@@ -377,7 +449,8 @@ async function runScanOnce(){
   document.getElementById('statusText').textContent='ESCANEANDO';
 
   try{
-    const pairs=await getAllPairs();
+    const {symbols:pairs, priceMap} = await getAllPairs();
+    evaluarResultados(priceMap);
     let candidatos=0, entradasNuevas=0, procesados=0;
     for(let i=0;i<pairs.length;i+=BATCH){
       const batch=pairs.slice(i,i+BATCH);
@@ -387,7 +460,10 @@ async function runScanOnce(){
         candidatos++;
         if(d.tipo==='entrada' && !yaAlertado(d.symbol)){
           const techo=await calcTecho(d.symbol, d.price);
-          const record={...d, techoPrice:techo?techo.techoPrice:null, techoUsd:techo?techo.techoUsd:null, distPct:techo?techo.distPct:null, ts:Date.now()};
+          const tpFixedPrice=d.price*(1+TP_FIXED_PCT);
+          const tpPrice = techo && techo.techoPrice ? Math.min(techo.techoPrice, tpFixedPrice) : tpFixedPrice;
+          const slPrice = d.refLow || null;
+          const record={...d, techoPrice:techo?techo.techoPrice:null, techoUsd:techo?techo.techoUsd:null, distPct:techo?techo.distPct:null, tpPrice, slPrice, resultado:null, resultadoPct:null, ts:Date.now()};
           historial.unshift(record);
           saveHist();
           entradasNuevas++;
@@ -397,7 +473,8 @@ async function runScanOnce(){
             `🚀 <b>MEGA PUMP — ENTRADA CONFIRMADA</b>\n\n`+
             `<b>${d.symbol}USDT</b>\nPrecio: ${fmtPrice(d.price)}\nScore: ${d.score}/13\n`+
             `Funding: ${d.funding.toFixed(4)}% · ADX: ${Math.round(d.adx)}\n🐋 Whale BUY confirmado\n`+
-            `${sub.emoji} ${sub.txt}`+
+            `${sub.emoji} ${sub.txt}\n`+
+            `🎯 TP objetivo: ${fmtPrice(tpPrice)} · 🛑 SL (soporte previo): ${slPrice?fmtPrice(slPrice):'—'}`+
             techoTxt
           );
         }else if(d.tipo!=='entrada'){
@@ -412,11 +489,16 @@ async function runScanOnce(){
       renderList();
       await new Promise(res=>setTimeout(res,BATCH_DELAY));
     }
+    const wr=calcularWinrate();
     document.getElementById('statPares').textContent=pairs.length;
     document.getElementById('statCandidatos').textContent=historial.filter(h=>(Date.now()-h.ts)<6*60*60*1000).length;
     document.getElementById('statEntradas').textContent=historial.filter(h=>h.tipo==='entrada'&&(Date.now()-h.ts)<6*60*60*1000).length;
+    document.getElementById('statResueltas').textContent=wr.total;
+    document.getElementById('statWinrate').textContent = wr.pct!=null ? wr.pct.toFixed(0)+'%' : '—';
+    document.getElementById('statWinrate').style.color = wr.pct==null ? 'var(--text)' : wr.pct>=50 ? 'var(--safe)' : 'var(--danger)';
     document.getElementById('statUltimo').textContent=new Date().toLocaleTimeString('es-AR');
     progressTxt.textContent=`Completo · ${pairs.length} pares · ${candidatos} candidatos · ${entradasNuevas} entradas nuevas`;
+    renderList();
   }catch(e){
     progressTxt.textContent='Error: '+e.message;
   }
@@ -448,10 +530,21 @@ function limpiarHistorial(){
   historial=[]; saveHist(); renderList();
   document.getElementById('statCandidatos').textContent='—';
   document.getElementById('statEntradas').textContent='—';
+  document.getElementById('statResueltas').textContent='—';
+  document.getElementById('statWinrate').textContent='—';
+  document.getElementById('statWinrate').style.color='var(--text)';
 }
 
 updateTgIcon();
 renderList();
+(function mostrarStatsIniciales(){
+  const wr=calcularWinrate();
+  document.getElementById('statResueltas').textContent = historial.length ? wr.total : '—';
+  document.getElementById('statWinrate').textContent = wr.pct!=null ? wr.pct.toFixed(0)+'%' : '—';
+  document.getElementById('statWinrate').style.color = wr.pct==null ? 'var(--text)' : wr.pct>=50 ? 'var(--safe)' : 'var(--danger)';
+  document.getElementById('statCandidatos').textContent = historial.length ? historial.filter(h=>(Date.now()-h.ts)<6*60*60*1000).length : '—';
+  document.getElementById('statEntradas').textContent = historial.length ? historial.filter(h=>h.tipo==='entrada'&&(Date.now()-h.ts)<6*60*60*1000).length : '—';
+})();
 if(!tgConfigured()){
   setTimeout(()=>{ if(confirm('📲 ¿Configurar Telegram ahora para recibir avisos de mega pumps?')) configurarTelegram(); },600);
 }
