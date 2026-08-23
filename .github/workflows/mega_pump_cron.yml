@@ -30,13 +30,13 @@ jobs:
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-          HIST_PATH: data/mega_pump_historial.json
-        run: node scripts/mega_pump_scan.mjs
+          HIST_PATH: mega_pump_historial.json
+        run: node mega_pump_scan.mjs
 
       - name: Commit historial actualizado
         run: |
           git config user.name "mega-pump-bot"
           git config user.email "actions@github.com"
-          git add data/mega_pump_historial.json
+          git add mega_pump_historial.json
           git diff --staged --quiet || git commit -m "chore: actualizar historial mega pump [skip ci]"
           git push
