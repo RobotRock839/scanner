@@ -115,6 +115,12 @@ body{
         <div class="stat">WINRATE<b id="statWinrate" style="color:var(--text)">—</b></div>
         <div class="stat">ÚLTIMO SCAN<b id="statUltimo" style="font-size:11px">—</b></div>
       </div>
+      <div class="stats-row" style="border-top:1px dashed rgba(255,255,255,.08);padding-top:10px">
+        <div class="stat">🐋 SQUEEZE — resueltas<b id="statResueltasSq">—</b></div>
+        <div class="stat">🐋 SQUEEZE — winrate<b id="statWinrateSq" style="color:var(--text)">—</b></div>
+        <div class="stat">🌱 BREAKOUT — resueltas<b id="statResueltasBo">—</b></div>
+        <div class="stat">🌱 BREAKOUT — winrate<b id="statWinrateBo" style="color:var(--text)">—</b></div>
+      </div>
       <div class="progress-wrap">
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
         <div class="progress-txt" id="progressTxt">Inactivo</div>
@@ -538,12 +544,25 @@ function evaluarResultados(priceMap){
   return huboCambios;
 }
 
-function calcularWinrate(){
-  const resueltas=historial.filter(h=>h.tipo==='entrada'&&(h.resultado==='TP'||h.resultado==='SL'));
+function calcularWinrate(modoFiltro){
+  let entradas = historial.filter(h=>h.tipo==='entrada');
+  if(modoFiltro) entradas = entradas.filter(h=>(h.modo||'squeeze')===modoFiltro);
+  const resueltas=entradas.filter(h=>h.resultado==='TP'||h.resultado==='SL');
   const wins=resueltas.filter(h=>h.resultado==='TP').length;
   const total=resueltas.length;
-  const expiradas=historial.filter(h=>h.tipo==='entrada'&&h.resultado==='EXPIRADO').length;
+  const expiradas=entradas.filter(h=>h.resultado==='EXPIRADO').length;
   return{ total, wins, losses: total-wins, expiradas, pct: total>0 ? (wins/total*100) : null };
+}
+
+function actualizarStatsPorModo(){
+  const wrSq = calcularWinrate('squeeze');
+  const wrBo = calcularWinrate('breakout');
+  document.getElementById('statResueltasSq').textContent = wrSq.total;
+  document.getElementById('statWinrateSq').textContent = wrSq.pct!=null ? wrSq.pct.toFixed(0)+'%' : '—';
+  document.getElementById('statWinrateSq').style.color = wrSq.pct==null ? 'var(--text)' : wrSq.pct>=50 ? 'var(--safe)' : 'var(--danger)';
+  document.getElementById('statResueltasBo').textContent = wrBo.total;
+  document.getElementById('statWinrateBo').textContent = wrBo.pct!=null ? wrBo.pct.toFixed(0)+'%' : '—';
+  document.getElementById('statWinrateBo').style.color = wrBo.pct==null ? 'var(--text)' : wrBo.pct>=50 ? 'var(--safe)' : 'var(--danger)';
 }
 
 async function runScanOnce(){
@@ -637,6 +656,7 @@ async function runScanOnce(){
     document.getElementById('statResueltas').textContent=wr.total;
     document.getElementById('statWinrate').textContent = wr.pct!=null ? wr.pct.toFixed(0)+'%' : '—';
     document.getElementById('statWinrate').style.color = wr.pct==null ? 'var(--text)' : wr.pct>=50 ? 'var(--safe)' : 'var(--danger)';
+    actualizarStatsPorModo();
     document.getElementById('statUltimo').textContent=new Date().toLocaleTimeString('es-AR');
     progressTxt.textContent=`Completo · ${pairs.length} pares (liquidez ≥ $${fmtBig(MIN_QUOTE_VOLUME_USDT)}) · ${candidatos} candidatos · ${entradasNuevas} entradas nuevas · ${filtradasNuevas} filtradas`;
     renderList();
@@ -675,6 +695,12 @@ function limpiarHistorial(){
   document.getElementById('statResueltas').textContent='—';
   document.getElementById('statWinrate').textContent='—';
   document.getElementById('statWinrate').style.color='var(--text)';
+  document.getElementById('statResueltasSq').textContent='—';
+  document.getElementById('statWinrateSq').textContent='—';
+  document.getElementById('statWinrateSq').style.color='var(--text)';
+  document.getElementById('statResueltasBo').textContent='—';
+  document.getElementById('statWinrateBo').textContent='—';
+  document.getElementById('statWinrateBo').style.color='var(--text)';
 }
 
 updateTgIcon();
@@ -687,6 +713,7 @@ renderList();
   document.getElementById('statCandidatos').textContent = historial.length ? historial.filter(h=>(Date.now()-h.ts)<6*60*60*1000).length : '—';
   document.getElementById('statEntradas').textContent = historial.length ? historial.filter(h=>h.tipo==='entrada'&&(Date.now()-h.ts)<6*60*60*1000).length : '—';
   document.getElementById('statFiltradas').textContent = historial.length ? historial.filter(h=>h.tipo==='filtrada'&&(Date.now()-h.ts)<6*60*60*1000).length : '—';
+  if(historial.length) actualizarStatsPorModo();
 })();
 if(!tgConfigured()){
   setTimeout(()=>{ if(confirm('📲 ¿Configurar Telegram ahora para recibir avisos de mega pumps?')) configurarTelegram(); },600);
