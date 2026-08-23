@@ -100,7 +100,7 @@ body{
       </div>
     </div>
     <div class="body">
-      <div class="hint">Escanea pares USDT-M de Binance Futures con <b style="color:var(--text)">liquidez ≥ $2M</b> de volumen 24h, cada 1 minuto, sobre velas de 15m. Busca funding negativo + compresión (ADX bajo) + volumen seco + Squeeze Momentum virando + absorción CVD. Cuando además confirma <b style="color:var(--cyan)">Whale BUY</b> real, exige que la <b>tendencia 1h (EMA50/EMA200)</b> no esté en contra y que el <b>Riesgo:Beneficio sea ≥1.2</b> antes de confirmar la entrada — si no pasa esos dos filtros, queda registrada como "⛔ FILTRADA" en vez de avisarte. Una vez confirmada, calcula TP/SL y te avisa por Telegram; no vuelve a alertar el mismo símbolo mientras esa entrada siga sin resolver.</div>
+      <div class="hint">Escanea pares USDT-M de Binance Futures con <b style="color:var(--text)">liquidez ≥ $2M</b> de volumen 24h, cada 1 minuto, sobre velas de 15m, con <b>dos modos en paralelo</b>: <b style="color:var(--cyan)">🐋 Squeeze</b> (funding negativo + compresión + absorción — shorts forzados a cubrirse) y <b style="color:var(--gold)">🌱 Breakout temprano</b> (compresión previa que recién rompe + volumen explosivo + movimiento aún chico 2%-12%, sin exigir funding negativo — pensado para pumps que arrancan con compradores agresivos desde el minuto uno, como tokens que el modo Squeeze no puede ver). Cuando cualquiera de los dos confirma <b style="color:var(--cyan)">Whale BUY</b> real, exige además que la <b>tendencia 1h (EMA50/EMA200)</b> no esté en contra y que el <b>Riesgo:Beneficio sea ≥1.2</b> — si no pasa, queda "⛔ FILTRADA" en vez de avisarte. Cooldown por símbolo: no repite mientras haya una entrada sin resolver.</div>
       <div class="controls">
         <button class="btn" id="toggleBtn" onclick="toggleScan()">▶ INICIAR ESCANEO</button>
         <button class="mini" onclick="runScanOnce()">↺ ESCANEAR AHORA</button>
@@ -267,65 +267,120 @@ async function checkTrend(symbol){
 }
 
 /* ============================================================
-   DETECCIÓN MEGA PUMP (igual criterio que LIQSCAN)
+   FETCH COMPARTIDO (klines + funding, una sola vez por símbolo)
    ============================================================ */
-async function fetchMegaData(symbol){
+async function fetchSymbolData(symbol){
   const pair=symbol+'USDT';
   try{
     const[kl,fr]=await Promise.allSettled([
       fwr('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=15m&limit=80'),
       fwr('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=1')
     ]);
-    if(kl.status!=='fulfilled'||!Array.isArray(kl.value)||kl.value.length<30) return null;
+    if(kl.status!=='fulfilled'||!Array.isArray(kl.value)||kl.value.length<60) return null;
     const k=kl.value;
     const funding=fr.status==='fulfilled'&&fr.value[0]?parseFloat(fr.value[0].fundingRate)*100:0;
-    if(funding>=0) return null;
-    const cls=k.map(x=>parseFloat(x[4]));
-    const vols=k.map(x=>parseFloat(x[5]));
-    const vSma=vols.slice(-21,-1).reduce((a,b)=>a+b,0)/20;
-    const vRatio=vSma>0?vols[vols.length-1]/vSma:1;
-    const adx=cADX(k,14);
-    const stR=cStochRSI(cls,14,14,3,3), stochK=stR.k;
-    const sqz=cSqzMom(k);
-    let score=0,tipo='candidato';
-    if(funding<-0.01) score+=2; else score+=1;
-    if(vRatio<0.6) score+=2; else if(vRatio<1.0) score+=1;
-    if(adx<=15) score+=2; else if(adx<=25) score+=1;
-    if(sqz.virando) score+=2; else if(sqz.subiendo||sqz.positivo) score+=1;
-    const absData=detectAbsorcion(k);
-    if(absData.count>=3) score+=2; else if(absData.count>=1) score+=1;
-    if(stochK<15) score+=2; else if(stochK<25) score+=1;
-    if(score<5) return null;
-    const deltas=k.map(x=>{ const o=parseFloat(x[1]),c=parseFloat(x[4]),v=parseFloat(x[5]); return c>o?v:c<o?-v:0; });
-    const cvd20=deltas.slice(-20).reduce((a,b)=>a+b,0);
-    const cvdPv=deltas.slice(-21,-1).reduce((a,b)=>a+b,0);
-    const cvdSm=deltas.slice(-25).reduce((a,b)=>a+b,0)/5;
-    const cvdU=cvd20>cvdPv&&cvd20>cvdSm;
-    let whaleBuy=false;
-    for(let i=Math.max(0,k.length-4);i<k.length;i++){
-      const kk=k[i],o=parseFloat(kk[1]),h=parseFloat(kk[2]),c=parseFloat(kk[4]),v=parseFloat(kk[5]);
-      const rat=vSma>0?v/vSma:1,cpo=Math.abs(c-o)+1e-9;
-      const mS=h-Math.max(o,c),aV=mS>cpo*1.5&&rat>=2&&c>o;
-      if(rat>=2&&c>o&&cvdU&&!aV) whaleBuy=true;
-    }
-    // Validación de cierre de vela: si la última vela cerrada trae volumen fuerte (vRatio>1.8),
-    // exigir cuerpo real sólido a favor del impulso para no confirmar "Entrada" sobre una mecha rechazada.
-    if(whaleBuy){
-      const lastK=k[k.length-1];
-      const lo=parseFloat(lastK[1]), lh=parseFloat(lastK[2]), lc=parseFloat(lastK[4]);
-      const lastVRatio=vRatio;
-      if(lastVRatio>1.8 && !((lc-lo) > (lh-lc))) whaleBuy=false;
-    }
-    if(whaleBuy){ score+=3; tipo='entrada'; }
-    // % que el precio YA subió desde su mínimo reciente (excluyendo las últimas
-    // 4 velas, que son la ventana de detección del Whale BUY). Sirve para saber
-    // si la entrada sigue siendo temprana o si el movimiento ya está avanzado.
-    const refWindow=cls.slice(-30,-4);
-    const refLow=refWindow.length?Math.min(...refWindow):cls[Math.max(0,cls.length-5)];
-    const price=cls[cls.length-1];
-    const subidaPct=refLow>0?((price-refLow)/refLow*100):0;
-    return{symbol,funding,adx,vRatio,whaleBuy,stochK,score,price,subidaPct,tipo,refLow};
+    return{ k, funding };
   }catch(e){ return null; }
+}
+
+/* ============================================================
+   MÉTRICAS COMUNES (compartidas entre los dos modos de detección)
+   ============================================================ */
+function computeMetrics(k){
+  const cls=k.map(x=>parseFloat(x[4]));
+  const vols=k.map(x=>parseFloat(x[5]));
+  const vSma=vols.slice(-21,-1).reduce((a,b)=>a+b,0)/20;
+  const vRatio=vSma>0?vols[vols.length-1]/vSma:1;
+  const adx=cADX(k,14);
+  const stR=cStochRSI(cls,14,14,3,3), stochK=stR.k;
+  const sqz=cSqzMom(k);
+  const absData=detectAbsorcion(k);
+  const deltas=k.map(x=>{ const o=parseFloat(x[1]),c=parseFloat(x[4]),v=parseFloat(x[5]); return c>o?v:c<o?-v:0; });
+  const cvd20=deltas.slice(-20).reduce((a,b)=>a+b,0);
+  const cvdPv=deltas.slice(-21,-1).reduce((a,b)=>a+b,0);
+  const cvdSm=deltas.slice(-25).reduce((a,b)=>a+b,0)/5;
+  const cvdU=cvd20>cvdPv&&cvd20>cvdSm;
+  let whaleBuy=false;
+  for(let i=Math.max(0,k.length-4);i<k.length;i++){
+    const kk=k[i],o=parseFloat(kk[1]),h=parseFloat(kk[2]),c=parseFloat(kk[4]),v=parseFloat(kk[5]);
+    const rat=vSma>0?v/vSma:1,cpo=Math.abs(c-o)+1e-9;
+    const mS=h-Math.max(o,c),aV=mS>cpo*1.5&&rat>=2&&c>o;
+    if(rat>=2&&c>o&&cvdU&&!aV) whaleBuy=true;
+  }
+  if(whaleBuy){
+    const lastK=k[k.length-1];
+    const lo=parseFloat(lastK[1]), lh=parseFloat(lastK[2]), lc=parseFloat(lastK[4]);
+    if(vRatio>1.8 && !((lc-lo) > (lh-lc))) whaleBuy=false;
+  }
+  const refWindow=cls.slice(-30,-4);
+  const refLow=refWindow.length?Math.min(...refWindow):cls[Math.max(0,cls.length-5)];
+  const price=cls[cls.length-1];
+  const subidaPct=refLow>0?((price-refLow)/refLow*100):0;
+  return{cls,vols,vSma,vRatio,adx,stochK,sqz,absData,whaleBuy,refLow,price,subidaPct};
+}
+
+/* ============================================================
+   MODO 1 — SQUEEZE (igual criterio original de LIQSCAN)
+   Funding negativo + compresión + volumen seco + absorción.
+   Detecta shorts forzados a cubrirse. Requiere funding<0.
+   ============================================================ */
+function analyzeSqueeze(symbol, funding, m){
+  if(funding>=0) return null;
+  let score=0;
+  if(funding<-0.01) score+=2; else score+=1;
+  if(m.vRatio<0.6) score+=2; else if(m.vRatio<1.0) score+=1;
+  if(m.adx<=15) score+=2; else if(m.adx<=25) score+=1;
+  if(m.sqz.virando) score+=2; else if(m.sqz.subiendo||m.sqz.positivo) score+=1;
+  if(m.absData.count>=3) score+=2; else if(m.absData.count>=1) score+=1;
+  if(m.stochK<15) score+=2; else if(m.stochK<25) score+=1;
+  if(score<5) return null;
+  let tipo='candidato';
+  if(m.whaleBuy){ score+=3; tipo='entrada'; }
+  return{symbol,funding,adx:m.adx,vRatio:m.vRatio,whaleBuy:m.whaleBuy,stochK:m.stochK,score,scoreMax:13,
+         price:m.price,subidaPct:m.subidaPct,tipo,refLow:m.refLow,modo:'squeeze'};
+}
+
+/* ============================================================
+   MODO 2 — BREAKOUT TEMPRANO (NUEVO, sin filtro de funding)
+   Piensa en pumps que arrancan con compradores agresivos desde
+   el minuto uno (funding neutral o positivo desde el arranque,
+   como TUTUSDT) — el modo Squeeze los descarta de entrada por el
+   requisito de funding<0. Este modo busca: compresión ANTES
+   (ADX bajo hace pocas velas) que recién ahora empieza a expandirse,
+   + volumen explosivo en la vela actual, + momentum recién virando,
+   + que el precio todavía se haya movido POCO (2%-12%) — para
+   agarrarlo temprano, no cuando ya es el top 1 del día.
+   ============================================================ */
+const BREAKOUT_ADX_COMPRIMIDO = 20; // ADX antes del arranque, debía estar comprimido
+const BREAKOUT_ADX_MAX_AHORA  = 40; // si ya está por encima, el breakout ya está muy avanzado
+const BREAKOUT_VOL_MULT       = 3;  // volumen de la vela actual vs promedio
+const BREAKOUT_MOV_MIN        = 2;  // % mínimo ya movido (confirma que arrancó)
+const BREAKOUT_MOV_MAX        = 12; // % máximo — más que esto ya no es "temprano"
+
+function analyzeBreakout(symbol, funding, k, m){
+  const kPrior=k.slice(0, k.length-3);
+  if(kPrior.length<30) return null;
+  const adxPrior=cADX(kPrior,14);
+  const comprimidoAntes = adxPrior<=BREAKOUT_ADX_COMPRIMIDO;
+  const rompiendoAhora  = m.adx>adxPrior && m.adx<=BREAKOUT_ADX_MAX_AHORA;
+  const volExplosivo    = m.vRatio>=BREAKOUT_VOL_MULT;
+  const momentumOk      = m.sqz.virando || m.sqz.subiendo;
+  const refPrice = m.cls[m.cls.length-5];
+  const movRecentPct = refPrice>0 ? ((m.price-refPrice)/refPrice*100) : 0;
+  const tempranoOk = movRecentPct>=BREAKOUT_MOV_MIN && movRecentPct<=BREAKOUT_MOV_MAX;
+
+  if(!(comprimidoAntes && rompiendoAhora && volExplosivo && momentumOk && tempranoOk)) return null;
+
+  // Score de confianza informativo (el filtro duro ya pasó arriba; esto solo
+  // gradúa qué tan sólida es la confirmación, no decide si entra o no)
+  let confianza=0;
+  if(m.absData.count>=2) confianza+=2; else if(m.absData.count>=1) confianza+=1;
+  if(m.stochK<40) confianza+=2; else if(m.stochK<60) confianza+=1;
+  if(funding<0) confianza+=1;
+  const tipo = m.whaleBuy ? 'entrada' : 'candidato';
+  if(m.whaleBuy) confianza+=3;
+  return{symbol,funding,adx:m.adx,vRatio:m.vRatio,whaleBuy:m.whaleBuy,stochK:m.stochK,score:confianza,scoreMax:8,
+         price:m.price,subidaPct:movRecentPct,tipo,refLow:m.refLow,modo:'breakout'};
 }
 
 /* ============================================================
@@ -402,6 +457,8 @@ function renderList(){
     const isEntrada=h.tipo==='entrada';
     const isFiltrada=h.tipo==='filtrada';
     const sub=clasificarSubida(h.subidaPct);
+    const scoreMax = h.scoreMax || 13;
+    const modoTxt = h.modo==='breakout' ? '🌱 Breakout' : '🐋 Squeeze';
     let badgeTxt, badgeClass;
     if(isFiltrada){ badgeTxt='⛔ FILTRADA'; badgeClass='badge-filtrada'; }
     else if(!isEntrada){ badgeTxt='⏳ CANDIDATO'; badgeClass='badge-candidato'; }
@@ -415,8 +472,9 @@ function renderList(){
         <span class="card-badge ${badgeClass}">${badgeTxt}</span>
       </div>
       <div class="card-metrics">
+        <span>Modo: <b>${modoTxt}</b></span>
         <span>Precio: <b>${fmtPrice(h.price)}</b></span>
-        <span>Score: <b>${h.score}/13</b></span>
+        <span>Score: <b>${h.score}/${scoreMax}</b></span>
         <span>Funding: <b style="color:var(--danger)">${h.funding.toFixed(4)}%</b></span>
         <span>ADX: <b>${Math.round(h.adx)}</b></span>
         ${h.vol24h?`<span>Vol 24h: <b>$${fmtBig(h.vol24h)}</b></span>`:''}
@@ -503,8 +561,19 @@ async function runScanOnce(){
     let candidatos=0, entradasNuevas=0, filtradasNuevas=0, procesados=0;
     for(let i=0;i<pairs.length;i+=BATCH){
       const batch=pairs.slice(i,i+BATCH);
-      const results=await Promise.all(batch.map(s=>fetchMegaData(s)));
-      for(const d of results){
+      const results=await Promise.all(batch.map(async s=>{
+        const data = await fetchSymbolData(s);
+        if(!data) return [];
+        const m = computeMetrics(data.k);
+        const out = [];
+        const sq = analyzeSqueeze(s, data.funding, m);
+        if(sq) out.push(sq);
+        const bo = analyzeBreakout(s, data.funding, data.k, m);
+        if(bo) out.push(bo);
+        return out;
+      }));
+      for(const arr of results){
+      for(const d of arr){
         if(!d) continue;
         candidatos++;
         if(d.tipo==='entrada' && !yaAlertado(d.symbol)){
@@ -517,6 +586,8 @@ async function runScanOnce(){
           const trendOk = trend ? trend.trendUp : false; // si falla el fetch, no arriesgamos: no confirma
           const rrOk = rr!=null && rr>=MIN_RR;
           const vol24h = volMap[d.symbol];
+          const modoTxt = d.modo==='breakout' ? '🌱 BREAKOUT TEMPRANO' : '🐋 SQUEEZE';
+          const scoreMax = d.scoreMax || 13;
 
           if(trendOk && rrOk){
             const record={...d, techoPrice:techo?techo.techoPrice:null, techoUsd:techo?techo.techoUsd:null, distPct:techo?techo.distPct:null, tpPrice, slPrice, rr, vol24h, resultado:null, resultadoPct:null, ts:Date.now()};
@@ -527,7 +598,7 @@ async function runScanOnce(){
             const sub=clasificarSubida(d.subidaPct);
             sendTelegram(
               `🚀 <b>MEGA PUMP — ENTRADA CONFIRMADA</b>\n\n`+
-              `<b>${d.symbol}USDT</b>\nPrecio: ${fmtPrice(d.price)}\nScore: ${d.score}/13\n`+
+              `<b>${d.symbol}USDT</b> · Modo: ${modoTxt}\nPrecio: ${fmtPrice(d.price)}\nScore: ${d.score}/${scoreMax}\n`+
               `Funding: ${d.funding.toFixed(4)}% · ADX: ${Math.round(d.adx)}\n🐋 Whale BUY confirmado\n`+
               `📈 Tendencia 1h: BULL · R:R ${rr.toFixed(2)} · Vol 24h: $${fmtBig(vol24h)}\n`+
               `${sub.emoji} ${sub.txt}\n`+
@@ -538,7 +609,7 @@ async function runScanOnce(){
             const motivo = !trendOk
               ? 'Tendencia 1h bajista o sin datos (EMA'+TREND_EMA_FAST+'<EMA'+TREND_EMA_SLOW+')'
               : `R:R insuficiente (${rr!=null?rr.toFixed(2):'N/A'} < ${MIN_RR})`;
-            const exists=historial.find(x=>x.symbol===d.symbol&&x.tipo==='filtrada'&&(Date.now()-x.ts)<3*60*60*1000);
+            const exists=historial.find(x=>x.symbol===d.symbol&&x.tipo==='filtrada'&&x.modo===d.modo&&(Date.now()-x.ts)<3*60*60*1000);
             if(!exists){
               historial.unshift({...d, tipo:'filtrada', techoPrice:techo?techo.techoPrice:null, techoUsd:techo?techo.techoUsd:null, distPct:techo?techo.distPct:null, tpPrice, slPrice, rr, vol24h, motivo, ts:Date.now()});
               saveHist();
@@ -546,9 +617,10 @@ async function runScanOnce(){
             }
           }
         }else if(d.tipo!=='entrada'){
-          const exists=historial.find(x=>x.symbol===d.symbol&&(Date.now()-x.ts)<3*60*60*1000);
+          const exists=historial.find(x=>x.symbol===d.symbol&&x.modo===d.modo&&(Date.now()-x.ts)<3*60*60*1000);
           if(!exists){ historial.unshift({...d, ts:Date.now()}); saveHist(); }
         }
+      }
       }
       procesados+=batch.length;
       const pct=Math.round((procesados/pairs.length)*100);
