@@ -100,7 +100,7 @@ body{
       </div>
     </div>
     <div class="body">
-      <div class="hint">Escanea pares USDT-M de Binance Futures con <b style="color:var(--text)">liquidez ≥ $2M</b> de volumen 24h, cada 1 minuto, sobre velas de 15m, con <b>dos modos en paralelo</b>: <b style="color:var(--cyan)">🐋 Squeeze</b> (funding negativo + compresión + absorción — shorts forzados a cubrirse) y <b style="color:var(--gold)">🌱 Breakout temprano</b> (compresión previa que recién rompe + volumen explosivo + movimiento aún chico 2%-12%, sin exigir funding negativo — pensado para pumps que arrancan con compradores agresivos desde el minuto uno, como tokens que el modo Squeeze no puede ver). Cuando cualquiera de los dos confirma <b style="color:var(--cyan)">Whale BUY</b> real, exige además que la <b>tendencia 1h (EMA50/EMA200)</b> no esté en contra y que el <b>Riesgo:Beneficio sea ≥1.2</b> — si no pasa, queda "⛔ FILTRADA" en vez de avisarte. Cooldown por símbolo: no repite mientras haya una entrada sin resolver.</div>
+      <div class="hint">Escanea pares USDT-M de Binance Futures con <b style="color:var(--text)">liquidez ≥ $2M</b> de volumen 24h, cada 1 minuto, con <b>tres modos en paralelo</b>: <b style="color:var(--cyan)">🐋 Squeeze</b> (velas 15m, funding negativo + compresión + absorción), <b style="color:var(--gold)">🌱 Breakout temprano</b> (velas 15m, sin exigir funding negativo, para pumps que arrancan con compradores agresivos desde el minuto uno) y <b style="color:#4da6ff">🔷 CyberPUMP Exacto</b> (velas 4h, misma fórmula y pesos que el indicador de TradingView). Cuando cualquiera de los tres confirma <b style="color:var(--cyan)">Whale BUY</b> real, exige además que la <b>tendencia 1h (EMA50/EMA200)</b> no esté en contra y que el <b>Riesgo:Beneficio sea ≥1.2</b> — si no pasa, queda "⛔ FILTRADA" en vez de avisarte. Cooldown por símbolo: no repite mientras haya una entrada sin resolver.</div>
       <div class="controls">
         <button class="btn" id="toggleBtn" onclick="toggleScan()">▶ INICIAR ESCANEO</button>
         <button class="mini" onclick="runScanOnce()">↺ ESCANEAR AHORA</button>
@@ -120,6 +120,8 @@ body{
         <div class="stat">🐋 SQUEEZE — winrate<b id="statWinrateSq" style="color:var(--text)">—</b></div>
         <div class="stat">🌱 BREAKOUT — resueltas<b id="statResueltasBo">—</b></div>
         <div class="stat">🌱 BREAKOUT — winrate<b id="statWinrateBo" style="color:var(--text)">—</b></div>
+        <div class="stat">🔷 CYBERPUMP — resueltas<b id="statResueltasCp">—</b></div>
+        <div class="stat">🔷 CYBERPUMP — winrate<b id="statWinrateCp" style="color:var(--text)">—</b></div>
       </div>
       <div class="progress-wrap">
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
@@ -290,6 +292,25 @@ async function fetchSymbolData(symbol){
 }
 
 /* ============================================================
+   FETCH EN 4H (para el modo "CyberPUMP Exacto")
+   Mismo timeframe que usa el detector Mega Pump del Pine Script
+   de CyberPUMP en TradingView.
+   ============================================================ */
+async function fetchSymbolData4h(symbol){
+  const pair=symbol+'USDT';
+  try{
+    const[kl,fr]=await Promise.allSettled([
+      fwr('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval=4h&limit=80'),
+      fwr('https://fapi.binance.com/fapi/v1/fundingRate?symbol='+pair+'&limit=1')
+    ]);
+    if(kl.status!=='fulfilled'||!Array.isArray(kl.value)||kl.value.length<30) return null;
+    const k=kl.value;
+    const funding=fr.status==='fulfilled'&&fr.value[0]?parseFloat(fr.value[0].fundingRate)*100:0;
+    return{ k, funding };
+  }catch(e){ return null; }
+}
+
+/* ============================================================
    MÉTRICAS COMUNES (compartidas entre los dos modos de detección)
    ============================================================ */
 function computeMetrics(k){
@@ -390,6 +411,29 @@ function analyzeBreakout(symbol, funding, k, m){
 }
 
 /* ============================================================
+   MODO 3 — CYBERPUMP EXACTO (misma fórmula que el Pine Script)
+   Réplica fiel del detector "Mega Pump" de CyberPUMP en TradingView:
+   velas de 4h, funding negativo obligatorio, mismos pesos y
+   umbrales exactos (0.5/1.0 volumen, 15/25 ADX, 15/25 StochK,
+   1/3 absorción), +3 al confirmar Whale BUY. Score máximo: 15.
+   ============================================================ */
+function analyzeCyberPumpExact(symbol, funding, m){
+  if(funding>=0) return null;
+  let score=0;
+  if(funding<-0.01) score+=2; else score+=1;
+  if(m.vRatio<0.5) score+=2; else if(m.vRatio<1.0) score+=1;
+  if(m.adx<=15) score+=2; else if(m.adx<=25) score+=1;
+  if(m.sqz.virando) score+=2; else if(m.sqz.subiendo||m.sqz.positivo) score+=1;
+  if(m.absData.count>=3) score+=2; else if(m.absData.count>=1) score+=1;
+  if(m.stochK<15) score+=2; else if(m.stochK<25) score+=1;
+  if(score<4) return null;
+  let tipo='candidato';
+  if(m.whaleBuy){ score+=3; tipo='entrada'; }
+  return{symbol,funding,adx:m.adx,vRatio:m.vRatio,whaleBuy:m.whaleBuy,stochK:m.stochK,score,scoreMax:15,
+         price:m.price,subidaPct:m.subidaPct,tipo,refLow:m.refLow,modo:'cyberpump'};
+}
+
+/* ============================================================
    TECHO (pared de venta más densa) — igual lógica que spike.html
    ============================================================ */
 async function calcTecho(symbol, price){
@@ -464,7 +508,7 @@ function renderList(){
     const isFiltrada=h.tipo==='filtrada';
     const sub=clasificarSubida(h.subidaPct);
     const scoreMax = h.scoreMax || 13;
-    const modoTxt = h.modo==='breakout' ? '🌱 Breakout' : '🐋 Squeeze';
+    const modoTxt = h.modo==='breakout' ? '🌱 Breakout' : h.modo==='cyberpump' ? '🔷 CyberPUMP (4h)' : '🐋 Squeeze';
     let badgeTxt, badgeClass;
     if(isFiltrada){ badgeTxt='⛔ FILTRADA'; badgeClass='badge-filtrada'; }
     else if(!isEntrada){ badgeTxt='⏳ CANDIDATO'; badgeClass='badge-candidato'; }
@@ -557,12 +601,20 @@ function calcularWinrate(modoFiltro){
 function actualizarStatsPorModo(){
   const wrSq = calcularWinrate('squeeze');
   const wrBo = calcularWinrate('breakout');
+  const wrCp = calcularWinrate('cyberpump');
   document.getElementById('statResueltasSq').textContent = wrSq.total;
   document.getElementById('statWinrateSq').textContent = wrSq.pct!=null ? wrSq.pct.toFixed(0)+'%' : '—';
   document.getElementById('statWinrateSq').style.color = wrSq.pct==null ? 'var(--text)' : wrSq.pct>=50 ? 'var(--safe)' : 'var(--danger)';
   document.getElementById('statResueltasBo').textContent = wrBo.total;
   document.getElementById('statWinrateBo').textContent = wrBo.pct!=null ? wrBo.pct.toFixed(0)+'%' : '—';
   document.getElementById('statWinrateBo').style.color = wrBo.pct==null ? 'var(--text)' : wrBo.pct>=50 ? 'var(--safe)' : 'var(--danger)';
+  const elResCp = document.getElementById('statResueltasCp');
+  const elWrCp = document.getElementById('statWinrateCp');
+  if(elResCp && elWrCp){
+    elResCp.textContent = wrCp.total;
+    elWrCp.textContent = wrCp.pct!=null ? wrCp.pct.toFixed(0)+'%' : '—';
+    elWrCp.style.color = wrCp.pct==null ? 'var(--text)' : wrCp.pct>=50 ? 'var(--safe)' : 'var(--danger)';
+  }
 }
 
 async function runScanOnce(){
@@ -581,14 +633,21 @@ async function runScanOnce(){
     for(let i=0;i<pairs.length;i+=BATCH){
       const batch=pairs.slice(i,i+BATCH);
       const results=await Promise.all(batch.map(async s=>{
-        const data = await fetchSymbolData(s);
-        if(!data) return [];
-        const m = computeMetrics(data.k);
         const out = [];
-        const sq = analyzeSqueeze(s, data.funding, m);
-        if(sq) out.push(sq);
-        const bo = analyzeBreakout(s, data.funding, data.k, m);
-        if(bo) out.push(bo);
+        const data = await fetchSymbolData(s);
+        if(data){
+          const m = computeMetrics(data.k);
+          const sq = analyzeSqueeze(s, data.funding, m);
+          if(sq) out.push(sq);
+          const bo = analyzeBreakout(s, data.funding, data.k, m);
+          if(bo) out.push(bo);
+        }
+        const data4h = await fetchSymbolData4h(s);
+        if(data4h){
+          const m4h = computeMetrics(data4h.k);
+          const cp = analyzeCyberPumpExact(s, data4h.funding, m4h);
+          if(cp) out.push(cp);
+        }
         return out;
       }));
       for(const arr of results){
@@ -605,7 +664,7 @@ async function runScanOnce(){
           const trendOk = trend ? trend.trendUp : false; // si falla el fetch, no arriesgamos: no confirma
           const rrOk = rr!=null && rr>=MIN_RR;
           const vol24h = volMap[d.symbol];
-          const modoTxt = d.modo==='breakout' ? '🌱 BREAKOUT TEMPRANO' : '🐋 SQUEEZE';
+          const modoTxt = d.modo==='breakout' ? '🌱 BREAKOUT TEMPRANO' : d.modo==='cyberpump' ? '🔷 CYBERPUMP EXACTO (4h)' : '🐋 SQUEEZE';
           const scoreMax = d.scoreMax || 13;
 
           if(trendOk && rrOk){
@@ -701,6 +760,9 @@ function limpiarHistorial(){
   document.getElementById('statResueltasBo').textContent='—';
   document.getElementById('statWinrateBo').textContent='—';
   document.getElementById('statWinrateBo').style.color='var(--text)';
+  document.getElementById('statResueltasCp').textContent='—';
+  document.getElementById('statWinrateCp').textContent='—';
+  document.getElementById('statWinrateCp').style.color='var(--text)';
 }
 
 updateTgIcon();
