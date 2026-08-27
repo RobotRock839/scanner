@@ -36,9 +36,6 @@ body{
 .title{font-size:13px;font-weight:800;letter-spacing:.12em;color:var(--text-dim);}
 .title b{color:var(--cyan);}
 .bar-right{display:flex;align-items:center;gap:14px;}
-.tg-icon{cursor:pointer;font-size:15px;opacity:.6;transition:opacity .15s, transform .15s;}
-.tg-icon:hover{opacity:1;transform:scale(1.15);}
-.tg-icon.configured{opacity:1;filter:drop-shadow(0 0 4px var(--blue-neon-glow));}
 .status{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--text-faint);}
 .status-dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);}
 .status-dot.on{background:var(--safe);box-shadow:0 0 8px var(--safe);animation:pulse 2s infinite;}
@@ -95,7 +92,6 @@ body{
     <div class="bar">
       <div class="title"><b>MEGA_PUMP</b>_SCANNER · TODOS LOS PARES</div>
       <div class="bar-right">
-        <span class="tg-icon" id="tgIcon" onclick="configurarTelegram()" title="Configurar Telegram">📲</span>
         <div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">DETENIDO</span></div>
       </div>
     </div>
@@ -137,38 +133,6 @@ body{
 <script>
 'use strict';
 
-/* ============================================================
-   TELEGRAM
-   ============================================================ */
-const TG_BOT_TOKEN = '8897432895:AAFzZi16HUsO35c0U6NhfiwqyR7ghpotMGk';
-function getTgChatId(){ return localStorage.getItem('spike_tg_chatid') || ''; }
-function setTgChatId(id){ localStorage.setItem('spike_tg_chatid', id); }
-function tgConfigured(){ return !!getTgChatId(); }
-function updateTgIcon(){
-  const icon = document.getElementById('tgIcon');
-  if(tgConfigured()){ icon.classList.add('configured'); icon.title='Telegram conectado (click para cambiar)'; }
-  else{ icon.classList.remove('configured'); icon.title='Configurar Telegram'; }
-}
-function configurarTelegram(){
-  const cur = getTgChatId();
-  const msg = cur ? ('Chat ID actual: '+cur+'\n\nPegá uno nuevo o cancelá.') : 'Pegá tu Chat ID de Telegram.\n\nSi no lo tenés: hablale a @userinfobot, te responde con tu "Id: 123456789".';
-  const id = prompt(msg, cur||'');
-  if(id===null) return;
-  const clean = id.trim();
-  if(!clean){ alert('Vacío, no se guardó.'); return; }
-  setTgChatId(clean); updateTgIcon();
-  sendTelegram('✅ <b>MEGA_PUMP_SCANNER conectado</b>\nTe voy a avisar cuando detecte una entrada confirmada en cualquier par.');
-}
-async function sendTelegram(text){
-  const chatId = getTgChatId();
-  if(!chatId) return;
-  try{
-    await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`,{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({chat_id:chatId, text, parse_mode:'HTML'})
-    });
-  }catch(e){ console.error('Telegram error:', e); }
-}
 
 /* ============================================================
    UTILS
@@ -570,13 +534,11 @@ function evaluarResultados(priceMap){
       h.resultadoPct=((priceNow-h.price)/h.price*100);
       h.resueltoTs=Date.now();
       huboCambios=true;
-      sendTelegram(`✅ <b>TP tocado</b> — ${h.symbol}USDT\nEntrada: ${fmtPrice(h.price)} → Ahora: ${fmtPrice(priceNow)} (+${h.resultadoPct.toFixed(1)}%)`);
     }else if(h.slPrice!=null && priceNow<=h.slPrice){
       h.resultado='SL';
       h.resultadoPct=((priceNow-h.price)/h.price*100);
       h.resueltoTs=Date.now();
       huboCambios=true;
-      sendTelegram(`❌ <b>SL tocado</b> — ${h.symbol}USDT\nEntrada: ${fmtPrice(h.price)} → Ahora: ${fmtPrice(priceNow)} (${h.resultadoPct.toFixed(1)}%)\nCruzó el soporte previo (${fmtPrice(h.slPrice)}).`);
     }else if(edadMs>=RESULT_WINDOW_MS){
       h.resultado='EXPIRADO';
       h.resultadoPct=((priceNow-h.price)/h.price*100);
@@ -664,7 +626,6 @@ async function runScanOnce(){
           const trendOk = trend ? trend.trendUp : false; // si falla el fetch, no arriesgamos: no confirma
           const rrOk = rr!=null && rr>=MIN_RR;
           const vol24h = volMap[d.symbol];
-          const modoTxt = d.modo==='breakout' ? '🌱 BREAKOUT TEMPRANO' : d.modo==='cyberpump' ? '🔷 CYBERPUMP EXACTO (4h)' : '🐋 SQUEEZE';
           const scoreMax = d.scoreMax || 13;
 
           if(trendOk && rrOk){
@@ -672,17 +633,6 @@ async function runScanOnce(){
             historial.unshift(record);
             saveHist();
             entradasNuevas++;
-            const techoTxt = techo ? `\n🎯 Techo estimado: <b>${fmtPrice(techo.techoPrice)}</b> (+${techo.distPct.toFixed(2)}%)\nPared: $${fmtBig(techo.techoUsd)}` : '';
-            const sub=clasificarSubida(d.subidaPct);
-            sendTelegram(
-              `🚀 <b>MEGA PUMP — ENTRADA CONFIRMADA</b>\n\n`+
-              `<b>${d.symbol}USDT</b> · Modo: ${modoTxt}\nPrecio: ${fmtPrice(d.price)}\nScore: ${d.score}/${scoreMax}\n`+
-              `Funding: ${d.funding.toFixed(4)}% · ADX: ${Math.round(d.adx)}\n🐋 Whale BUY confirmado\n`+
-              `📈 Tendencia 1h: BULL · R:R ${rr.toFixed(2)} · Vol 24h: $${fmtBig(vol24h)}\n`+
-              `${sub.emoji} ${sub.txt}\n`+
-              `🎯 TP objetivo: ${fmtPrice(tpPrice)} · 🛑 SL (soporte previo): ${slPrice?fmtPrice(slPrice):'—'}`+
-              techoTxt
-            );
           }else{
             const motivo = !trendOk
               ? 'Tendencia 1h bajista o sin datos (EMA'+TREND_EMA_FAST+'<EMA'+TREND_EMA_SLOW+')'
@@ -765,7 +715,6 @@ function limpiarHistorial(){
   document.getElementById('statWinrateCp').style.color='var(--text)';
 }
 
-updateTgIcon();
 renderList();
 (function mostrarStatsIniciales(){
   const wr=calcularWinrate();
@@ -777,9 +726,6 @@ renderList();
   document.getElementById('statFiltradas').textContent = historial.length ? historial.filter(h=>h.tipo==='filtrada'&&(Date.now()-h.ts)<6*60*60*1000).length : '—';
   if(historial.length) actualizarStatsPorModo();
 })();
-if(!tgConfigured()){
-  setTimeout(()=>{ if(confirm('📲 ¿Configurar Telegram ahora para recibir avisos de mega pumps?')) configurarTelegram(); },600);
-}
 </script>
 </body>
 </html>
