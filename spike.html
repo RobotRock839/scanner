@@ -217,6 +217,92 @@ function detectAbsorcion(klines){
 }
 
 /* ============================================================
+   RÉPLICA FIEL DEL PINE SCRIPT REAL (CyberPUMP) — usadas SOLO
+   por el modo "CyberPUMP Exacto", para no tocar Squeeze/Breakout
+   que tienen su propia lógica independiente.
+   ============================================================ */
+
+// delta_vela de una vela puntual (misma fórmula que el Pine)
+function deltaVela(k, idx){
+  const o=parseFloat(k[idx][1]), c=parseFloat(k[idx][4]), v=parseFloat(k[idx][5]);
+  return c>o ? v : c<o ? -v : 0;
+}
+function sumRange(getVal, endIdx, count){
+  let s=0;
+  for(let j=0;j<count;j++){ const idx=endIdx-j; if(idx<0) break; s+=getVal(idx); }
+  return s;
+}
+function avgRange(getVal, endIdx, count){
+  let s=0,c=0;
+  for(let j=0;j<count;j++){ const idx=endIdx-j; if(idx<0) break; s+=getVal(idx); c++; }
+  return c>0 ? s/c : 0;
+}
+
+// absorcion_cvd EXACTA del Pine, evaluada en la barra "idx":
+// cvd_rec_abs = sum(delta,5) actual · cvd_prev_abs = sum(delta,5) hace 5 velas
+// pr_sube_abs = close > close[5]*1.005 · cvd_cae_abs = prev>0 y rec<prev*0.8
+function absorcionCvdAt(k, idx){
+  if(idx-9<0) return false;
+  const cvdRec  = sumRange(i=>deltaVela(k,i), idx, 5);
+  const cvdPrev = sumRange(i=>deltaVela(k,i), idx-5, 5);
+  const closeNow  = parseFloat(k[idx][4]);
+  const closeBack = parseFloat(k[idx-5][4]);
+  const prSube = closeNow > closeBack*1.005;
+  const cvdCae = cvdPrev>0 && cvdRec < cvdPrev*0.8;
+  return prSube && cvdCae;
+}
+
+// abs_consec_cnt EXACTO: cuenta velas consecutivas (desde la actual hacia
+// atrás) con absorcion_cvd=true, se detiene en la primera que no cumple.
+function computeAbsConsecCountPine(k){
+  const lastIdx = k.length-1;
+  let count=0;
+  for(let i=0;i<=9;i++){
+    const idx=lastIdx-i;
+    if(idx<0) break;
+    if(absorcionCvdAt(k, idx)) count++;
+    else break;
+  }
+  return count;
+}
+
+// whale_buy / whale_bull_rec EXACTOS del Pine — SIN el veto extra que
+// tenía la versión anterior de este scanner (vRatio>1.8 + forma de vela),
+// ese filtro no existe en tu Pine Script real.
+function computeWhaleBuyPine(k, whaleMult=2.0, whaleLookback=4){
+  const n=k.length;
+  if(n<30) return false;
+  const vol=k.map(x=>parseFloat(x[5]));
+  const open=k.map(x=>parseFloat(x[1]));
+  const high=k.map(x=>parseFloat(x[2]));
+  const close=k.map(x=>parseFloat(x[4]));
+  const delta=k.map((x,i)=> close[i]>open[i] ? vol[i] : close[i]<open[i] ? -vol[i] : 0);
+
+  const lastIdx=n-1;
+  for(let off=0; off<whaleLookback; off++){
+    const idx=lastIdx-off;
+    if(idx-24<0) continue; // necesita vol_sma(20) + cvd_ventana(20) + cvd_sma(5) + comparación previa
+    const volSma = avgRange(i=>vol[i], idx, 20);
+    const volRatio = volSma>0 ? vol[idx]/volSma : 1;
+    const mechaSup = high[idx] - Math.max(open[idx], close[idx]);
+    const cuerpo = Math.abs(close[idx]-open[idx]) + 1e-9;
+    const whaleBullNow = volRatio>=whaleMult && close[idx]>open[idx];
+    const absorcionVenta = mechaSup > cuerpo*1.5 && whaleBullNow;
+
+    const cvdVentana     = sumRange(i=>delta[i], idx, 20);
+    const cvdVentanaPrev = sumRange(i=>delta[i], idx-1, 20);
+    const cvdVals = [0,1,2,3,4].map(off2 => sumRange(i=>delta[i], idx-off2, 20));
+    const cvdSma  = cvdVals.reduce((a,b)=>a+b,0)/cvdVals.length;
+    const cvdSube = cvdVentana>cvdVentanaPrev && cvdVentana>cvdSma;
+
+    const whaleBuy = whaleBullNow && cvdSube && !absorcionVenta;
+    if(whaleBuy) return true; // equivalente a whale_bull_rec: alguna en el lookback
+  }
+  return false;
+}
+
+
+/* ============================================================
    FILTRO DE TENDENCIA MAYOR (1h, EMA50 vs EMA200)
    Evita confirmar "entrada" si la estructura de fondo del token
    ya giró en contra del pump — el mismo espíritu del filtro
@@ -377,25 +463,28 @@ function analyzeBreakout(symbol, funding, k, m){
 }
 
 /* ============================================================
-   MODO 3 — CYBERPUMP EXACTO (misma fórmula que el Pine Script)
-   Réplica fiel del detector "Mega Pump" de CyberPUMP en TradingView:
-   velas de 4h, funding negativo obligatorio, mismos pesos y
-   umbrales exactos (0.5/1.0 volumen, 15/25 ADX, 15/25 StochK,
-   1/3 absorción), +3 al confirmar Whale BUY. Score máximo: 15.
+   MODO 3 — CYBERPUMP EXACTO (misma fórmula que el Pine Script real)
+   Réplica fiel del detector "Mega Pump / Spring Detector" de tu
+   CyberPUMP en TradingView: velas de 4h, funding negativo obligatorio,
+   mismos pesos y umbrales exactos (0.5/1.0 volumen, 15/25 ADX, 15/25
+   StochK, 1/3 absorción), +3 al confirmar Whale BUY. Score máximo: 15.
+   La absorción usa abs_consec_cnt (velas consecutivas con absorcion_cvd
+   real) y el Whale BUY usa whale_buy/whale_bull_rec SIN veto extra —
+   ambos calculados aparte, fieles línea por línea a tu Pine Script.
    ============================================================ */
-function analyzeCyberPumpExact(symbol, funding, m){
+function analyzeCyberPumpExact(symbol, funding, m, absConsecCnt, whaleBuyPine){
   if(funding>=0) return null;
   let score=0;
   if(funding<-0.01) score+=2; else score+=1;
   if(m.vRatio<0.5) score+=2; else if(m.vRatio<1.0) score+=1;
   if(m.adx<=15) score+=2; else if(m.adx<=25) score+=1;
   if(m.sqz.virando) score+=2; else if(m.sqz.subiendo||m.sqz.positivo) score+=1;
-  if(m.absData.count>=3) score+=2; else if(m.absData.count>=1) score+=1;
+  if(absConsecCnt>=3) score+=2; else if(absConsecCnt>=1) score+=1;
   if(m.stochK<15) score+=2; else if(m.stochK<25) score+=1;
   if(score<4) return null;
   let tipo='candidato';
-  if(m.whaleBuy){ score+=3; tipo='entrada'; }
-  return{symbol,funding,adx:m.adx,vRatio:m.vRatio,whaleBuy:m.whaleBuy,stochK:m.stochK,score,scoreMax:15,
+  if(whaleBuyPine){ score+=3; tipo='entrada'; }
+  return{symbol,funding,adx:m.adx,vRatio:m.vRatio,whaleBuy:whaleBuyPine,stochK:m.stochK,score,scoreMax:15,
          price:m.price,subidaPct:m.subidaPct,tipo,refLow:m.refLow,modo:'cyberpump'};
 }
 
@@ -609,7 +698,9 @@ async function runScanOnce(){
         const data4h = await fetchSymbolData4h(s);
         if(data4h){
           const m4h = computeMetrics(data4h.k);
-          const cp = analyzeCyberPumpExact(s, data4h.funding, m4h);
+          const absConsecCnt4h = computeAbsConsecCountPine(data4h.k);
+          const whaleBuyPine4h = computeWhaleBuyPine(data4h.k);
+          const cp = analyzeCyberPumpExact(s, data4h.funding, m4h, absConsecCnt4h, whaleBuyPine4h);
           if(cp) out.push(cp);
         }
         return out;
