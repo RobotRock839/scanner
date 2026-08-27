@@ -101,6 +101,8 @@ body{
         <button class="btn" id="toggleBtn" onclick="toggleScan()">▶ INICIAR ESCANEO</button>
         <button class="mini" onclick="runScanOnce()">↺ ESCANEAR AHORA</button>
         <button class="mini" onclick="limpiarHistorial()">🗑 LIMPIAR HISTORIAL</button>
+        <button class="mini" onclick="exportarHistorial()">⬇ EXPORTAR HISTORIAL (JSON)</button>
+        <button class="mini" onclick="exportarHistorialCSV()">⬇ EXPORTAR HISTORIAL (CSV)</button>
       </div>
       <div class="stats-row">
         <div class="stat">PARES ESCANEADOS<b id="statPares">—</b></div>
@@ -693,6 +695,51 @@ function toggleScan(){
     runScanOnce();
     loopTimer=setInterval(runScanOnce, SCAN_INTERVAL_MS);
   }
+}
+
+/* ============================================================
+   EXPORTAR HISTORIAL (para backtesting posterior)
+   ============================================================ */
+function descargarArchivo(contenido, nombreArchivo, tipoMime){
+  const blob = new Blob([contenido], {type: tipoMime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nombreArchivo;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function fechaParaNombre(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+}
+
+function exportarHistorial(){
+  if(!historial.length){ alert('El historial está vacío, todavía no hay nada para exportar.'); return; }
+  const contenido = JSON.stringify(historial, null, 2);
+  descargarArchivo(contenido, `mega_pump_historial_${fechaParaNombre()}.json`, 'application/json');
+}
+
+function exportarHistorialCSV(){
+  if(!historial.length){ alert('El historial está vacío, todavía no hay nada para exportar.'); return; }
+  const cols = ['ts','fecha','symbol','modo','tipo','score','scoreMax','funding','adx','vRatio','stochK','whaleBuy',
+                'price','subidaPct','refLow','tpPrice','slPrice','rr','vol24h','techoPrice','techoUsd','distPct',
+                'motivo','resultado','resultadoPct','resueltoTs'];
+  const esc = v => {
+    if(v===undefined||v===null) return '';
+    const s = String(v).replace(/"/g,'""');
+    return /[",\n]/.test(s) ? `"${s}"` : s;
+  };
+  const filas = historial.map(h => cols.map(c => {
+    if(c==='fecha') return esc(new Date(h.ts).toLocaleString('es-AR'));
+    return esc(h[c]);
+  }).join(','));
+  const csv = cols.join(',') + '\n' + filas.join('\n');
+  descargarArchivo('\uFEFF'+csv, `mega_pump_historial_${fechaParaNombre()}.csv`, 'text/csv;charset=utf-8');
 }
 
 function limpiarHistorial(){
