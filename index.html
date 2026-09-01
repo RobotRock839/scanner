@@ -1676,23 +1676,40 @@ function computeWhaleBuyPine(k, whaleMult=2.0, whaleLookback=4){
   }
   return false;
 }
-function cEMA(cls, period){
-  if(!cls||cls.length<period) return null;
-  const k=2/(period+1);
-  let ema=cls.slice(0,period).reduce((a,b)=>a+b,0)/period;
-  for(let i=period;i<cls.length;i++){ ema=cls[i]*k+ema*(1-k); }
-  return ema;
-}
-const MEGA_TREND_EMA_FAST = 50;
-const MEGA_TREND_EMA_SLOW = 200;
-async function checkTrendMega(symbol){
+// --- Filtro AMD (Accumulation-Manipulation-Distribution) ---
+// Reemplaza al viejo cruce EMA50/200 (demasiado lento: pedía ~8+ dias de regimen
+// confirmado y bloqueaba vueltas recientes tipo M->D). Ahora el gatillo es:
+//   1) Manipulation: una vela reciente barre (mecha) el swing low de referencia
+//      pero cierra de nuevo por encima (liquidity sweep / stop hunt).
+//   2) Distribution: despues del barrido, un cierre rompe el swing high previo
+//      (CHoCH alcista = arranco el movimiento real).
+// Si todavia no hubo barrido -> sigue en Accumulation (muy temprano).
+// Si hubo barrido pero no CHoCH -> esta en Manipulation (todavia no confirma).
+const MEGA_AMD_LOOKBACK = 40;       // velas 1h para el swing de referencia
+const MEGA_AMD_TRIGGER_WINDOW = 4;  // ultimas N velas donde debe aparecer el barrido+CHoCH
+async function checkAMDMega(symbol){
   try{
-    const kl=await fwr('https://fapi.binance.com/fapi/v1/klines?symbol='+symbol+'USDT&interval=1h&limit='+(MEGA_TREND_EMA_SLOW+30));
-    if(!Array.isArray(kl)||kl.length<MEGA_TREND_EMA_SLOW+5) return null;
-    const cls=kl.map(x=>parseFloat(x[4]));
-    const emaFast=cEMA(cls,MEGA_TREND_EMA_FAST), emaSlow=cEMA(cls,MEGA_TREND_EMA_SLOW);
-    if(emaFast==null||emaSlow==null) return null;
-    return{ trendUp: emaFast>emaSlow };
+    const kl=await fwr('https://fapi.binance.com/fapi/v1/klines?symbol='+symbol+'USDT&interval=1h&limit='+(MEGA_AMD_LOOKBACK+MEGA_AMD_TRIGGER_WINDOW+10));
+    if(!Array.isArray(kl)||kl.length<MEGA_AMD_LOOKBACK+MEGA_AMD_TRIGGER_WINDOW) return null;
+    const highs=kl.map(x=>parseFloat(x[2])), lows=kl.map(x=>parseFloat(x[3])), closes=kl.map(x=>parseFloat(x[4]));
+    const n=kl.length;
+    const winStart=n-MEGA_AMD_TRIGGER_WINDOW;
+    const lookStart=Math.max(0,winStart-MEGA_AMD_LOOKBACK);
+    // Swing low de referencia (zona de Acumulacion), fuera de la ventana de disparo
+    let swingLowIdx=lookStart;
+    for(let i=lookStart;i<winStart;i++){ if(lows[i]<lows[swingLowIdx]) swingLowIdx=i; }
+    const swingLow=lows[swingLowIdx];
+    // Swing high de referencia: el ultimo techo entre ese minimo y la ventana de disparo
+    let swingHigh=-Infinity;
+    for(let i=swingLowIdx;i<winStart;i++){ if(highs[i]>swingHigh) swingHigh=highs[i]; }
+    if(swingHigh===-Infinity) return null;
+    // Manipulation: mecha perfora el swingLow pero el cierre queda por encima (barrido de liquidez)
+    let sweep=false, sweepIdx=-1;
+    for(let i=winStart;i<n;i++){ if(lows[i]<swingLow && closes[i]>swingLow){ sweep=true; sweepIdx=i; break; } }
+    // Distribution: despues del barrido, un cierre rompe el swingHigh (CHoCH alcista)
+    let chochUp=false;
+    if(sweep){ for(let i=sweepIdx;i<n;i++){ if(closes[i]>swingHigh){ chochUp=true; break; } } }
+    return{ sweep, chochUp, swingLow, swingHigh, amdOk: sweep && chochUp };
   }catch(e){ return null; }
 }
 async function calcTechoMega(symbol, price){
@@ -1835,7 +1852,7 @@ function renderMegaCards(candidatos){
   if(megaTabActual==='entrada') filtrados=candidatos.filter(d=>d.tipo==='entrada');
   else if(megaTabActual==='filtrada') filtrados=candidatos.filter(d=>d.tipo==='filtrada');
   else filtrados=candidatos.filter(d=>d.tipo!=='entrada'&&d.tipo!=='filtrada');
-  if(!filtrados.length){ list.innerHTML=`<div class="mega-empty">${megaTabActual==='entrada'?'Sin entradas confirmadas todavía':megaTabActual==='filtrada'?'Sin señales filtradas por tendencia/R:R':'Sin candidatos con funding negativo ahora'}</div>`; return; }
+  if(!filtrados.length){ list.innerHTML=`<div class="mega-empty">${megaTabActual==='entrada'?'Sin entradas confirmadas todavía':megaTabActual==='filtrada'?'Sin señales filtradas por AMD/R:R':'Sin candidatos con funding negativo ahora'}</div>`; return; }
   list.innerHTML=filtrados.map((d,i)=>renderMegaCard(d,i)).join('');
 }
 function renderMegaHistorial(){
@@ -1885,15 +1902,17 @@ async function runMega(){
           const tpPrice = techo && techo.techoPrice ? Math.min(techo.techoPrice, tpFixedPrice) : tpFixedPrice;
           const slPrice = d.refLow || null;
           const rr = (slPrice!=null && d.price>slPrice) ? (tpPrice-d.price)/(d.price-slPrice) : null;
-          const trend = await checkTrendMega(d.symbol);
-          const trendOk = trend ? trend.trendUp : false;
+          const amd = await checkAMDMega(d.symbol);
+          const trendOk = amd ? amd.amdOk : false;
           const rrOk = rr!=null && rr>=MEGA_MIN_RR;
           if(trendOk && rrOk){
-            candidatos.push({...d, tpPrice, slPrice, rr, techoPrice:techo?techo.techoPrice:null});
+            candidatos.push({...d, tpPrice, slPrice, rr, techoPrice:techo?techo.techoPrice:null, amdSweep:amd.sweep, amdChoch:amd.chochUp});
             megaHistorial.unshift({...d, tpPrice, slPrice, rr, resultado:null, resultadoPct:null, ts:Date.now()});
             saveMegaHist();
           }else{
-            const motivo = !trendOk ? 'Tendencia 1h bajista (EMA'+MEGA_TREND_EMA_FAST+'<EMA'+MEGA_TREND_EMA_SLOW+')' : `R:R insuficiente (${rr!=null?rr.toFixed(2):'N/A'} < ${MEGA_MIN_RR})`;
+            const motivo = !trendOk
+              ? (amd && amd.sweep ? 'AMD: barrido de liquidez sin CHoCH (Manipulation sin confirmar)' : 'AMD: sin barrido de liquidez 1h (todavía en Accumulation)')
+              : `R:R insuficiente (${rr!=null?rr.toFixed(2):'N/A'} < ${MEGA_MIN_RR})`;
             candidatos.push({...d, tipo:'filtrada', motivo});
           }
         }else{
@@ -1933,7 +1952,7 @@ async function runMega(){
     const nuevasEntradas=candidatos.filter(d=>d.tipo==='entrada');
     if(nuevasEntradas.length>0){
       const syms=nuevasEntradas.map(d=>d.symbol);
-      addAlert('mega-entrada','MEGA PUMP',syms.slice(0,3).join(' · ')+' · Whale BUY confirmado · tendencia OK · R:R≥'+MEGA_MIN_RR,null);
+      addAlert('mega-entrada','MEGA PUMP',syms.slice(0,3).join(' · ')+' · Whale BUY confirmado · AMD (sweep+CHoCH) OK · R:R≥'+MEGA_MIN_RR,null);
       if('Notification'in window&&Notification.permission==='granted') new Notification('🚀 MEGA PUMP — ENTRADA',{body:syms.slice(0,3).join(', '),silent:false});
     }
   }catch(e){ if(list) list.innerHTML='<div class="mega-empty">Error: '+e.message+'</div>'; }
