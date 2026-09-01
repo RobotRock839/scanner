@@ -1760,13 +1760,19 @@ async function fetchMegaData(symbol){
     if(absConsecCnt>=3) score+=2; else if(absConsecCnt>=1) score+=1;
     if(stochK<15) score+=2; else if(stochK<25) score+=1;
     if(stochK<20&&vRatio<0.5) tipo='spring'; else if(absConsecCnt>=2) tipo='absorcion';
+    // Proxy de "Manipulation" alternativo al barrido clásico: compresión silenciosa
+    // (spring) o absorción de CVD repetida. En microcaps de poca liquidez el precio
+    // muchas veces no vuelve a barrer un mínimo con mecha (no hay stops suficientes
+    // para cazar) — en cambio comprime y rompe directo. Confirmado con USELESS/STAR/ARB:
+    // los 3 mejores movers del día pasaron por spring/absorción, ninguno mostró sweep.
+    const springOrAbsorcion = (stochK<20&&vRatio<0.5) || absConsecCnt>=2;
     if(score<4) return null;
     const whaleBuy=computeWhaleBuyPine(k);
     if(whaleBuy){ score+=3; tipo='entrada'; }
     const refWindow=cls.slice(-30,-4);
     const refLow=refWindow.length?Math.min(...refWindow):cls[Math.max(0,cls.length-5)];
     const price=cls[cls.length-1];
-    return{symbol,funding,adx,vRatio,whaleBuy,absorcionCnt:absConsecCnt,stochK,sqzVirando:sqz.virando,sqzSubiendo:sqz.subiendo,score,scoreMax:15,price,tipo,refLow};
+    return{symbol,funding,adx,vRatio,whaleBuy,absorcionCnt:absConsecCnt,stochK,sqzVirando:sqz.virando,sqzSubiendo:sqz.subiendo,springOrAbsorcion,score,scoreMax:15,price,tipo,refLow};
   }catch(e){ return null; }
 }
 function saveMegaHist(){ lsSet(K.megaHist,megaHistorial); }
@@ -1822,7 +1828,7 @@ function renderMegaCard(d,idx){
   const sqzH=d.sqzVirando?'<span style="font-size:9px;color:var(--green);font-family:\'Barlow Condensed\',sans-serif;font-weight:700">🌀 SQZ VIRANDO ▲</span>':d.sqzSubiendo?'<span style="font-size:9px;color:var(--green);opacity:.7;font-family:\'Barlow Condensed\',sans-serif;font-weight:700">🌀 SQZ SUBIENDO</span>':'';
   const absH=d.absorcionCnt>0?`<span style="font-size:9px;color:var(--magenta);font-family:'Barlow Condensed',sans-serif;font-weight:700">🔄 ABSORC. x${d.absorcionCnt}</span>`:'';
   const motivoH=isFiltrada&&d.motivo?`<div style="font-size:9px;color:var(--yellow);font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-top:4px">⛔ ${d.motivo}</div>`:'';
-  const tpslH=(d.tipo==='entrada'&&d.tpPrice)?`<div style="font-size:9px;color:var(--text2);font-family:'Barlow Condensed',sans-serif;margin-top:4px">🎯 TP: ${fmtP(d.tpPrice)} · 🛑 SL: ${d.slPrice?fmtP(d.slPrice):'—'} · R:R ${d.rr?d.rr.toFixed(2):'—'}</div>`:'';
+  const tpslH=(d.tipo==='entrada'&&d.tpPrice)?`<div style="font-size:9px;color:var(--text2);font-family:'Barlow Condensed',sans-serif;margin-top:4px">🎯 TP: ${fmtP(d.tpPrice)} · 🛑 SL: ${d.slPrice?fmtP(d.slPrice):'—'} · R:R ${d.rr?d.rr.toFixed(2):'—'}${d.amdVia?' · 🌊 AMD vía '+(d.amdVia==='sweep+choch'?'sweep+CHoCH':'spring+SqzMom'):''}</div>`:'';
   return`<div class="mega-card tipo-${d.tipo}" style="animation-delay:${idx*0.05}s;border-left-color:${nc}">
     <div style="min-width:110px">
       <div class="mega-sym">${d.symbol}</div>
@@ -1903,16 +1909,28 @@ async function runMega(){
           const slPrice = d.refLow || null;
           const rr = (slPrice!=null && d.price>slPrice) ? (tpPrice-d.price)/(d.price-slPrice) : null;
           const amd = await checkAMDMega(d.symbol);
-          const trendOk = amd ? amd.amdOk : false;
+          const amdStrict = amd ? amd.amdOk : false;
+          // Camino alternativo de Manipulation+Distribution para microcaps que no
+          // barren un mínimo con mecha: si viene de spring/absorción (compresión +
+          // absorción de CVD, ya detectados) y el SqzMom recién "viró" a positivo
+          // (giro de momentum = proxy de CHoCH), se acepta como confirmado también.
+          const altPath = !!(d.springOrAbsorcion && d.sqzVirando);
+          const trendOk = amdStrict || altPath;
           const rrOk = rr!=null && rr>=MEGA_MIN_RR;
           if(trendOk && rrOk){
-            candidatos.push({...d, tpPrice, slPrice, rr, techoPrice:techo?techo.techoPrice:null, amdSweep:amd.sweep, amdChoch:amd.chochUp});
-            megaHistorial.unshift({...d, tpPrice, slPrice, rr, resultado:null, resultadoPct:null, ts:Date.now()});
+            const amdVia = amdStrict ? 'sweep+choch' : 'spring+sqz';
+            candidatos.push({...d, tpPrice, slPrice, rr, techoPrice:techo?techo.techoPrice:null, amdSweep:amd?amd.sweep:false, amdChoch:amd?amd.chochUp:false, amdVia});
+            megaHistorial.unshift({...d, tpPrice, slPrice, rr, resultado:null, resultadoPct:null, ts:Date.now(), amdVia});
             saveMegaHist();
           }else{
-            const motivo = !trendOk
-              ? (amd && amd.sweep ? 'AMD: barrido de liquidez sin CHoCH (Manipulation sin confirmar)' : 'AMD: sin barrido de liquidez 1h (todavía en Accumulation)')
-              : `R:R insuficiente (${rr!=null?rr.toFixed(2):'N/A'} < ${MEGA_MIN_RR})`;
+            let motivo;
+            if(!trendOk){
+              if(amd && amd.sweep && !amd.chochUp) motivo = 'AMD: barrido sin CHoCH y sin compresión/absorción con giro (Manipulation sin confirmar)';
+              else if(d.springOrAbsorcion && !d.sqzVirando) motivo = 'AMD: compresión/absorción sin giro de momentum (Manipulation sin confirmar D)';
+              else motivo = 'AMD: sin barrido de liquidez 1h ni compresión/absorción (todavía en Accumulation)';
+            }else{
+              motivo = `R:R insuficiente (${rr!=null?rr.toFixed(2):'N/A'} < ${MEGA_MIN_RR})`;
+            }
             candidatos.push({...d, tipo:'filtrada', motivo});
           }
         }else{
