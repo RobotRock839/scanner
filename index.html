@@ -526,7 +526,7 @@ td.r{text-align:right;}
       <button class="mega-tab" id="mega-tab-historial" onclick="setMegaTab('historial')">📋 HISTORIAL</button>
     </div>
     <div class="mega-list" id="mega-list"><div class="mega-empty"><span class="spinner"></span>Escaneando todos los pares...</div></div>
-    <div style="font-size:10px;color:var(--text3);padding:10px 0;border-top:1px solid var(--border);margin-top:8px">Última actualización: <span id="mega-last-update">—</span></div>
+    <div style="font-size:10px;color:var(--text3);padding:10px 0;border-top:1px solid var(--border);margin-top:8px">Última actualización: <span id="mega-last-update">—</span> · <span id="mega-json-ts" style="color:var(--text3)"></span></div>
   </div>
 </div>
 <!-- ══════════ DIARIO ══════════ -->
@@ -1803,6 +1803,28 @@ function calcularWinrateMega(){
   const total=resueltas.length;
   return{ total, wins, pct: total>0 ? (wins/total*100) : null };
 }
+// ══════════════════════════════════════════════════
+// PRECARGA MEGA PUMP DESDE mega-resultados.json
+// (generado por run-mega.mjs vía GitHub Actions cada 15 min — ver
+// .github/workflows/mega-screener.yml). Solo pinta al instante lo último
+// que ya calculó la corrida automática mientras se abre el tab; en ningún
+// momento reemplaza ni interfiere con runMega() / el botón ↺ NOW, que
+// siguen escaneando en vivo exactamente igual que antes.
+// ══════════════════════════════════════════════════
+async function preloadMegaFromJson(){
+  try{
+    const r = await fetch('mega-resultados.json?t=' + Date.now(), { cache: 'no-store' });
+    if(!r.ok) return;
+    const j = await r.json();
+    if(megaUltimaData) return; // ya hay datos (runMega ya corrió/está corriendo), no pisar
+    const combinado = [...(j.entradas||[]), ...(j.filtradas||[]), ...(j.otros||[])];
+    if(!combinado.length) return;
+    megaUltimaData = combinado;
+    if(megaTabActual!=='historial') renderMegaCards(megaUltimaData);
+    const ts=document.getElementById('mega-json-ts');
+    if(ts) ts.textContent = 'Última corrida automática: ' + new Date(j.generadoEn).toLocaleString('es-AR');
+  }catch(e){ /* sin mega-resultados.json todavía (primera corrida del workflow) o red no disponible: no pasa nada, runMega() sigue funcionando igual */ }
+}
 function setMegaTab(tab){
   megaTabActual=tab;
   ['entrada','candidato','filtrada','historial'].forEach(t=>{ const el=document.getElementById('mega-tab-'+t); if(el){ el.className='mega-tab'; if(t===tab) el.classList.add('active-'+t); } });
@@ -2138,6 +2160,7 @@ initTags();
 connectLiqWS();
 if('Notification'in window&&Notification.permission==='default') Notification.requestPermission();
 setTimeout(()=>{ runScan(); setRefresh(); },400);
+preloadMegaFromJson();
 </script>
 </body>
 </html>
