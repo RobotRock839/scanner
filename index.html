@@ -601,6 +601,21 @@ let scanning=false, refreshInterval=null;
 let raceMode='all', raceData=[], prevRacePos={}, prevNiveles={};
 let raceCdTimer=null, raceCdSecs=30, raceRunning=false, raceInit=false, raceExtraMap={};
 let megaInit=false, megaRunning=false, megaCdTimer=null, megaCdSecs=300, megaTabActual='entrada';
+// ══════════════════════════════════════════════════
+// AVISO POR WHATSAPP (CallMeBot) CUANDO HAY ENTRADA NUEVA CONFIRMADA
+// Completá estas dos líneas con tus datos de callmebot.com/whatsapp y listo.
+// Dejalas vacías ('') si todavía no activaste el bot — el resto del scanner
+// funciona igual, simplemente no manda avisos.
+// ══════════════════════════════════════════════════
+const WA_PHONE  = ''; // tu número con código de país, sin +, sin espacios. Ej: '5491122334455'
+const WA_APIKEY = ''; // el APIKEY que te contestó el bot de WhatsApp
+async function sendWhatsAppAlert(msg){
+  if(!WA_PHONE || !WA_APIKEY) return;
+  try{
+    const url = 'https://api.callmebot.com/whatsapp.php?phone='+encodeURIComponent(WA_PHONE)+'&text='+encodeURIComponent(msg)+'&apikey='+encodeURIComponent(WA_APIKEY);
+    await fetch(url);
+  }catch(e){ console.warn('Aviso de WhatsApp falló (no afecta al scanner):', e); }
+}
 let megaUltimaData=null, megaHistorial=lsGet(K.megaHist,[]);
 let diarioRows=lsGet(K.diario,[]);
 let alertHist=[], prevSS={}, prevAgotados=new Set(), prevClimaxSet=new Set();
@@ -1944,6 +1959,7 @@ async function runMega(){
             candidatos.push({...d, tpPrice, slPrice, rr, techoPrice:techo?techo.techoPrice:null, amdSweep:amd?amd.sweep:false, amdChoch:amd?amd.chochUp:false, amdVia});
             megaHistorial.unshift({...d, tpPrice, slPrice, rr, resultado:null, resultadoPct:null, ts:Date.now(), amdVia});
             saveMegaHist();
+            sendWhatsAppAlert('🚀 MEGA PUMP ENTRADA: '+d.symbol+'\nPrecio: '+fmtP(d.price)+'\nScore: '+d.score+'/'+d.scoreMax+'\nTP: '+fmtP(tpPrice)+' · SL: '+(slPrice?fmtP(slPrice):'—')+' · R:R '+rr.toFixed(2)+'\nAMD vía: '+(amdStrict?'sweep+CHoCH':'spring+SqzMom'));
           }else{
             let motivo;
             if(!trendOk){
