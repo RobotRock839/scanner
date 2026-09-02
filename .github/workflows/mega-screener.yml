@@ -1,1 +1,41 @@
+name: Mega Pump screener
 
+# Corre run-mega.mjs cada 15 min y commitea mega-resultados.json si cambió.
+# No toca index.html/spike.html ni ningún otro archivo del repo.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {} # permite correrlo a mano desde la pestaña Actions
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mega-screener
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Correr screener
+        run: node run-mega.mjs
+
+      - name: Commitear resultado si cambió
+        run: |
+          git config user.name "mega-screener-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if ! git diff --quiet -- mega-resultados.json; then
+            git add mega-resultados.json
+            git commit -m "Actualiza mega-resultados.json [skip ci]"
+            git push
+          else
+            echo "Sin cambios en mega-resultados.json, no hay nada que commitear."
+          fi
