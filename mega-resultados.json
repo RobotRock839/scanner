@@ -1,0 +1,9 @@
+{
+  "generadoEn": null,
+  "tomoMs": null,
+  "totalPares": null,
+  "entradas": [],
+  "filtradas": [],
+  "otros": [],
+  "nota": "Placeholder inicial. Lo reemplaza automáticamente la primera corrida de .github/workflows/mega-screener.yml (o workflow_dispatch manual)."
+}
