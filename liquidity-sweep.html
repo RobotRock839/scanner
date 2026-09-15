@@ -1,706 +1,402 @@
-// ══════════════════════════════════════════════════════════════
-// LIQUIDITY SWEEP — LONG (Pablo)
-// v1 — armado a partir de apuntes de papel + tips de chat.
-//
-// LÓGICA CENTRAL:
-//  1. Tendencia: precio sobre EMA50 = sesgo alcista.
-//  2. Niveles importantes: pivots del gráfico de referencia (Diario
-//     por defecto) usando CIERRE (no mecha), con filtro de
-//     significancia (ignora ruido chico entre picos grandes).
-//  3. Zona de liquidación: proxy de heatmap por correspondencia de
-//     timeframes (Semanal↔Mensual, Diario↔Semanal, 4H↔3 días).
-//  4. Manipulación: el precio tiene que BARRER (mecha atraviesa,
-//     cierre vuelve adentro) un nivel importante antes de habilitar
-//     la entrada. Sin barrido confirmado, no se opera la señal.
-//  5. SQZ (Squeeze Momentum) en área verde/rojo: valle rojo con
-//     degradado — rojo claro = recién arrancó (puede seguir
-//     cayendo), rojo oscuro = ya se agotó gran parte del impulso
-//     vendedor (poco tiempo para seguir cayendo). Divergencia
-//     alcista: mínimos del valle cada vez más altos (2+ valles)
-//     mientras el precio hace mínimos cada vez más bajos.
-//  6. Estocástico 14/3/3: complemento, no gatillo. 80/20 sobrecompra/
-//     sobreventa, zona 20-80 = no operar. Divergencia como refuerzo.
-//  7. Imbalance (FVG): hueco de 3 velas, relleno medido con MECHA
-//     (no cierre), % de relleno en vivo. 100% = reequilibrado.
-//     Si queda mucho tiempo sin rellenar del todo = liquidez sin
-//     consolidar.
-//  8. Invalidación por tiempo: cuenta velas desde el último cambio
-//     de color del SQZ. Si supera la ventana esperada del timeframe
-//     (1W:10-15, 1D:10-15, 4H:48-52, 1H:10-15) sin resolverse, la
-//     lectura se invalida.
-//  9. Tarjeta MEGA PUMP: incluida pero 100% independiente, se
-//     prende/apaga con un check, no interfiere con nada de arriba.
-// ══════════════════════════════════════════════════════════════
-//@version=6
-indicator("Liquidity Sweep - LONG", overlay=true, max_bars_back=500, max_boxes_count=60, max_labels_count=150, max_lines_count=100)
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIQUIDITY SWEEP — Binance Futures</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#050508;--bg2:#0a0a0f;--bg3:#0f0f18;
+  --border:#1a1a2e;--border2:#252540;
+  --green:#00ff88;--green2:#00cc66;--red:#ff3355;--red2:#cc2244;
+  --cyan:#00e5ff;--orange:#ff6b00;--yellow:#ffd700;--magenta:#ff00cc;
+  --text:#c8c8e0;--text2:#6666aa;--text3:#333355;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:"Share Tech Mono",monospace;min-height:100vh;}
+.logo{font-family:"Barlow Condensed",sans-serif;font-weight:900;font-size:22px;letter-spacing:4px;color:var(--cyan);padding:16px 24px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);}
+.logo span{color:var(--green);}
+.logo sup{font-size:11px;color:var(--orange);letter-spacing:1px;vertical-align:super;}
+.controls{padding:12px 24px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.tag{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:5px 10px;font-size:12px;display:inline-flex;align-items:center;gap:6px;}
+.tag-x{cursor:pointer;color:var(--text3);}
+.tag-x:hover{color:var(--red);}
+#add-input{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:6px 10px;font-family:"Share Tech Mono",monospace;font-size:12px;width:100px;text-transform:uppercase;}
+.btn{background:var(--green);color:#000;border:none;padding:6px 14px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer;}
+.btn-sm{background:transparent;border:1px solid var(--border2);color:var(--text2);padding:5px 12px;font-size:11px;cursor:pointer;}
+.btn-sm:hover{border-color:var(--cyan);color:var(--cyan);}
+select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:5px 8px;font-family:"Share Tech Mono",monospace;font-size:12px;}
+.table-wrap{padding:0 24px 24px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px;}
+th{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:11px;letter-spacing:1.5px;color:var(--text2);text-transform:uppercase;padding:10px 10px;text-align:left;border-bottom:2px solid var(--border2);}
+td{padding:11px 10px;border-bottom:1px solid var(--border);}
+tbody tr{cursor:pointer;transition:background .1s;}
+tbody tr:hover{background:rgba(255,255,255,.03);}
+.sym{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:15px;color:#fff;}
+.badge{display:inline-block;padding:2px 8px;font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;}
+.b-green{background:rgba(0,255,136,.12);border:1px solid var(--green2);color:var(--green);}
+.b-red{background:rgba(255,51,85,.12);border:1px solid var(--red2);color:var(--red);}
+.b-gray{background:transparent;border:1px solid var(--border2);color:var(--text3);}
+.b-cyan{background:rgba(0,229,255,.12);border:1px solid var(--cyan);color:var(--cyan);}
+.score-hi{color:var(--green);font-weight:700;}
+.score-lo{color:var(--text2);}
+.signal-long{background:rgba(0,255,136,.08);}
+.signal-short{background:rgba(255,51,85,.08);}
+.detail{display:none;background:var(--bg3);border-top:2px solid var(--cyan);}
+.detail.open{display:table-row;}
+.detail-inner{padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.dcard{background:var(--bg2);border:1px solid var(--border2);padding:10px 12px;}
+.dcard-label{font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;font-family:"Barlow Condensed",sans-serif;}
+.dcard-val{font-family:"Barlow Condensed",sans-serif;font-size:15px;font-weight:700;margin-top:4px;color:#fff;}
+.last-update{padding:8px 24px;font-size:10px;color:var(--text3);border-top:1px solid var(--border);}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin-right:6px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="logo">
+  <div>LIQUIDITY <span>SWEEP</span> // BINANCE FUTURES <sup>v1</sup></div>
+  <div style="font-size:10px;color:var(--text3)" id="ts">--:--:--</div>
+</div>
+<div class="controls">
+  <div id="tags"></div>
+  <input type="text" id="add-input" placeholder="Ej: ADA" maxlength="10">
+  <button class="btn-sm" id="add-btn">+ AGREGAR</button>
+  <select id="refresh-select">
+    <option value="0">AUTO OFF</option>
+    <option value="30">30s</option>
+    <option value="60" selected>1m</option>
+    <option value="120">2m</option>
+  </select>
+  <button class="btn" id="scan-btn">▶ ESCANEAR</button>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>MONEDA</th><th class="r">PRECIO</th><th>TENDENCIA</th><th>SQZ</th>
+      <th>ESTOCÁSTICO</th><th>MANIPULACIÓN</th><th>IMBALANCE</th>
+      <th class="r">SCORE L</th><th class="r">SCORE S</th><th>SEÑAL</th>
+    </tr></thead>
+    <tbody id="tbody">
+      <tr><td colspan="10" style="padding:40px;text-align:center;color:var(--text2)">Presioná ESCANEAR</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="last-update" id="last-update">Última actualización: —</div>
+
+<script>
+'use strict';
+const K = { coins: 'ls_coins_v1' };
+function lsGet(k, fb){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; }catch(e){ return fb; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+let coins = lsGet(K.coins, ['BTC','ETH','SOL','BNB']);
+let scanning = false, refreshTimer = null, openRow = null;
+const cache = {};
 
 // ══════════════════════════════════════
-// INPUTS — EMA (tendencia)
+// TAGS (lista editable)
 // ══════════════════════════════════════
-grp_ema = "📈 EMA Tendencia"
-ema_len = input.int(50, "Longitud EMA", minval=10, maxval=300, group=grp_ema)
-ema_val = ta.ema(close, ema_len)
-trend_up   = close > ema_val
-trend_down = close < ema_val
-plot(ema_val, "EMA50", color=trend_up ? color.new(color.lime, 20) : color.new(color.red, 20), linewidth=2)
-
-// ══════════════════════════════════════
-// INPUTS — SQZ (momentum en área, valle rojo con degradado)
-// ══════════════════════════════════════
-grp_sqz = "🌀 SQZ Momentum (área)"
-sqz_len          = input.int(20, "Longitud SQZ", minval=5, maxval=50, group=grp_sqz)
-sqz_div_min_valles = input.int(2, "Mínimo de valles para divergencia", minval=2, maxval=5, group=grp_sqz)
-
-hh_sqz  = ta.highest(high, sqz_len)
-ll_sqz  = ta.lowest(low, sqz_len)
-sqz_val = close - ((hh_sqz + ll_sqz) / 2 + ta.sma(close, sqz_len)) / 2
-sqz     = ta.linreg(sqz_val, sqz_len, 0)
-
-sqz_bull = sqz > 0                          // "montaña verde"
-sqz_bear = sqz <= 0                         // "valle rojo"
-sqz_cross_up   = ta.crossover(sqz, 0)       // valle terminó, pasa a verde
-sqz_cross_down = ta.crossunder(sqz, 0)      // montaña terminó, pasa a rojo
-
-// Coloreado idéntico al indicador de referencia "SQZ+ADX+TTM [R]" (rolgui):
-// compara vela actual contra la anterior, NO contra el piso del valle.
-// Rojo brillante = sigue cayendo (val < val[1]). Rojo oscuro = se está
-// agotando / recuperando (val >= val[1], aunque siga negativo).
-// Verde brillante = acelerando arriba. Verde oscuro = perdiendo fuerza.
-sqz_verde_brillante = sqz_bull and sqz > sqz[1]
-sqz_verde_oscuro    = sqz_bull and sqz <= sqz[1]
-sqz_rojo_brillante  = sqz_bear and sqz < sqz[1]
-sqz_rojo_oscuro     = sqz_bear and sqz >= sqz[1]
-
-valle_agotandose = sqz_rojo_oscuro   // esta es la señal clave: "poco tiempo para seguir cayendo"
-monte_agotandose = sqz_verde_oscuro
-
-// --- Seguimiento del valle/montaña actual (para invalidación por tiempo y divergencia) ---
-var float valle_min_actual  = na   // valor más negativo tocado en el valle en curso (para divergencia)
-var float monte_max_actual  = na
-var int   bars_desde_cambio = 0    // velas desde el último cruce de cero (para invalidación)
-
-if sqz_cross_down
-    valle_min_actual := sqz
-    bars_desde_cambio := 0
-else if sqz_bear
-    valle_min_actual := math.min(nz(valle_min_actual, sqz), sqz)
-    bars_desde_cambio += 1
-
-if sqz_cross_up
-    monte_max_actual := sqz
-    bars_desde_cambio := 0
-else if sqz_bull
-    monte_max_actual := math.max(nz(monte_max_actual, sqz), sqz)
-    bars_desde_cambio += 1
-
-// Color del histograma/fondo: 4 tonos, igual que el indicador de referencia
-sqz_color = sqz_verde_brillante ? color.rgb(46, 245, 39) :
-     sqz_verde_oscuro   ? color.rgb(16, 120, 13) :
-     sqz_rojo_brillante ? color.rgb(217, 6, 6) :
-     color.rgb(98, 0, 0)   // sqz_rojo_oscuro
-
-plot(sqz, "SQZ", style=plot.style_columns, color=sqz_color, display=display.none)
-hline(0, "Cero", color=color.new(color.gray, 60), display=display.none)
-
-// Como el plan gratuito de TradingView solo permite 1 indicador por gráfico,
-// no se puede usar un panel aparte para ver el SQZ como área. En su lugar,
-// se tiñe el FONDO del gráfico principal con el mismo color de 4 tonos.
-// Se usa transparencia alta para no tapar las velas.
-sqz_bg = sqz_verde_brillante ? color.new(color.lime, 90) :
-     sqz_verde_oscuro   ? color.new(color.green, 93) :
-     sqz_rojo_brillante ? color.new(color.red, 88) :
-     color.new(color.maroon, 90)   // sqz_rojo_oscuro = "agotándose"
-bgcolor(sqz_bg, title="Fondo SQZ (valle/montaña)")
-
-// --- Divergencia alcista del SQZ: valles cada vez menos profundos + precio cada vez más bajo ---
-var float[] valleMins   = array.new_float()   // mínimo del SQZ de cada valle cerrado
-var float[] vallePxMins = array.new_float()   // mínimo de PRECIO durante ese valle
-var float   valle_px_min_actual = na
-
-if sqz_bear
-    valle_px_min_actual := math.min(nz(valle_px_min_actual, low), low)
-
-sqz_div_alcista = false
-if sqz_cross_up and not na(valle_min_actual)
-    array.unshift(valleMins, valle_min_actual)
-    array.unshift(vallePxMins, nz(valle_px_min_actual, low))
-    if array.size(valleMins) > 6
-        array.pop(valleMins)
-        array.pop(vallePxMins)
-    if array.size(valleMins) >= sqz_div_min_valles
-        // valle actual (recién cerrado) vs valle anterior: SQZ menos profundo + precio más bajo
-        sqz_menos_profundo = array.get(valleMins, 0) > array.get(valleMins, 1)
-        precio_mas_bajo    = array.get(vallePxMins, 0) < array.get(vallePxMins, 1)
-        sqz_div_alcista := sqz_menos_profundo and precio_mas_bajo
-    valle_px_min_actual := na
-
-var bool sqz_div_alcista_activa = false
-if sqz_div_alcista
-    sqz_div_alcista_activa := true
-if sqz_cross_down
-    sqz_div_alcista_activa := false
-
-// --- Divergencia bajista del SQZ (espejo): montañas cada vez menos altas + precio cada vez más alto ---
-var float[] monteMaxs   = array.new_float()   // máximo del SQZ de cada montaña cerrada
-var float[] montePxMaxs = array.new_float()   // máximo de PRECIO durante esa montaña
-var float   monte_px_max_actual = na
-
-if sqz_bull
-    monte_px_max_actual := math.max(nz(monte_px_max_actual, high), high)
-
-sqz_div_bajista = false
-if sqz_cross_down and not na(monte_max_actual)
-    array.unshift(monteMaxs, monte_max_actual)
-    array.unshift(montePxMaxs, nz(monte_px_max_actual, high))
-    if array.size(monteMaxs) > 6
-        array.pop(monteMaxs)
-        array.pop(montePxMaxs)
-    if array.size(monteMaxs) >= sqz_div_min_valles
-        sqz_menos_alto  = array.get(monteMaxs, 0) < array.get(monteMaxs, 1)
-        precio_mas_alto = array.get(montePxMaxs, 0) > array.get(montePxMaxs, 1)
-        sqz_div_bajista := sqz_menos_alto and precio_mas_alto
-    monte_px_max_actual := na
-
-var bool sqz_div_bajista_activa = false
-if sqz_div_bajista
-    sqz_div_bajista_activa := true
-if sqz_cross_up
-    sqz_div_bajista_activa := false
+function renderTags(){
+  const c = document.getElementById('tags');
+  c.innerHTML = '';
+  coins.forEach(sym => {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.innerHTML = sym + ' <span class="tag-x" data-sym="' + sym + '">✕</span>';
+    c.appendChild(tag);
+  });
+  c.querySelectorAll('.tag-x').forEach(x => x.onclick = () => {
+    coins = coins.filter(s => s !== x.dataset.sym);
+    lsSet(K.coins, coins);
+    renderTags();
+  });
+}
+function addCoin(){
+  const inp = document.getElementById('add-input');
+  const val = inp.value.trim().toUpperCase().replace(/USDT$/,'');
+  if(!val || coins.includes(val)){ inp.value=''; return; }
+  coins.push(val);
+  lsSet(K.coins, coins);
+  inp.value = '';
+  renderTags();
+}
 
 // ══════════════════════════════════════
-// INPUTS — ESTOCÁSTICO (complemento)
+// INDICADORES (mismas fórmulas que el Pine Script)
 // ══════════════════════════════════════
-grp_sto = "📊 Estocástico 14/3/3"
-sto_len  = input.int(14, "Longitud %K", minval=5, maxval=30, group=grp_sto)
-sto_sk   = input.int(3, "Suavizado %K", minval=1, maxval=10, group=grp_sto)
-sto_sd   = input.int(3, "Suavizado %D", minval=1, maxval=10, group=grp_sto)
-sto_ob   = input.int(80, "Sobrecompra", minval=60, maxval=95, group=grp_sto)
-sto_os   = input.int(20, "Sobreventa", minval=5, maxval=40, group=grp_sto)
-sto_div_lookback = input.int(20, "Velas lookback divergencia Estocástico", minval=10, maxval=60, group=grp_sto)
-
-sto_raw = ta.stoch(close, high, low, sto_len)
-sto_k   = ta.sma(sto_raw, sto_sk)
-sto_d   = ta.sma(sto_k, sto_sd)
-
-sto_sobrecompra = sto_k >= sto_ob
-sto_sobreventa  = sto_k <= sto_os
-sto_zona_neutra = not sto_sobrecompra and not sto_sobreventa   // "no operar"
-
-// Divergencias (proxy simple, igual criterio que el resto del sistema)
-sto_max_div = ta.highest(sto_k, sto_div_lookback)
-sto_min_div = ta.lowest(sto_k, sto_div_lookback)
-px_max_div  = ta.highest(high, sto_div_lookback)
-px_min_div  = ta.lowest(low, sto_div_lookback)
-
-sto_div_bajista = high == px_max_div and sto_k < sto_max_div and sto_k > 50
-sto_div_alcista = low == px_min_div and sto_k > sto_min_div and sto_k < 50
-
-// ══════════════════════════════════════
-// INPUTS — INVALIDACIÓN POR TIEMPO
-// ══════════════════════════════════════
-grp_time = "⏳ Invalidación por Tiempo"
-max_1w = input.int(15, "Máx. velas 1W", minval=5, maxval=30, group=grp_time)
-max_1d = input.int(15, "Máx. velas 1D", minval=5, maxval=30, group=grp_time)
-max_4h = input.int(52, "Máx. velas 4H", minval=20, maxval=100, group=grp_time)
-max_1h = input.int(15, "Máx. velas 1H", minval=5, maxval=30, group=grp_time)
-
-max_velas_tf = timeframe.isweekly ? max_1w : timeframe.isdaily ? max_1d :
-     (timeframe.multiplier == 240 and timeframe.isintraday) ? max_4h :
-     (timeframe.multiplier == 60 and timeframe.isintraday) ? max_1h : max_1d
-
-tiempo_invalidado = bars_desde_cambio > max_velas_tf
-
-// ══════════════════════════════════════
-// INPUTS — PICOS IMPORTANTES (timeframe de referencia, por CIERRE)
-// ══════════════════════════════════════
-grp_pico = "📍 Picos Importantes (Liquidez)"
-pico_tf         = input.timeframe("D", "Timeframe de referencia para picos", group=grp_pico)
-pico_piv_lr     = input.int(4, "Pivote izq/der (velas, en el TF de referencia)", minval=2, maxval=15, group=grp_pico)
-pico_min_atr    = input.float(1.5, "Significancia mínima (x ATR) para contar como PICO", minval=0.5, maxval=5, step=0.1, group=grp_pico)
-pico_lookback   = input.int(300, "Velas hacia atrás (TF referencia)", minval=50, maxval=500, group=grp_pico)
-mostrar_picos   = input.bool(true, "Dibujar líneas de picos", group=grp_pico)
-
-// Pivots calculados sobre CIERRE (no mecha) del timeframe de referencia — imita "ver en modo línea"
-f_picos(lr) =>
-    ph = ta.pivothigh(close, lr, lr)
-    pl = ta.pivotlow(close, lr, lr)
-    [ph, pl]
-
-[pico_high_raw, pico_low_raw] = request.security(syminfo.tickerid, pico_tf, f_picos(pico_piv_lr), ignore_invalid_symbol=true)
-atr_ref = request.security(syminfo.tickerid, pico_tf, ta.atr(14), ignore_invalid_symbol=true)
-
-var float[] picoHighP = array.new_float()
-var int[]   picoHighB = array.new_int()
-var float[] picoLowP  = array.new_float()
-var int[]   picoLowB  = array.new_int()
-
-// Filtro de significancia: solo cuenta como PICO si se diferencia del último pico opuesto
-// por al menos "pico_min_atr" ATRs (evita marcar el ruido chico del medio, como en el dibujo).
-if not na(pico_high_raw)
-    ultimo_low = array.size(picoLowP) > 0 ? array.get(picoLowP, 0) : na
-    significativo = na(ultimo_low) or math.abs(pico_high_raw - ultimo_low) >= atr_ref * pico_min_atr
-    if significativo
-        array.unshift(picoHighP, pico_high_raw)
-        array.unshift(picoHighB, bar_index)
-        if array.size(picoHighP) > 10
-            array.pop(picoHighP)
-            array.pop(picoHighB)
-
-if not na(pico_low_raw)
-    ultimo_high = array.size(picoHighP) > 0 ? array.get(picoHighP, 0) : na
-    significativo2 = na(ultimo_high) or math.abs(ultimo_high - pico_low_raw) >= atr_ref * pico_min_atr
-    if significativo2
-        array.unshift(picoLowP, pico_low_raw)
-        array.unshift(picoLowB, bar_index)
-        if array.size(picoLowP) > 10
-            array.pop(picoLowP)
-            array.pop(picoLowB)
-
-// Descartar picos más viejos que "pico_lookback" velas (ya no son relevantes)
-if array.size(picoHighB) > 0
-    for i = array.size(picoHighB) - 1 to 0
-        if bar_index - array.get(picoHighB, i) > pico_lookback
-            array.remove(picoHighP, i)
-            array.remove(picoHighB, i)
-if array.size(picoLowB) > 0
-    for i = array.size(picoLowB) - 1 to 0
-        if bar_index - array.get(picoLowB, i) > pico_lookback
-            array.remove(picoLowP, i)
-            array.remove(picoLowB, i)
-
-// Vigente = todavía por encima/debajo del precio actual (un pico ya superado
-// por un pump o perforado por una caída no es una resistencia/soporte real).
-pico_res_cercano = float(na)
-if array.size(picoHighP) > 0
-    for i = 0 to array.size(picoHighP) - 1
-        if array.get(picoHighP, i) > close
-            pico_res_cercano := array.get(picoHighP, i)
-            break
-
-pico_sup_cercano = float(na)
-if array.size(picoLowP) > 0
-    for i = 0 to array.size(picoLowP) - 1
-        if array.get(picoLowP, i) < close
-            pico_sup_cercano := array.get(picoLowP, i)
-            break
-
-var line[] picoLines = array.new_line()
-var label[] picoLbls = array.new_label()
-if mostrar_picos and barstate.islast
-    if array.size(picoLines) > 0
-        for i = 0 to array.size(picoLines) - 1
-            line.delete(array.get(picoLines, i))
-            label.delete(array.get(picoLbls, i))
-    array.clear(picoLines)
-    array.clear(picoLbls)
-    if array.size(picoHighP) > 0
-        for i = 0 to math.min(2, array.size(picoHighP) - 1)
-            p = array.get(picoHighP, i)
-            b = array.get(picoHighB, i)
-            ln = line.new(b, p, bar_index + 10, p, color=color.new(color.fuchsia, 20), width=1, style=line.style_dashed)
-            lb = label.new(bar_index + 10, p, "PICO ▼ " + str.tostring(p, "#.####"), style=label.style_label_left, color=color.new(color.fuchsia, 20), textcolor=color.white, size=size.small)
-            array.push(picoLines, ln)
-            array.push(picoLbls, lb)
-    if array.size(picoLowP) > 0
-        for i = 0 to math.min(2, array.size(picoLowP) - 1)
-            p2 = array.get(picoLowP, i)
-            b2 = array.get(picoLowB, i)
-            ln2 = line.new(b2, p2, bar_index + 10, p2, color=color.new(color.teal, 20), width=1, style=line.style_dashed)
-            lb2 = label.new(bar_index + 10, p2, "PICO ▲ " + str.tostring(p2, "#.####"), style=label.style_label_left, color=color.new(color.teal, 20), textcolor=color.white, size=size.small)
-            array.push(picoLines, ln2)
-            array.push(picoLbls, lb2)
+function ema(vals, len){
+  const k = 2/(len+1);
+  let out = [vals[0]];
+  for(let i=1;i<vals.length;i++) out.push(vals[i]*k + out[i-1]*(1-k));
+  return out;
+}
+function sma(vals, len, i){ let s=0,c=0; for(let j=Math.max(0,i-len+1);j<=i;j++){ s+=vals[j]; c++; } return s/c; }
+function highestN(vals, len, i){ let m=-Infinity; for(let j=Math.max(0,i-len+1);j<=i;j++) m=Math.max(m,vals[j]); return m; }
+function lowestN(vals, len, i){ let m=Infinity; for(let j=Math.max(0,i-len+1);j<=i;j++) m=Math.min(m,vals[j]); return m; }
+function linregLast(vals, len){
+  // pendiente + intercept de regresión lineal sobre las últimas "len" muestras, evaluada en la última
+  const n = Math.min(len, vals.length);
+  const y = vals.slice(vals.length-n);
+  const xs = y.map((_,i)=>i);
+  const xm = xs.reduce((a,b)=>a+b,0)/n, ym = y.reduce((a,b)=>a+b,0)/n;
+  let num=0,den=0;
+  for(let i=0;i<n;i++){ num += (xs[i]-xm)*(y[i]-ym); den += (xs[i]-xm)**2; }
+  const slope = den!==0 ? num/den : 0, intercept = ym - slope*xm;
+  return slope*(n-1) + intercept;
+}
+function computeSQZseries(highs, lows, closes, len){
+  const out = [];
+  for(let i=0;i<closes.length;i++){
+    if(i < len){ out.push(0); continue; }
+    const hh = highestN(highs, len, i), ll = lowestN(lows, len, i);
+    const smaC = sma(closes, len, i);
+    const val = closes[i] - ((hh+ll)/2 + smaC)/2;
+    const window = [];
+    for(let j=Math.max(0,i-len+1);j<=i;j++){
+      const hh2 = highestN(highs, len, j), ll2 = lowestN(lows, len, j), smaC2 = sma(closes, len, j);
+      window.push(closes[j] - ((hh2+ll2)/2 + smaC2)/2);
+    }
+    out.push(linregLast(window, len));
+  }
+  return out;
+}
+function rsiSeries(closes, len){
+  const out = [50];
+  for(let i=1;i<closes.length;i++){
+    if(i<len){ out.push(50); continue; }
+    let g=0,l=0;
+    for(let j=i-len+1;j<=i;j++){ const d=closes[j]-closes[j-1]; if(d>0) g+=d; else l+=Math.abs(d); }
+    const ag=g/len, al=l/len;
+    out.push(al===0 ? 100 : 100-(100/(1+ag/al)));
+  }
+  return out;
+}
+function stochasticClassic(closes, highs, lows, len, sk, sd){
+  const raw = [];
+  for(let i=0;i<closes.length;i++){
+    if(i<len-1){ raw.push(50); continue; }
+    const hh = highestN(highs, len, i), ll = lowestN(lows, len, i);
+    raw.push(hh===ll ? 50 : (closes[i]-ll)/(hh-ll)*100);
+  }
+  const kArr = raw.map((_,i)=> sma(raw, sk, i));
+  const dArr = kArr.map((_,i)=> sma(kArr, sd, i));
+  return { k: kArr, d: dArr };
+}
+function atrSeries(highs, lows, closes, len){
+  const tr = [highs[0]-lows[0]];
+  for(let i=1;i<closes.length;i++) tr.push(Math.max(highs[i]-lows[i], Math.abs(highs[i]-closes[i-1]), Math.abs(lows[i]-closes[i-1])));
+  const out = [];
+  for(let i=0;i<tr.length;i++) out.push(sma(tr, len, i));
+  return out;
+}
+// Pivots por CIERRE (no mecha) — igual que "ver en modo línea"
+function pivotsByClose(closes, lr){
+  const highs=[], lows=[];
+  for(let i=lr;i<closes.length-lr;i++){
+    let isHigh=true, isLow=true;
+    for(let j=i-lr;j<=i+lr;j++){ if(j===i) continue; if(closes[j]>=closes[i]) isHigh=false; if(closes[j]<=closes[i]) isLow=false; }
+    if(isHigh) highs.push({idx:i, val:closes[i]});
+    if(isLow) lows.push({idx:i, val:closes[i]});
+  }
+  return { highs, lows };
+}
 
 // ══════════════════════════════════════
-// ZONA DE LIQUIDACIÓN — proxy por correspondencia de timeframes
-// (Semanal↔Mensual, Diario↔Semanal, 4H↔3días — igual idea que mirar Coinglass)
+// FETCH BINANCE
 // ══════════════════════════════════════
-liq_ref_tf = timeframe.isweekly ? "M" : timeframe.isdaily ? "W" :
-     (timeframe.multiplier == 240 and timeframe.isintraday) ? "3D" : "W"
-
-liq_high = request.security(syminfo.tickerid, liq_ref_tf, ta.highest(high, 20), ignore_invalid_symbol=true)
-liq_low  = request.security(syminfo.tickerid, liq_ref_tf, ta.lowest(low, 20), ignore_invalid_symbol=true)
-
-// ══════════════════════════════════════
-// MANIPULACIÓN — barrido del pico/zona de liquidez antes de habilitar la entrada
-// (para LONG: barrido de un SOPORTE. Para SHORT: barrido de una RESISTENCIA)
-// ══════════════════════════════════════
-grp_manip = "🎣 Manipulación (Barrido de Liquidez)"
-manip_ventana  = input.int(6, "Ventana para confirmar el barrido (velas)", minval=2, maxval=20, group=grp_manip)
-sl_buffer_atr  = input.float(0.3, "Colchón del SL más allá de la mecha (x ATR)", minval=0.1, maxval=2, step=0.1, group=grp_manip)
-
-nivel_sup_objetivo = not na(pico_sup_cercano) ? pico_sup_cercano : liq_low   // soporte a barrer (LONG)
-nivel_res_objetivo = not na(pico_res_cercano) ? pico_res_cercano : liq_high // resistencia a barrer (SHORT)
-
-barrido_reciente = false
-barrido_reciente_short = false
-sweep_low_val  = float(na)   // mecha más baja del barrido reciente → referencia real del SL largo
-sweep_high_val = float(na)   // mecha más alta del barrido reciente → referencia real del SL corto
-
-for i = 0 to manip_ventana - 1
-    if not na(nivel_sup_objetivo) and low[i] < nivel_sup_objetivo and close[i] > nivel_sup_objetivo
-        barrido_reciente := true
-        sweep_low_val := na(sweep_low_val) ? low[i] : math.min(sweep_low_val, low[i])
-    if not na(nivel_res_objetivo) and high[i] > nivel_res_objetivo and close[i] < nivel_res_objetivo
-        barrido_reciente_short := true
-        sweep_high_val := na(sweep_high_val) ? high[i] : math.max(sweep_high_val, high[i])
-
-manipulacion_confirmada       = barrido_reciente
-manipulacion_confirmada_short = barrido_reciente_short
+async function fetchKlines(symbol, interval, limit){
+  const r = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
 
 // ══════════════════════════════════════
-// IMBALANCE (FVG) — relleno medido con MECHA, % en vivo
+// ANÁLISIS COMPLETO POR MONEDA (misma lógica que el Pine, timeframe base 4H)
 // ══════════════════════════════════════
-grp_fvg = "🟦 Imbalance Detector (FVG)"
-fvg_min_atr   = input.float(0.3, "Tamaño mínimo del hueco (x ATR)", minval=0.05, maxval=2, step=0.05, group=grp_fvg)
-fvg_max_boxes = input.int(6, "Máximo de imbalances activos", minval=1, maxval=15, group=grp_fvg)
-fvg_reequilibrio_pct = input.int(100, "% de relleno = reequilibrado", minval=80, maxval=100, group=grp_fvg)
+async function analizarMoneda(symbol){
+  try{
+    const [k4h, kD] = await Promise.all([
+      fetchKlines(symbol, '4h', 120),
+      fetchKlines(symbol, '1d', 120)
+    ]);
+    if(!Array.isArray(k4h) || k4h.length < 60) return { symbol, error: 'Sin datos' };
 
-atr_fvg = ta.atr(14)
-fvg_bull_nuevo = (low - high[2]) >= atr_fvg * fvg_min_atr and low > high[2]
-fvg_bear_nuevo = (low[2] - high) >= atr_fvg * fvg_min_atr and high < low[2]
+    const closes = k4h.map(k=>+k[4]), highs = k4h.map(k=>+k[2]), lows = k4h.map(k=>+k[3]);
+    const price = closes[closes.length-1];
+    const change = (price - closes[closes.length-2]) / closes[closes.length-2] * 100;
 
-var float[] fvgBullTop = array.new_float()   // techo del hueco (= low actual al crearse)
-var float[] fvgBullBot = array.new_float()   // piso del hueco (= high[2] al crearse)
-var int[]   fvgBullBar = array.new_int()
-var float[] fvgBullMinTocado = array.new_float()  // mínimo de mecha que ya penetró el hueco
+    const emaArr = ema(closes, 50);
+    const emaVal = emaArr[emaArr.length-1];
+    const trendUp = price > emaVal, trendDown = price < emaVal;
 
-var float[] fvgBearTop = array.new_float()
-var float[] fvgBearBot = array.new_float()
-var int[]   fvgBearBar = array.new_int()
-var float[] fvgBearMaxTocado = array.new_float()
+    const sqzArr = computeSQZseries(highs, lows, closes, 20);
+    const sqzNow = sqzArr[sqzArr.length-1], sqzPrev = sqzArr[sqzArr.length-2];
+    const sqzBull = sqzNow > 0, sqzBear = sqzNow <= 0;
+    const rojoOscuro = sqzBear && sqzNow >= sqzPrev;   // agotándose
+    const rojoBrillante = sqzBear && sqzNow < sqzPrev;
+    const verdeOscuro = sqzBull && sqzNow <= sqzPrev;
+    const verdeBrillante = sqzBull && sqzNow > sqzPrev;
 
-if fvg_bull_nuevo
-    array.unshift(fvgBullTop, low)
-    array.unshift(fvgBullBot, high[2])
-    array.unshift(fvgBullBar, bar_index - 1)
-    array.unshift(fvgBullMinTocado, low)
-    if array.size(fvgBullTop) > fvg_max_boxes
-        array.pop(fvgBullTop)
-        array.pop(fvgBullBot)
-        array.pop(fvgBullBar)
-        array.pop(fvgBullMinTocado)
+    const sto = stochasticClassic(closes, highs, lows, 14, 3, 3);
+    const stoK = sto.k[sto.k.length-1];
+    const sobrecompra = stoK >= 80, sobreventa = stoK <= 20;
 
-if fvg_bear_nuevo
-    array.unshift(fvgBearTop, low[2])
-    array.unshift(fvgBearBot, high)
-    array.unshift(fvgBearBar, bar_index - 1)
-    array.unshift(fvgBearMaxTocado, high)
-    if array.size(fvgBearTop) > fvg_max_boxes
-        array.pop(fvgBearTop)
-        array.pop(fvgBearBot)
-        array.pop(fvgBearBar)
-        array.pop(fvgBearMaxTocado)
+    const atrArr = atrSeries(highs, lows, closes, 14);
+    const atrNow = atrArr[atrArr.length-1];
 
-// Actualizar cuánto penetró la MECHA en cada imbalance bull activo, y limpiar los ya rellenados 100%
-if array.size(fvgBullTop) > 0
-    for i = array.size(fvgBullTop) - 1 to 0
-        top_ = array.get(fvgBullTop, i)
-        bot_ = array.get(fvgBullBot, i)
-        minT = math.min(array.get(fvgBullMinTocado, i), low)
-        array.set(fvgBullMinTocado, i, minT)
-        rango = top_ - bot_
-        pct_relleno = rango > 0 ? math.min(100, math.max(0, (top_ - minT) / rango * 100)) : 0
-        if pct_relleno >= fvg_reequilibrio_pct
-            array.remove(fvgBullTop, i)
-            array.remove(fvgBullBot, i)
-            array.remove(fvgBullBar, i)
-            array.remove(fvgBullMinTocado, i)
+    // Picos importantes: pivots por cierre en Diario, con filtro de significancia (1.5 ATR diario)
+    // Solo cuentan como resistencia/soporte VIGENTE si todavía están por encima/debajo del precio
+    // actual — un pico ya superado por un pump/caída no es una resistencia/soporte real.
+    const dCloses = kD.map(k=>+k[4]), dHighs = kD.map(k=>+k[2]), dLows = kD.map(k=>+k[3]);
+    const atrD = atrSeries(dHighs, dLows, dCloses, 14);
+    const atrDNow = atrD[atrD.length-1];
+    const piv = pivotsByClose(dCloses, 4);
+    let picoRes = null, picoSup = null;
+    for(let i=piv.highs.length-1;i>=0;i--){
+      const v = piv.highs[i].val;
+      if(v <= price) continue; // ya superado, no sirve como resistencia vigente
+      if(picoRes===null || Math.abs(v - picoRes) >= atrDNow*1.5){ picoRes = v; break; }
+    }
+    for(let i=piv.lows.length-1;i>=0;i--){
+      const v = piv.lows[i].val;
+      if(v >= price) continue; // ya perforado, no sirve como soporte vigente
+      if(picoSup===null || Math.abs(picoSup - v) >= atrDNow*1.5){ picoSup = v; break; }
+    }
 
-if array.size(fvgBearTop) > 0
-    for i = array.size(fvgBearTop) - 1 to 0
-        top2_ = array.get(fvgBearTop, i)
-        bot2_ = array.get(fvgBearBot, i)
-        maxT = math.max(array.get(fvgBearMaxTocado, i), high)
-        array.set(fvgBearMaxTocado, i, maxT)
-        rango2 = top2_ - bot2_
-        pct_relleno2 = rango2 > 0 ? math.min(100, math.max(0, (maxT - bot2_) / rango2 * 100)) : 0
-        if pct_relleno2 >= fvg_reequilibrio_pct
-            array.remove(fvgBearTop, i)
-            array.remove(fvgBearBot, i)
-            array.remove(fvgBearBar, i)
-            array.remove(fvgBearMaxTocado, i)
+    const nivelSup = picoSup !== null ? picoSup : lowestN(lows, 40, lows.length-1);
+    const nivelRes = picoRes !== null ? picoRes : highestN(highs, 40, highs.length-1);
 
-// Precio actualmente parado DENTRO de un imbalance bull sin rellenar (posible soporte / zona de long)
-precio_en_fvg_bull = false
-fvg_bull_pct_actual = float(na)
-if array.size(fvgBullTop) > 0
-    for i = 0 to array.size(fvgBullTop) - 1
-        t = array.get(fvgBullTop, i)
-        b = array.get(fvgBullBot, i)
-        if close <= t and close >= b
-            precio_en_fvg_bull := true
-            r = t - b
-            fvg_bull_pct_actual := r > 0 ? math.min(100, math.max(0, (t - array.get(fvgBullMinTocado, i)) / r * 100)) : 0
+    // Manipulación: barrido en las últimas 6 velas de 4H
+    let barridoLong = false, barridoShort = false;
+    for(let i=closes.length-6;i<closes.length;i++){
+      if(i<1) continue;
+      if(nivelSup!==null && lows[i] < nivelSup && closes[i] > nivelSup) barridoLong = true;
+      if(nivelRes!==null && highs[i] > nivelRes && closes[i] < nivelRes) barridoShort = true;
+    }
 
-// Precio actualmente parado DENTRO de un imbalance bear sin rellenar (posible resistencia / zona de short)
-precio_en_fvg_bear = false
-fvg_bear_pct_actual = float(na)
-if array.size(fvgBearTop) > 0
-    for i = 0 to array.size(fvgBearTop) - 1
-        t5 = array.get(fvgBearTop, i)
-        b5 = array.get(fvgBearBot, i)
-        if close <= t5 and close >= b5
-            precio_en_fvg_bear := true
-            r5 = t5 - b5
-            fvg_bear_pct_actual := r5 > 0 ? math.min(100, math.max(0, (array.get(fvgBearMaxTocado, i) - b5) / r5 * 100)) : 0
+    // Imbalance (FVG) simple: último hueco de 3 velas sin rellenar, % con mecha
+    let fvgTxt = '—', fvgBull = false, fvgBear = false;
+    for(let i=closes.length-1;i>=2;i--){
+      if(lows[i] > highs[i-2]){ // bull FVG
+        const top=lows[i], bot=highs[i-2];
+        let minTocado = top;
+        for(let j=i;j<closes.length;j++) minTocado = Math.min(minTocado, lows[j]);
+        const pct = Math.min(100, Math.max(0, (top-minTocado)/(top-bot)*100));
+        if(pct < 100){ fvgTxt = Math.round(pct)+'% relleno ▲'; fvgBull = pct < 100; }
+        break;
+      }
+      if(highs[i-2] > lows[i-2] && highs[i-2] < lows[i]) continue;
+      if(highs[i] < lows[i-2]){ // bear FVG
+        const top=lows[i-2], bot=highs[i];
+        let maxTocado = bot;
+        for(let j=i;j<closes.length;j++) maxTocado = Math.max(maxTocado, highs[j]);
+        const pct = Math.min(100, Math.max(0, (maxTocado-bot)/(top-bot)*100));
+        if(pct < 100){ fvgTxt = Math.round(pct)+'% relleno ▼'; fvgBear = pct < 100; }
+        break;
+      }
+    }
 
-// Dibujar cajas + label de % de relleno (solo última barra)
-var box[]   fvgBullBoxArr = array.new_box()
-var label[] fvgBullLblArr = array.new_label()
-var box[]   fvgBearBoxArr = array.new_box()
-var label[] fvgBearLblArr = array.new_label()
+    const validaSqzLong = rojoOscuro;
+    const validaSqzShort = verdeOscuro;
+    const senalLong = trendUp && barridoLong && validaSqzLong;
+    const senalShort = trendDown && barridoShort && validaSqzShort;
 
-if barstate.islast
-    if array.size(fvgBullBoxArr) > 0
-        for i = 0 to array.size(fvgBullBoxArr) - 1
-            box.delete(array.get(fvgBullBoxArr, i))
-            label.delete(array.get(fvgBullLblArr, i))
-    array.clear(fvgBullBoxArr)
-    array.clear(fvgBullLblArr)
-    if array.size(fvgBullTop) > 0
-        for i = 0 to array.size(fvgBullTop) - 1
-            t3 = array.get(fvgBullTop, i)
-            b3 = array.get(fvgBullBot, i)
-            bar3 = array.get(fvgBullBar, i)
-            r3 = t3 - b3
-            pct3 = r3 > 0 ? math.min(100, math.max(0, (t3 - array.get(fvgBullMinTocado, i)) / r3 * 100)) : 0
-            estado_txt = pct3 >= fvg_reequilibrio_pct ? "REEQ." : pct3 < 20 ? "SIN CONSOLIDAR" : str.tostring(math.round(pct3)) + "%"
-            bx = box.new(bar3, t3, bar_index + 6, b3, border_color=color.new(color.aqua, 30), bgcolor=color.new(color.aqua, 85), border_width=1)
-            lb = label.new(bar_index + 6, (t3 + b3) / 2, "FVG▲ " + estado_txt, style=label.style_label_left, color=color.new(color.aqua, 20), textcolor=color.white, size=size.small)
-            array.push(fvgBullBoxArr, bx)
-            array.push(fvgBullLblArr, lb)
+    let scoreL = 0;
+    scoreL += trendUp?1:0; scoreL += barridoLong?1:0; scoreL += rojoOscuro?1:0;
+    scoreL += sobreventa?1:0; scoreL += fvgBull?1:0;
 
-    if array.size(fvgBearBoxArr) > 0
-        for i = 0 to array.size(fvgBearBoxArr) - 1
-            box.delete(array.get(fvgBearBoxArr, i))
-            label.delete(array.get(fvgBearLblArr, i))
-    array.clear(fvgBearBoxArr)
-    array.clear(fvgBearLblArr)
-    if array.size(fvgBearTop) > 0
-        for i = 0 to array.size(fvgBearTop) - 1
-            t4 = array.get(fvgBearTop, i)
-            b4 = array.get(fvgBearBot, i)
-            bar4 = array.get(fvgBearBar, i)
-            r4 = t4 - b4
-            pct4 = r4 > 0 ? math.min(100, math.max(0, (array.get(fvgBearMaxTocado, i) - b4) / r4 * 100)) : 0
-            estado_txt2 = pct4 >= fvg_reequilibrio_pct ? "REEQ." : pct4 < 20 ? "SIN CONSOLIDAR" : str.tostring(math.round(pct4)) + "%"
-            bx2 = box.new(bar4, t4, bar_index + 6, b4, border_color=color.new(color.orange, 30), bgcolor=color.new(color.orange, 85), border_width=1)
-            lb2 = label.new(bar_index + 6, (t4 + b4) / 2, "FVG▼ " + estado_txt2, style=label.style_label_left, color=color.new(color.orange, 20), textcolor=color.white, size=size.small)
-            array.push(fvgBearBoxArr, bx2)
-            array.push(fvgBearLblArr, lb2)
+    let scoreS = 0;
+    scoreS += trendDown?1:0; scoreS += barridoShort?1:0; scoreS += verdeOscuro?1:0;
+    scoreS += sobrecompra?1:0; scoreS += fvgBear?1:0;
+
+    return {
+      symbol, price, change, trendUp, trendDown,
+      sqzTxt: rojoOscuro ? 'Valle rojo oscuro (agotándose)' : rojoBrillante ? 'Valle rojo claro' : verdeBrillante ? 'Montaña verde ▲' : 'Montaña verde (débil)',
+      sqzGood: rojoOscuro || verdeOscuro,
+      stoK, sobrecompra, sobreventa,
+      barridoLong, barridoShort,
+      fvgTxt,
+      scoreL, scoreS,
+      senalLong, senalShort,
+      picoRes, picoSup, nivelSup, nivelRes, atrNow
+    };
+  }catch(e){ return { symbol, error: e.message }; }
+}
 
 // ══════════════════════════════════════
-// SEÑAL LONG y SHORT — combinación final (espejadas)
+// RENDER
 // ══════════════════════════════════════
-senal_valida_sqz       = valle_agotandose or sqz_div_alcista_activa
-senal_valida_sqz_short = monte_agotandose or sqz_div_bajista_activa
+function fmtP(p){ if(p===null||p===undefined||isNaN(p)) return '—'; if(p>=1) return p.toFixed(4); if(p>=0.01) return p.toFixed(5); return p.toFixed(6); }
 
-senal_long  = trend_up   and manipulacion_confirmada       and senal_valida_sqz       and not tiempo_invalidado
-senal_short = trend_down and manipulacion_confirmada_short and senal_valida_sqz_short and not tiempo_invalidado
+function renderRow(d){
+  if(d.error) return `<tr><td class="sym">${d.symbol}</td><td colspan="9" style="color:var(--text3)">${d.error}</td></tr>`;
+  const trendBadge = d.trendUp ? '<span class="badge b-green">▲ ALCISTA</span>' : '<span class="badge b-red">▼ BAJISTA</span>';
+  const stoTxt = d.sobrecompra ? 'SOBRECOMPRA' : d.sobreventa ? 'SOBREVENTA' : 'NEUTRA';
+  const stoBadge = `<span class="badge ${d.sobreventa?'b-green':d.sobrecompra?'b-red':'b-gray'}">${Math.round(d.stoK)} · ${stoTxt}</span>`;
+  const manipTxt = (d.barridoLong?'✓L ':'') + (d.barridoShort?'✓S':'') || 'esperando';
+  const senalBadge = d.senalLong ? '<span class="badge b-green">🎣 LONG</span>' : d.senalShort ? '<span class="badge b-red">🎣 SHORT</span>' : '<span class="badge b-gray">—</span>';
+  const rowClass = d.senalLong ? 'signal-long' : d.senalShort ? 'signal-short' : '';
+  return `<tr class="${rowClass}" data-sym="${d.symbol}">
+    <td class="sym">${d.symbol}</td>
+    <td class="r">${fmtP(d.price)}</td>
+    <td>${trendBadge}</td>
+    <td style="color:${d.sqzGood?'var(--green)':'var(--text2)'}">${d.sqzTxt}</td>
+    <td>${stoBadge}</td>
+    <td>${manipTxt}</td>
+    <td>${d.fvgTxt}</td>
+    <td class="r ${d.scoreL>=3?'score-hi':'score-lo'}">${d.scoreL}/5</td>
+    <td class="r ${d.scoreS>=3?'score-hi':'score-lo'}">${d.scoreS}/5</td>
+    <td>${senalBadge}</td>
+  </tr>
+  <tr class="detail" id="detail-${d.symbol}"><td colspan="10"><div class="detail-inner">
+    <div class="dcard"><div class="dcard-label">Pico resistencia (Diario)</div><div class="dcard-val">${d.picoRes?fmtP(d.picoRes):'—'}</div></div>
+    <div class="dcard"><div class="dcard-label">Pico soporte (Diario)</div><div class="dcard-val">${d.picoSup?fmtP(d.picoSup):'—'}</div></div>
+    <div class="dcard"><div class="dcard-label">Nivel objetivo LONG (soporte)</div><div class="dcard-val">${fmtP(d.nivelSup)}</div></div>
+    <div class="dcard"><div class="dcard-label">Nivel objetivo SHORT (resistencia)</div><div class="dcard-val">${fmtP(d.nivelRes)}</div></div>
+    <div class="dcard"><div class="dcard-label">ATR (4H)</div><div class="dcard-val">${fmtP(d.atrNow)}</div></div>
+    <div class="dcard"><div class="dcard-label">Cambio 4H</div><div class="dcard-val" style="color:${d.change>=0?'var(--green)':'var(--red)'}">${d.change>=0?'+':''}${d.change.toFixed(2)}%</div></div>
+  </div></td></tr>`;
+}
 
-score_confluencia = 0
-score_confluencia += trend_up ? 1 : 0
-score_confluencia += manipulacion_confirmada ? 1 : 0
-score_confluencia += valle_agotandose ? 1 : 0
-score_confluencia += sqz_div_alcista_activa ? 1 : 0
-score_confluencia += sto_sobreventa ? 1 : 0
-score_confluencia += sto_div_alcista ? 1 : 0
-score_confluencia += precio_en_fvg_bull ? 1 : 0
+async function runScan(){
+  if(scanning) return;
+  if(!coins.length){ return; }
+  scanning = true;
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true; btn.textContent = '⟳ ESCANEANDO...';
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = `<tr><td colspan="10" style="padding:40px;text-align:center;color:var(--text2)"><span class="spinner"></span>Analizando ${coins.length} moneda(s)...</td></tr>`;
+  const results = await Promise.all(coins.map(analizarMoneda));
+  tbody.innerHTML = results.map(renderRow).join('');
+  tbody.querySelectorAll('tr[data-sym]').forEach(row => {
+    row.onclick = () => {
+      const sym = row.dataset.sym;
+      const det = document.getElementById('detail-'+sym);
+      const wasOpen = det.classList.contains('open');
+      tbody.querySelectorAll('.detail').forEach(d => d.classList.remove('open'));
+      if(!wasOpen) det.classList.add('open');
+    };
+  });
+  document.getElementById('last-update').textContent = 'Última actualización: ' + new Date().toLocaleTimeString('es-AR');
+  document.getElementById('ts').textContent = new Date().toLocaleTimeString('es-AR');
+  btn.disabled = false; btn.textContent = '▶ ESCANEAR';
+  scanning = false;
+}
 
-score_confluencia_short = 0
-score_confluencia_short += trend_down ? 1 : 0
-score_confluencia_short += manipulacion_confirmada_short ? 1 : 0
-score_confluencia_short += monte_agotandose ? 1 : 0
-score_confluencia_short += sqz_div_bajista_activa ? 1 : 0
-score_confluencia_short += sto_sobrecompra ? 1 : 0
-score_confluencia_short += sto_div_bajista ? 1 : 0
-score_confluencia_short += precio_en_fvg_bear ? 1 : 0
+function setRefresh(){
+  const v = parseInt(document.getElementById('refresh-select').value);
+  clearInterval(refreshTimer); refreshTimer = null;
+  if(v > 0) refreshTimer = setInterval(runScan, v*1000);
+}
 
-plotshape(senal_long and not senal_long[1], title="LONG", style=shape.triangleup, location=location.belowbar, color=color.new(color.lime, 0), size=size.normal, text="LS▲")
-plotshape(senal_short and not senal_short[1], title="SHORT", style=shape.triangledown, location=location.abovebar, color=color.new(color.red, 0), size=size.normal, text="LS▼")
-
-if senal_long and not senal_long[1]
-    label.new(bar_index, low - atr_fvg * 0.5, "🎣 LIQUIDITY SWEEP\nLONG · Score " + str.tostring(score_confluencia) + "/7",
-         style=label.style_label_up, color=color.new(color.lime, 15), textcolor=color.black, size=size.normal)
-if senal_short and not senal_short[1]
-    label.new(bar_index, high + atr_fvg * 0.5, "🎣 LIQUIDITY SWEEP\nSHORT · Score " + str.tostring(score_confluencia_short) + "/7",
-         style=label.style_label_down, color=color.new(color.red, 15), textcolor=color.white, size=size.normal)
-
-alertcondition(senal_long, title="🎣 Liquidity Sweep LONG", message="🎣 LIQUIDITY SWEEP LONG — {{ticker}} | Entrada: {{close}} | TF: {{interval}}")
-alertcondition(senal_short, title="🎣 Liquidity Sweep SHORT", message="🎣 LIQUIDITY SWEEP SHORT — {{ticker}} | Entrada: {{close}} | TF: {{interval}}")
-
-if senal_long and not senal_long[1]
-    alert("🎣 LIQUIDITY SWEEP LONG — " + syminfo.ticker +
-         "\n📍 Precio: " + str.tostring(close, "#.####") +
-         "\n📊 Score confluencia: " + str.tostring(score_confluencia) + "/7" +
-         "\n🌊 Manipulación confirmada sobre nivel: " + str.tostring(nivel_sup_objetivo, "#.####") +
-         "\n🌀 SQZ: " + (valle_agotandose ? "valle agotándose" : "divergencia alcista") +
-         "\n📉 Estocástico: " + str.tostring(math.round(sto_k)),
-         alert.freq_once_per_bar_close)
-
-if senal_short and not senal_short[1]
-    alert("🎣 LIQUIDITY SWEEP SHORT — " + syminfo.ticker +
-         "\n📍 Precio: " + str.tostring(close, "#.####") +
-         "\n📊 Score confluencia: " + str.tostring(score_confluencia_short) + "/7" +
-         "\n🌊 Manipulación confirmada sobre nivel: " + str.tostring(nivel_res_objetivo, "#.####") +
-         "\n🌀 SQZ: " + (monte_agotandose ? "montaña agotándose" : "divergencia bajista") +
-         "\n📈 Estocástico: " + str.tostring(math.round(sto_k)),
-         alert.freq_once_per_bar_close)
-
-// ══════════════════════════════════════
-// GESTIÓN DE RIESGO — SL más allá de la mecha del barrido (no en el
-// mínimo/máximo obvio), TP en la liquidez del lado opuesto. Salida por
-// cualquiera de las 3: toca TP, Estocástico se agota girando, o se
-// venció el tiempo esperado para ese timeframe sin resolverse.
-// ══════════════════════════════════════
-var float entry_price   = na
-var bool  en_long       = false
-var bool  en_short      = false
-var float sl_val        = na
-var float tp_val        = na
-var int   bars_en_trade = 0
-
-if senal_long and not senal_long[1] and not en_long and not en_short
-    entry_price := close
-    en_long     := true
-    en_short    := false
-    sl_val      := (na(sweep_low_val) ? low : sweep_low_val) - atr_fvg * sl_buffer_atr
-    tp_val      := nivel_res_objetivo
-    bars_en_trade := 0
-
-if senal_short and not senal_short[1] and not en_long and not en_short
-    entry_price := close
-    en_short    := true
-    en_long     := false
-    sl_val      := (na(sweep_high_val) ? high : sweep_high_val) + atr_fvg * sl_buffer_atr
-    tp_val      := nivel_sup_objetivo
-    bars_en_trade := 0
-
-if en_long or en_short
-    bars_en_trade += 1
-
-motivo_salida = ""
-salida_long  = false
-salida_short = false
-
-if en_long
-    tp_ok_l  = not na(tp_val) and high >= tp_val
-    sl_ok_l  = low <= sl_val
-    sto_ok_l = ta.crossunder(sto_k, sto_ob) and sto_k[1] >= sto_ob
-    t_ok_l   = bars_en_trade > max_velas_tf
-    salida_long := tp_ok_l or sl_ok_l or sto_ok_l or t_ok_l
-    motivo_salida := tp_ok_l ? "TP (liquidez alcanzada)" : sl_ok_l ? "SL" : sto_ok_l ? "Estocástico agotado" : t_ok_l ? "Tiempo vencido" : ""
-
-if en_short
-    tp_ok_s  = not na(tp_val) and low <= tp_val
-    sl_ok_s  = high >= sl_val
-    sto_ok_s = ta.crossover(sto_k, sto_os) and sto_k[1] <= sto_os
-    t_ok_s   = bars_en_trade > max_velas_tf
-    salida_short := tp_ok_s or sl_ok_s or sto_ok_s or t_ok_s
-    motivo_salida := tp_ok_s ? "TP (liquidez alcanzada)" : sl_ok_s ? "SL" : sto_ok_s ? "Estocástico agotado" : t_ok_s ? "Tiempo vencido" : ""
-
-if salida_long and not salida_long[1]
-    label.new(bar_index, high + atr_fvg * 0.5, "🚪 SALIDA LONG\n" + motivo_salida, style=label.style_label_down, color=color.new(color.yellow, 20), textcolor=color.black, size=size.small)
-    alert("🚪 SALIDA LONG — " + syminfo.ticker + " | Motivo: " + motivo_salida + " | Precio: " + str.tostring(close, "#.####"), alert.freq_once_per_bar_close)
-    en_long := false
-
-if salida_short and not salida_short[1]
-    label.new(bar_index, low - atr_fvg * 0.5, "🚪 SALIDA SHORT\n" + motivo_salida, style=label.style_label_up, color=color.new(color.yellow, 20), textcolor=color.black, size=size.small)
-    alert("🚪 SALIDA SHORT — " + syminfo.ticker + " | Motivo: " + motivo_salida + " | Precio: " + str.tostring(close, "#.####"), alert.freq_once_per_bar_close)
-    en_short := false
-
-var line ln_entry = na
-var line ln_sl_ls = na
-var line ln_tp_ls = na
-if barstate.islast and (en_long or en_short)
-    line.delete(ln_entry)
-    line.delete(ln_sl_ls)
-    line.delete(ln_tp_ls)
-    ln_entry := line.new(bar_index - 3, entry_price, bar_index + 8, entry_price, color=color.white, width=1, style=line.style_dashed)
-    ln_sl_ls := line.new(bar_index - 3, sl_val, bar_index + 8, sl_val, color=color.red, width=2, style=line.style_solid)
-    if not na(tp_val)
-        ln_tp_ls := line.new(bar_index - 3, tp_val, bar_index + 8, tp_val, color=color.lime, width=2, style=line.style_solid)
-
-// ══════════════════════════════════════
-// PANEL PRINCIPAL
-// ══════════════════════════════════════
-var table pnl = table.new(position.top_right, 2, 12, bgcolor=color.new(color.black, 20), border_width=1, border_color=color.new(color.gray, 50))
-table.cell(pnl, 0, 0, "LIQUIDITY SWEEP", text_color=color.orange, text_size=size.normal, bgcolor=color.new(color.black, 10), text_halign=text.align_center)
-table.merge_cells(pnl, 0, 0, 1, 0)
-
-table.cell(pnl, 0, 1, "TENDENCIA", text_color=color.gray, text_size=size.small, bgcolor=color.new(color.black, 30))
-table.cell(pnl, 1, 1, trend_up ? "▲ ALCISTA" : "▼ BAJISTA", text_color=color.white, text_size=size.small, bgcolor=trend_up ? color.new(color.lime, 30) : color.new(color.red, 30))
-
-sqz_txt = sqz_rojo_oscuro ? "VALLE ROJO OSCURO (agotándose)" : sqz_rojo_brillante ? "VALLE ROJO CLARO (puede seguir)" : sqz_verde_brillante ? "MONTAÑA VERDE ▲" : "MONTAÑA VERDE (perdiendo fuerza)"
-table.cell(pnl, 0, 2, "SQZ", text_color=color.gray, text_size=size.small, bgcolor=color.new(color.black, 30))
-table.cell(pnl, 1, 2, sqz_txt, text_color=color.white, text_size=size.small, bgcolor=(valle_agotandose or monte_agotandose) ? color.new(color.lime, 30) : sqz_bear ? color.new(color.red, 40) : color.new(color.gray, 50))
-
-table.cell(pnl, 0, 3, "DIV. SQZ", text_color=color.gray, text_size=size.small, bgcolor=color.new(color.black, 30))
-div_sqz_txt = sqz_div_alcista_activa ? "✓ ALCISTA" : sqz_div_bajista_activa ? "✓ BAJISTA" : "—"
-table.cell(pnl, 1, 3, div_sqz_txt, text_color=color.white, text_size=size.small, bgcolor=(sqz_div_alcista_activa or sqz_div_bajista_activa) ? color.new(color.lime, 20) : color.new(color.gray, 50))
-
-sto_txt = sto_sobrecompra ? "SOBRECOMPRA" : sto_sobreventa ? "SOBREVENTA" : "NEUTRA (no operar)"
-table.cell(pnl, 0, 4, "ESTOCÁSTICO", text_color=color.gray, text_size=size.small, bgcolor=color.new(color.black, 30))
-table.cell(pnl, 1, 4, str.tostring(math.round(sto_k)) + " · " + sto_txt, text_color=color.white, text_size=size.small, bgcolor=sto_sobreventa ? color.new(color.lime, 30) : sto_sobrecompra ? color.new(color.red, 30) : color.new(color.gray, 55))
-
-table.cell(pnl, 0, 5, "MANIPULACIÓN L/S", text_color=color.gray, text_size=size.small, bgcolor=color.new(color.black, 30))
-manip_txt = (manipulacion_confirmada ? "✓L " : "") + (manipulacion_confirmada_short ? "✓S" : "") 
-table.cell(pnl, 1, 5, manip_txt == "" ? "esperando barrido" : manip_txt, text_color=color.white, text_size=size.small, bgcolor=(manipulacion_confirmada or manipulacion_confirmada_short) ? color.new(color.lime, 20) : color.new(color.gray, 55))
-
-table.cell(pnl, 0, 6, "IMBALANCE", text_color=color.gray, text_size=size.small, bgcolor=color.new(color.black, 30))
-imb_txt = precio_en_fvg_bull ? str.tostring(math.round(nz(fvg_bull_pct_actual, 0))) + "% relleno ▲" : precio_en_fvg_bear ? str.tostring(math.round(nz(fvg_bear_pct_actual, 0))) + "% relleno ▼" : "—"
-table.cell(pnl, 1, 6, imb_txt, text_color=color.white, text_size=size.small, bgcolor=(precio_en_fvg_bull or precio_en_fvg_bear) ? color.new(color.aqua, 30) : color.new(color.gray, 55))
-
-table.cell(pnl, 0, 7, "TIEMPO", text_color=color.gray, text_size=size.small, bgcolor=color.new(color.black, 30))
-table.cell(pnl, 1, 7, tiempo_invalidado ? "⛔ INVALIDADO" : str.tostring(bars_desde_cambio) + "/" + str.tostring(max_velas_tf) + " velas", text_color=color.white, text_size=size.small, bgcolor=tiempo_invalidado ? color.new(color.red, 20) : color.new(color.gray, 55))
-
-table.cell(pnl, 0, 8, "SCORE LONG", text_color=color.gray, text_size=size.small, bgcolor=color.new(color.black, 30))
-table.cell(pnl, 1, 8, str.tostring(score_confluencia) + "/7" + (sto_div_bajista ? " ⚠ div. bajista" : ""), text_color=color.white, text_size=size.small, bgcolor=score_confluencia >= 5 ? color.new(color.lime, 15) : color.new(color.gray, 55))
-
-table.cell(pnl, 0, 9, "SCORE SHORT", text_color=color.gray, text_size=size.small, bgcolor=color.new(color.black, 30))
-table.cell(pnl, 1, 9, str.tostring(score_confluencia_short) + "/7" + (sto_div_alcista ? " ⚠ div. alcista" : ""), text_color=color.white, text_size=size.small, bgcolor=score_confluencia_short >= 5 ? color.new(color.red, 15) : color.new(color.gray, 55))
-
-pos_txt = en_long ? "▲ LONG desde " + str.tostring(entry_price, "#.####") : en_short ? "▼ SHORT desde " + str.tostring(entry_price, "#.####") : "sin posición"
-table.cell(pnl, 0, 10, "POSICIÓN", text_color=color.gray, text_size=size.small, bgcolor=color.new(color.black, 30))
-table.cell(pnl, 1, 10, pos_txt, text_color=color.white, text_size=size.small, bgcolor=en_long ? color.new(color.lime, 20) : en_short ? color.new(color.red, 20) : color.new(color.gray, 55))
-
-sltp_txt = (en_long or en_short) ? ("SL " + str.tostring(sl_val, "#.####") + " · TP " + (na(tp_val) ? "—" : str.tostring(tp_val, "#.####")) + " · " + str.tostring(bars_en_trade) + "/" + str.tostring(max_velas_tf)) : "—"
-table.cell(pnl, 0, 11, "SL / TP", text_color=color.gray, text_size=size.small, bgcolor=color.new(color.black, 30))
-table.cell(pnl, 1, 11, sltp_txt, text_color=color.white, text_size=size.small, bgcolor=color.new(color.gray, 55))
-
-// ══════════════════════════════════════════════════════════════
-// 🚀 MEGA PUMP — TARJETA INDEPENDIENTE (on/off, NO interfiere con
-// nada de lo de arriba). Réplica compacta del Score/Whale/AMD de
-// CyberPUMP, calculada aparte con sus propias variables locales.
-// ══════════════════════════════════════════════════════════════
-grp_mega = "🚀 Mega Pump (independiente)"
-mostrar_megapump = input.bool(false, "Mostrar tarjeta Mega Pump", group=grp_mega)
-
-// -- cálculos propios, aislados, solo para esta tarjeta --
-mp_vol_sma   = ta.sma(volume, 20)
-mp_vol_ratio = volume / mp_vol_sma
-mp_stoch_rsi = ta.rsi(close, 14)
-mp_stoch_raw = ta.stoch(mp_stoch_rsi, mp_stoch_rsi, mp_stoch_rsi, 14)
-mp_stoch_k   = ta.sma(mp_stoch_raw, 3)
-[mp_diplus, mp_diminus, mp_adx] = ta.dmi(14, 14)
-
-mp_delta = close > open ? volume : close < open ? -volume : 0.0
-mp_cvd20 = math.sum(mp_delta, 20)
-mp_cvd_sma = ta.sma(mp_cvd20, 5)
-mp_whale_buy = mp_vol_ratio >= 2.0 and close > open and mp_cvd20 > mp_cvd_sma
-
-mp_sc_vol   = mp_vol_ratio < 0.5 ? 2 : mp_vol_ratio < 1.0 ? 1 : 0
-mp_sc_adx   = mp_adx <= 15 ? 2 : mp_adx <= 25 ? 1 : 0
-mp_sc_stoch = mp_stoch_k < 15 ? 2 : mp_stoch_k < 25 ? 1 : 0
-mp_score    = mp_sc_vol + mp_sc_adx + mp_sc_stoch + (mp_whale_buy ? 3 : 0)
-mp_entrada  = mp_score >= 4 and mp_whale_buy
-
-if mostrar_megapump and mp_entrada and not mp_entrada[1] and barstate.isconfirmed
-    label.new(bar_index, low - atr_fvg * 1.2, "🚀 MEGA PUMP\nScore " + str.tostring(mp_score) + "/9", style=label.style_label_up, color=color.new(color.aqua, 10), textcolor=color.white, size=size.small)
-
-if mostrar_megapump and barstate.islast
-    var table mpTbl = table.new(position.bottom_right, 2, 2, bgcolor=color.new(color.black, 20), border_width=1, border_color=color.new(color.gray, 50))
-    table.cell(mpTbl, 0, 0, "MEGA PUMP", text_color=color.aqua, text_size=size.small, bgcolor=color.new(color.black, 10), text_halign=text.align_center)
-    table.merge_cells(mpTbl, 0, 0, 1, 0)
-    table.cell(mpTbl, 0, 1, "Score", text_color=color.gray, text_size=size.small, bgcolor=color.new(color.black, 30))
-    table.cell(mpTbl, 1, 1, str.tostring(mp_score) + "/9" + (mp_entrada ? " · ENTRADA" : ""), text_color=color.white, text_size=size.small, bgcolor=mp_entrada ? color.new(color.aqua, 20) : color.new(color.gray, 55))
+renderTags();
+document.getElementById('add-btn').addEventListener('click', addCoin);
+document.getElementById('add-input').addEventListener('keydown', e => { if(e.key==='Enter') addCoin(); });
+document.getElementById('scan-btn').addEventListener('click', runScan);
+document.getElementById('refresh-select').addEventListener('change', setRefresh);
+setTimeout(() => { runScan(); setRefresh(); }, 300);
+</script>
+</body>
+</html>
