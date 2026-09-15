@@ -211,15 +211,55 @@ async function fetchKlines(symbol, interval, limit){
   if(!r.ok) throw new Error('HTTP '+r.status);
   return r.json();
 }
+async function fetchDepth(symbol){
+  const r = await fetch(`https://fapi.binance.com/fapi/v1/depth?symbol=${symbol}USDT&limit=500`);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+
+// ══════════════════════════════════════
+// FUERZA DISPONIBLE — libro de órdenes vs. velocidad de compra/venta.
+// Camina el libro desde el precio actual hacia el objetivo, acumulando
+// liquidez en USD, hasta que se iguala a la "velocidad" reciente (CVD de
+// las últimas velas en USD). Ese punto es el alcance ESTIMADO real —
+// no es una garantía, es "con esta fuerza, hasta acá llegaría".
+// ══════════════════════════════════════
+function calcFuerzaDisponible(depth, price, direction, target, closes, opens, vols){
+  if(!depth || (!depth.asks && !depth.bids)) return { estimado: null, alcanza: null, texto: '—' };
+  const n = Math.min(6, closes.length);
+  let veloc = 0;
+  for(let i=closes.length-n;i<closes.length;i++){
+    veloc += (closes[i] >= opens[i] ? 1 : -1) * vols[i];
+  }
+  veloc = Math.abs(veloc) * price; // en USD aprox
+
+  const book = direction === 'long'
+    ? depth.asks.map(a=>({p:+a[0], q:+a[1]})).filter(a=>a.p>price && a.p<=target*1.05).sort((a,b)=>a.p-b.p)
+    : depth.bids.map(b=>({p:+b[0], q:+b[1]})).filter(b=>b.p<price && b.p>=target*0.95).sort((a,b)=>b.p-a.p);
+
+  if(!book.length || veloc <= 0) return { estimado: null, alcanza: null, texto: 'Sin datos suficientes' };
+
+  let acumulado = 0, estimado = book[book.length-1].p;
+  for(const lvl of book){
+    acumulado += lvl.p * lvl.q;
+    if(acumulado >= veloc){ estimado = lvl.p; break; }
+  }
+  const alcanza = direction === 'long' ? estimado >= target : estimado <= target;
+  const texto = alcanza
+    ? '✓ Alcanzaría el pico (' + fmtP(estimado) + ')'
+    : 'Solo hasta ~' + fmtP(estimado) + ' (no llega al pico)';
+  return { estimado, alcanza, texto };
+}
 
 // ══════════════════════════════════════
 // ANÁLISIS COMPLETO POR MONEDA (misma lógica que el Pine, timeframe base 4H)
 // ══════════════════════════════════════
 async function analizarMoneda(symbol){
   try{
-    const [k4h, kD] = await Promise.all([
+    const [k4h, kD, depth] = await Promise.all([
       fetchKlines(symbol, '4h', 120),
-      fetchKlines(symbol, '1d', 120)
+      fetchKlines(symbol, '1d', 120),
+      fetchDepth(symbol).catch(()=>null)
     ]);
     if(!Array.isArray(k4h) || k4h.length < 60) return { symbol, error: 'Sin datos' };
 
@@ -276,6 +316,13 @@ async function analizarMoneda(symbol){
       if(nivelRes!==null && highs[i] > nivelRes && closes[i] < nivelRes) barridoShort = true;
     }
 
+    // Fuerza disponible: para LONG mide si la compra puede llegar al pico de arriba (nivelRes);
+    // para SHORT, si la venta puede llegar al pico de abajo (nivelSup).
+    const opens4h = k4h.map(k=>+k[1]);
+    const vols4h  = k4h.map(k=>+k[5]);
+    const fuerzaLong  = calcFuerzaDisponible(depth, price, 'long',  nivelRes, closes, opens4h, vols4h);
+    const fuerzaShort = calcFuerzaDisponible(depth, price, 'short', nivelSup, closes, opens4h, vols4h);
+
     // Imbalance (FVG) simple: último hueco de 3 velas sin rellenar, % con mecha
     let fvgTxt = '—', fvgBull = false, fvgBear = false;
     for(let i=closes.length-1;i>=2;i--){
@@ -320,7 +367,8 @@ async function analizarMoneda(symbol){
       fvgTxt,
       scoreL, scoreS,
       senalLong, senalShort,
-      picoRes, picoSup, nivelSup, nivelRes, atrNow
+      picoRes, picoSup, nivelSup, nivelRes, atrNow,
+      fuerzaLong, fuerzaShort
     };
   }catch(e){ return { symbol, error: e.message }; }
 }
@@ -357,6 +405,8 @@ function renderRow(d){
     <div class="dcard"><div class="dcard-label">Nivel objetivo SHORT (resistencia)</div><div class="dcard-val">${fmtP(d.nivelRes)}</div></div>
     <div class="dcard"><div class="dcard-label">ATR (4H)</div><div class="dcard-val">${fmtP(d.atrNow)}</div></div>
     <div class="dcard"><div class="dcard-label">Cambio 4H</div><div class="dcard-val" style="color:${d.change>=0?'var(--green)':'var(--red)'}">${d.change>=0?'+':''}${d.change.toFixed(2)}%</div></div>
+    <div class="dcard"><div class="dcard-label">Fuerza disponible (LONG → pico arriba)</div><div class="dcard-val" style="font-size:12px;color:${d.fuerzaLong.alcanza?'var(--green)':'var(--text2)'}">${d.fuerzaLong.texto}</div></div>
+    <div class="dcard"><div class="dcard-label">Fuerza disponible (SHORT → pico abajo)</div><div class="dcard-val" style="font-size:12px;color:${d.fuerzaShort.alcanza?'var(--red)':'var(--text2)'}">${d.fuerzaShort.texto}</div></div>
   </div></td></tr>`;
 }
 
