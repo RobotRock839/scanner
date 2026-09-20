@@ -79,10 +79,10 @@ tbody tr:hover{background:rgba(255,255,255,.03);}
     <thead><tr>
       <th>MONEDA</th><th class="r">PRECIO</th><th>TENDENCIA</th><th>SQZ</th>
       <th>ESTOCÁSTICO</th><th>MANIPULACIÓN</th><th>IMBALANCE</th>
-      <th class="r">SCORE L</th><th class="r">SCORE S</th><th>SEÑAL</th><th>ROTACIÓN</th>
+      <th class="r">SCORE L</th><th class="r">SCORE S</th><th>SEÑAL</th><th>ROTACIÓN BAJISTA</th><th>ROTACIÓN ALCISTA</th>
     </tr></thead>
     <tbody id="tbody">
-      <tr><td colspan="11" style="padding:40px;text-align:center;color:var(--text2)">Presioná ESCANEAR</td></tr>
+      <tr><td colspan="12" style="padding:40px;text-align:center;color:var(--text2)">Presioná ESCANEAR</td></tr>
     </tbody>
   </table>
 </div>
@@ -410,6 +410,45 @@ async function analizarMoneda(symbol){
     else if(!estructuraChoch && grietas >= 2) rotacion = { txt: 'AGOTAMIENTO — VIGILAR', cls: 'b-yellow' };
     else if(grietas >= 1)                    rotacion = { txt: 'PRIMERAS GRIETAS', cls: 'b-cyan' };
 
+    // ══════════════════════════════════════
+    // NUEVO — ESPEJO: MÓDULO DE ROTACIÓN ALCISTA (salida de short / posible entrada long)
+    // Misma lógica de 4 bloques, invertida hacia el piso del mercado.
+    // ══════════════════════════════════════
+    // 1) Volumen vendedor agotándose: mismo cálculo de caída de volumen (direccionalmente neutro)
+    const volDebilAlza = volDebil;
+
+    // 2) Absorción CVD en la base: precio iguala/pierde su mínimo previo, pero el CVD no lo
+    //    acompaña a la baja (compradores absorbiendo ventas)
+    let cvdAbsorcionAlza = false;
+    if(piv4h.lows.length >= 1){
+      const pl = piv4h.lows[piv4h.lows.length-1];
+      const precioIgualaOPierde = lows[lows.length-1] <= pl.val * 1.005;
+      cvdAbsorcionAlza = precioIgualaOPierde && cvdArr[cvdArr.length-1] >= cvdArr[pl.idx];
+    }
+
+    // 3) Divergencia de momentum alcista: dos últimos mínimos de precio vs RSI en esos puntos
+    let divergenciaMomentumAlza = false;
+    if(piv4h.lows.length >= 2){
+      const l1 = piv4h.lows[piv4h.lows.length-2], l2 = piv4h.lows[piv4h.lows.length-1];
+      divergenciaMomentumAlza = l2.val <= l1.val && rsiArr[l2.idx] > rsiArr[l1.idx];
+    }
+
+    // 4) Estructura: barrido de mínimo relevante (barridoLong) + CHoCH alcista
+    //    (ruptura confirmada del último máximo descendente)
+    let chochUp = false;
+    if(piv4h.highs.length >= 1){
+      const lastHigh = piv4h.highs[piv4h.highs.length-1];
+      chochUp = closes[closes.length-1] > lastHigh.val && closes[closes.length-2] <= lastHigh.val;
+    }
+    const estructuraChochAlza = barridoLong && chochUp;
+
+    const grietasAlza = [volDebilAlza, cvdAbsorcionAlza, divergenciaMomentumAlza].filter(Boolean).length;
+    let rotacionAlza = { txt: 'SIN SEÑAL', cls: 'b-gray' };
+    if(estructuraChochAlza && grietasAlza >= 2)      rotacionAlza = { txt: 'GIRO ALCISTA CONFIRMADO', cls: 'b-green' };
+    else if(estructuraChochAlza && grietasAlza >= 1) rotacionAlza = { txt: 'ROTACIÓN ALCISTA EN CURSO', cls: 'b-orange' };
+    else if(!estructuraChochAlza && grietasAlza >= 2) rotacionAlza = { txt: 'AGOTAMIENTO VENDEDOR — VIGILAR', cls: 'b-yellow' };
+    else if(grietasAlza >= 1)                        rotacionAlza = { txt: 'PRIMERAS GRIETAS (ALZA)', cls: 'b-cyan' };
+
     return {
       symbol, price, change, trendUp, trendDown,
       sqzTxt: rojoOscuro ? 'Valle rojo oscuro (agotándose)' : rojoBrillante ? 'Valle rojo claro' : verdeBrillante ? 'Montaña verde ▲' : 'Montaña verde (débil)',
@@ -422,7 +461,9 @@ async function analizarMoneda(symbol){
       picoRes, picoSup, nivelSup, nivelRes, atrNow,
       fuerzaLong, fuerzaShort,
       volDebil, cvdAbsorcion, divergenciaMomentum, estructuraChoch, chochDown,
-      rotacion
+      rotacion,
+      volDebilAlza, cvdAbsorcionAlza, divergenciaMomentumAlza, estructuraChochAlza, chochUp,
+      rotacionAlza
     };
   }catch(e){ return { symbol, error: e.message }; }
 }
@@ -440,6 +481,7 @@ function renderRow(d){
   const manipTxt = (d.barridoLong?'✓L ':'') + (d.barridoShort?'✓S':'') || 'esperando';
   const senalBadge = d.senalLong ? '<span class="badge b-green">🎣 LONG</span>' : d.senalShort ? '<span class="badge b-red">🎣 SHORT</span>' : '<span class="badge b-gray">—</span>';
   const rotacionBadge = `<span class="badge ${d.rotacion.cls}">${d.rotacion.txt}</span>`;
+  const rotacionAlzaBadge = `<span class="badge ${d.rotacionAlza.cls}">${d.rotacionAlza.txt}</span>`;
   const rowClass = d.senalLong ? 'signal-long' : d.senalShort ? 'signal-short' : '';
   return `<tr class="${rowClass}" data-sym="${d.symbol}">
     <td class="sym">${d.symbol}</td>
@@ -453,8 +495,9 @@ function renderRow(d){
     <td class="r ${d.scoreS>=3?'score-hi':'score-lo'}">${d.scoreS}/5</td>
     <td>${senalBadge}</td>
     <td>${rotacionBadge}</td>
+    <td>${rotacionAlzaBadge}</td>
   </tr>
-  <tr class="detail" id="detail-${d.symbol}"><td colspan="11"><div class="detail-inner">
+  <tr class="detail" id="detail-${d.symbol}"><td colspan="12"><div class="detail-inner">
     <div class="dcard"><div class="dcard-label">Pico resistencia (Diario)</div><div class="dcard-val">${d.picoRes?fmtP(d.picoRes):'—'}</div></div>
     <div class="dcard"><div class="dcard-label">Pico soporte (Diario)</div><div class="dcard-val">${d.picoSup?fmtP(d.picoSup):'—'}</div></div>
     <div class="dcard"><div class="dcard-label">Nivel objetivo LONG (soporte)</div><div class="dcard-val">${fmtP(d.nivelSup)}</div></div>
@@ -469,6 +512,12 @@ function renderRow(d){
     <div class="dcard"><div class="dcard-label">2. Absorción CVD (proxy)</div><div class="dcard-val" style="font-size:13px;color:${d.cvdAbsorcion?'var(--red)':'var(--text2)'}">${d.cvdAbsorcion?'✗ Confirmada':'✓ Sin absorción'}</div></div>
     <div class="dcard"><div class="dcard-label">3. Divergencia momentum</div><div class="dcard-val" style="font-size:13px;color:${d.divergenciaMomentum?'var(--red)':'var(--text2)'}">${d.divergenciaMomentum?'✗ Detectada':'✓ Sin divergencia'}</div></div>
     <div class="dcard"><div class="dcard-label">4. Barrido + CHoCH (gate)</div><div class="dcard-val" style="font-size:13px;color:${d.estructuraChoch?'var(--red)':'var(--text2)'}">${d.estructuraChoch?'✗ Confirmado':'✓ Estructura intacta'}</div></div>
+
+    <div class="detail-sep">Módulo espejo (salida de short / posible entrada long)</div>
+    <div class="dcard"><div class="dcard-label">1. Volumen vendedor</div><div class="dcard-val" style="font-size:13px;color:${d.volDebilAlza?'var(--green)':'var(--text2)'}">${d.volDebilAlza?'✗ Agotado':'✓ Sostenido'}</div></div>
+    <div class="dcard"><div class="dcard-label">2. Absorción CVD en base (proxy)</div><div class="dcard-val" style="font-size:13px;color:${d.cvdAbsorcionAlza?'var(--green)':'var(--text2)'}">${d.cvdAbsorcionAlza?'✗ Confirmada':'✓ Sin absorción'}</div></div>
+    <div class="dcard"><div class="dcard-label">3. Divergencia momentum (alza)</div><div class="dcard-val" style="font-size:13px;color:${d.divergenciaMomentumAlza?'var(--green)':'var(--text2)'}">${d.divergenciaMomentumAlza?'✗ Detectada':'✓ Sin divergencia'}</div></div>
+    <div class="dcard"><div class="dcard-label">4. Barrido + CHoCH alcista (gate)</div><div class="dcard-val" style="font-size:13px;color:${d.estructuraChochAlza?'var(--green)':'var(--text2)'}">${d.estructuraChochAlza?'✗ Confirmado':'✓ Estructura intacta'}</div></div>
   </div></td></tr>`;
 }
 
