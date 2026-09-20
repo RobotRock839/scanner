@@ -34,11 +34,13 @@ td{padding:11px 10px;border-bottom:1px solid var(--border);}
 tbody tr{cursor:pointer;transition:background .1s;}
 tbody tr:hover{background:rgba(255,255,255,.03);}
 .sym{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:15px;color:#fff;}
-.badge{display:inline-block;padding:2px 8px;font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;}
+.badge{display:inline-block;padding:2px 8px;font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;white-space:nowrap;}
 .b-green{background:rgba(0,255,136,.12);border:1px solid var(--green2);color:var(--green);}
 .b-red{background:rgba(255,51,85,.12);border:1px solid var(--red2);color:var(--red);}
 .b-gray{background:transparent;border:1px solid var(--border2);color:var(--text3);}
 .b-cyan{background:rgba(0,229,255,.12);border:1px solid var(--cyan);color:var(--cyan);}
+.b-orange{background:rgba(255,107,0,.12);border:1px solid var(--orange);color:var(--orange);}
+.b-yellow{background:rgba(255,215,0,.12);border:1px solid var(--yellow);color:var(--yellow);}
 .score-hi{color:var(--green);font-weight:700;}
 .score-lo{color:var(--text2);}
 .signal-long{background:rgba(0,255,136,.08);}
@@ -46,6 +48,7 @@ tbody tr:hover{background:rgba(255,255,255,.03);}
 .detail{display:none;background:var(--bg3);border-top:2px solid var(--cyan);}
 .detail.open{display:table-row;}
 .detail-inner{padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.detail-sep{grid-column:1/-1;border-top:1px dashed var(--border2);margin:4px 0;padding-top:8px;font-family:"Barlow Condensed",sans-serif;font-size:11px;letter-spacing:1.5px;color:var(--text2);text-transform:uppercase;}
 .dcard{background:var(--bg2);border:1px solid var(--border2);padding:10px 12px;}
 .dcard-label{font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;font-family:"Barlow Condensed",sans-serif;}
 .dcard-val{font-family:"Barlow Condensed",sans-serif;font-size:15px;font-weight:700;margin-top:4px;color:#fff;}
@@ -56,7 +59,7 @@ tbody tr:hover{background:rgba(255,255,255,.03);}
 </head>
 <body>
 <div class="logo">
-  <div>LIQUIDITY <span>SWEEP</span> // BINANCE FUTURES <sup>v1</sup></div>
+  <div>LIQUIDITY <span>SWEEP</span> // BINANCE FUTURES <sup>v2 · rotación</sup></div>
   <div style="font-size:10px;color:var(--text3)" id="ts">--:--:--</div>
 </div>
 <div class="controls">
@@ -76,10 +79,10 @@ tbody tr:hover{background:rgba(255,255,255,.03);}
     <thead><tr>
       <th>MONEDA</th><th class="r">PRECIO</th><th>TENDENCIA</th><th>SQZ</th>
       <th>ESTOCÁSTICO</th><th>MANIPULACIÓN</th><th>IMBALANCE</th>
-      <th class="r">SCORE L</th><th class="r">SCORE S</th><th>SEÑAL</th>
+      <th class="r">SCORE L</th><th class="r">SCORE S</th><th>SEÑAL</th><th>ROTACIÓN</th>
     </tr></thead>
     <tbody id="tbody">
-      <tr><td colspan="10" style="padding:40px;text-align:center;color:var(--text2)">Presioná ESCANEAR</td></tr>
+      <tr><td colspan="11" style="padding:40px;text-align:center;color:var(--text2)">Presioná ESCANEAR</td></tr>
     </tbody>
   </table>
 </div>
@@ -136,7 +139,6 @@ function sma(vals, len, i){ let s=0,c=0; for(let j=Math.max(0,i-len+1);j<=i;j++)
 function highestN(vals, len, i){ let m=-Infinity; for(let j=Math.max(0,i-len+1);j<=i;j++) m=Math.max(m,vals[j]); return m; }
 function lowestN(vals, len, i){ let m=Infinity; for(let j=Math.max(0,i-len+1);j<=i;j++) m=Math.min(m,vals[j]); return m; }
 function linregLast(vals, len){
-  // pendiente + intercept de regresión lineal sobre las últimas "len" muestras, evaluada en la última
   const n = Math.min(len, vals.length);
   const y = vals.slice(vals.length-n);
   const xs = y.map((_,i)=>i);
@@ -152,7 +154,6 @@ function computeSQZseries(highs, lows, closes, len){
     if(i < len){ out.push(0); continue; }
     const hh = highestN(highs, len, i), ll = lowestN(lows, len, i);
     const smaC = sma(closes, len, i);
-    const val = closes[i] - ((hh+ll)/2 + smaC)/2;
     const window = [];
     for(let j=Math.max(0,i-len+1);j<=i;j++){
       const hh2 = highestN(highs, len, j), ll2 = lowestN(lows, len, j), smaC2 = sma(closes, len, j);
@@ -204,6 +205,20 @@ function pivotsByClose(closes, lr){
 }
 
 // ══════════════════════════════════════
+// NUEVO — Delta / CVD aproximado (proxy público de "presión compradora real")
+// Binance Futures klines trae, en el índice 9, el "taker buy base asset volume"
+// (volumen comprado a mercado). delta = compras a mercado − ventas a mercado.
+// No es CVD institucional real, pero es el proxy más fiel disponible vía API pública.
+// ══════════════════════════════════════
+function computeDeltaCVD(kArrRaw){
+  const delta = kArrRaw.map(k => { const vol = +k[5]; const buyVol = +k[9]; return 2*buyVol - vol; });
+  const cvd = [];
+  let acc = 0;
+  for(let i=0;i<delta.length;i++){ acc += delta[i]; cvd.push(acc); }
+  return { delta, cvd };
+}
+
+// ══════════════════════════════════════
 // FETCH BINANCE
 // ══════════════════════════════════════
 async function fetchKlines(symbol, interval, limit){
@@ -219,10 +234,6 @@ async function fetchDepth(symbol){
 
 // ══════════════════════════════════════
 // FUERZA DISPONIBLE — libro de órdenes vs. velocidad de compra/venta.
-// Camina el libro desde el precio actual hacia el objetivo, acumulando
-// liquidez en USD, hasta que se iguala a la "velocidad" reciente (CVD de
-// las últimas velas en USD). Ese punto es el alcance ESTIMADO real —
-// no es una garantía, es "con esta fuerza, hasta acá llegaría".
 // ══════════════════════════════════════
 function calcFuerzaDisponible(depth, price, direction, target, closes, opens, vols){
   if(!depth || (!depth.asks && !depth.bids)) return { estimado: null, alcanza: null, texto: '—' };
@@ -231,7 +242,7 @@ function calcFuerzaDisponible(depth, price, direction, target, closes, opens, vo
   for(let i=closes.length-n;i<closes.length;i++){
     veloc += (closes[i] >= opens[i] ? 1 : -1) * vols[i];
   }
-  veloc = Math.abs(veloc) * price; // en USD aprox
+  veloc = Math.abs(veloc) * price;
 
   const book = direction === 'long'
     ? depth.asks.map(a=>({p:+a[0], q:+a[1]})).filter(a=>a.p>price && a.p<=target*1.05).sort((a,b)=>a.p-b.p)
@@ -252,7 +263,7 @@ function calcFuerzaDisponible(depth, price, direction, target, closes, opens, vo
 }
 
 // ══════════════════════════════════════
-// ANÁLISIS COMPLETO POR MONEDA (misma lógica que el Pine, timeframe base 4H)
+// ANÁLISIS COMPLETO POR MONEDA (base 4H)
 // ══════════════════════════════════════
 async function analizarMoneda(symbol){
   try{
@@ -264,6 +275,8 @@ async function analizarMoneda(symbol){
     if(!Array.isArray(k4h) || k4h.length < 60) return { symbol, error: 'Sin datos' };
 
     const closes = k4h.map(k=>+k[4]), highs = k4h.map(k=>+k[2]), lows = k4h.map(k=>+k[3]);
+    const opens4h = k4h.map(k=>+k[1]);
+    const vols4h  = k4h.map(k=>+k[5]);
     const price = closes[closes.length-1];
     const change = (price - closes[closes.length-2]) / closes[closes.length-2] * 100;
 
@@ -274,7 +287,7 @@ async function analizarMoneda(symbol){
     const sqzArr = computeSQZseries(highs, lows, closes, 20);
     const sqzNow = sqzArr[sqzArr.length-1], sqzPrev = sqzArr[sqzArr.length-2];
     const sqzBull = sqzNow > 0, sqzBear = sqzNow <= 0;
-    const rojoOscuro = sqzBear && sqzNow >= sqzPrev;   // agotándose
+    const rojoOscuro = sqzBear && sqzNow >= sqzPrev;
     const rojoBrillante = sqzBear && sqzNow < sqzPrev;
     const verdeOscuro = sqzBull && sqzNow <= sqzPrev;
     const verdeBrillante = sqzBull && sqzNow > sqzPrev;
@@ -286,9 +299,6 @@ async function analizarMoneda(symbol){
     const atrArr = atrSeries(highs, lows, closes, 14);
     const atrNow = atrArr[atrArr.length-1];
 
-    // Picos importantes: pivots por cierre en Diario, con filtro de significancia (1.5 ATR diario)
-    // Solo cuentan como resistencia/soporte VIGENTE si todavía están por encima/debajo del precio
-    // actual — un pico ya superado por un pump/caída no es una resistencia/soporte real.
     const dCloses = kD.map(k=>+k[4]), dHighs = kD.map(k=>+k[2]), dLows = kD.map(k=>+k[3]);
     const atrD = atrSeries(dHighs, dLows, dCloses, 14);
     const atrDNow = atrD[atrD.length-1];
@@ -296,19 +306,18 @@ async function analizarMoneda(symbol){
     let picoRes = null, picoSup = null;
     for(let i=piv.highs.length-1;i>=0;i--){
       const v = piv.highs[i].val;
-      if(v <= price) continue; // ya superado, no sirve como resistencia vigente
+      if(v <= price) continue;
       if(picoRes===null || Math.abs(v - picoRes) >= atrDNow*1.5){ picoRes = v; break; }
     }
     for(let i=piv.lows.length-1;i>=0;i--){
       const v = piv.lows[i].val;
-      if(v >= price) continue; // ya perforado, no sirve como soporte vigente
+      if(v >= price) continue;
       if(picoSup===null || Math.abs(picoSup - v) >= atrDNow*1.5){ picoSup = v; break; }
     }
 
     const nivelSup = picoSup !== null ? picoSup : lowestN(lows, 40, lows.length-1);
     const nivelRes = picoRes !== null ? picoRes : highestN(highs, 40, highs.length-1);
 
-    // Manipulación: barrido en las últimas 6 velas de 4H
     let barridoLong = false, barridoShort = false;
     for(let i=closes.length-6;i<closes.length;i++){
       if(i<1) continue;
@@ -316,17 +325,12 @@ async function analizarMoneda(symbol){
       if(nivelRes!==null && highs[i] > nivelRes && closes[i] < nivelRes) barridoShort = true;
     }
 
-    // Fuerza disponible: para LONG mide si la compra puede llegar al pico de arriba (nivelRes);
-    // para SHORT, si la venta puede llegar al pico de abajo (nivelSup).
-    const opens4h = k4h.map(k=>+k[1]);
-    const vols4h  = k4h.map(k=>+k[5]);
     const fuerzaLong  = calcFuerzaDisponible(depth, price, 'long',  nivelRes, closes, opens4h, vols4h);
     const fuerzaShort = calcFuerzaDisponible(depth, price, 'short', nivelSup, closes, opens4h, vols4h);
 
-    // Imbalance (FVG) simple: último hueco de 3 velas sin rellenar, % con mecha
     let fvgTxt = '—', fvgBull = false, fvgBear = false;
     for(let i=closes.length-1;i>=2;i--){
-      if(lows[i] > highs[i-2]){ // bull FVG
+      if(lows[i] > highs[i-2]){
         const top=lows[i], bot=highs[i-2];
         let minTocado = top;
         for(let j=i;j<closes.length;j++) minTocado = Math.min(minTocado, lows[j]);
@@ -335,7 +339,7 @@ async function analizarMoneda(symbol){
         break;
       }
       if(highs[i-2] > lows[i-2] && highs[i-2] < lows[i]) continue;
-      if(highs[i] < lows[i-2]){ // bear FVG
+      if(highs[i] < lows[i-2]){
         const top=lows[i-2], bot=highs[i];
         let maxTocado = bot;
         for(let j=i;j<closes.length;j++) maxTocado = Math.max(maxTocado, highs[j]);
@@ -358,6 +362,54 @@ async function analizarMoneda(symbol){
     scoreS += trendDown?1:0; scoreS += barridoShort?1:0; scoreS += verdeOscuro?1:0;
     scoreS += sobrecompra?1:0; scoreS += fvgBear?1:0;
 
+    // ══════════════════════════════════════
+    // NUEVO — MÓDULO DE ROTACIÓN (salida de long / posible entrada short)
+    // Reemplaza el viejo N1/N2/N3. Se arma con los 4 bloques de la libreta:
+    //   1) Volumen comprador agotándose
+    //   2) Absorción CVD (proxy vía taker buy/sell)
+    //   3) Divergencia estructural de momentum (RSI vs. precio)
+    //   4) Estructura + liquidez: barrido de máximo + CHoCH (gate obligatorio)
+    // ══════════════════════════════════════
+    const { cvd: cvdArr } = computeDeltaCVD(k4h);
+    const rsiArr = rsiSeries(closes, 14);
+    const piv4h = pivotsByClose(closes, 3);
+
+    // 1) Volumen comprador agotándose: últimas 3 velas muy por debajo de las 10 previas
+    const volRecent = sma(vols4h, 3, vols4h.length-1);
+    const volPrev = sma(vols4h, 10, Math.max(0, vols4h.length-4));
+    const volDebil = volPrev > 0 && volRecent < volPrev * 0.7;
+
+    // 2) Absorción CVD: precio iguala/supera su pico previo pero el CVD no lo acompaña
+    let cvdAbsorcion = false;
+    if(piv4h.highs.length >= 1){
+      const ph = piv4h.highs[piv4h.highs.length-1];
+      const precioIgualaOSupera = highs[highs.length-1] >= ph.val * 0.995;
+      cvdAbsorcion = precioIgualaOSupera && cvdArr[cvdArr.length-1] <= cvdArr[ph.idx];
+    }
+
+    // 3) Divergencia de momentum: dos últimos picos de precio vs RSI en esos mismos puntos
+    let divergenciaMomentum = false;
+    if(piv4h.highs.length >= 2){
+      const h1 = piv4h.highs[piv4h.highs.length-2], h2 = piv4h.highs[piv4h.highs.length-1];
+      divergenciaMomentum = h2.val >= h1.val && rsiArr[h2.idx] < rsiArr[h1.idx];
+    }
+
+    // 4) Estructura: barrido de máximo relevante (ya calculado arriba) + CHoCH
+    //    (pérdida del último mínimo ascendente confirmado)
+    let chochDown = false;
+    if(piv4h.lows.length >= 1){
+      const lastLow = piv4h.lows[piv4h.lows.length-1];
+      chochDown = closes[closes.length-1] < lastLow.val && closes[closes.length-2] >= lastLow.val;
+    }
+    const estructuraChoch = barridoShort && chochDown;
+
+    const grietas = [volDebil, cvdAbsorcion, divergenciaMomentum].filter(Boolean).length;
+    let rotacion = { txt: 'SIN SEÑAL', cls: 'b-gray' };
+    if(estructuraChoch && grietas >= 2)      rotacion = { txt: 'GIRO CONFIRMADO', cls: 'b-red' };
+    else if(estructuraChoch && grietas >= 1) rotacion = { txt: 'ROTACIÓN EN CURSO', cls: 'b-orange' };
+    else if(!estructuraChoch && grietas >= 2) rotacion = { txt: 'AGOTAMIENTO — VIGILAR', cls: 'b-yellow' };
+    else if(grietas >= 1)                    rotacion = { txt: 'PRIMERAS GRIETAS', cls: 'b-cyan' };
+
     return {
       symbol, price, change, trendUp, trendDown,
       sqzTxt: rojoOscuro ? 'Valle rojo oscuro (agotándose)' : rojoBrillante ? 'Valle rojo claro' : verdeBrillante ? 'Montaña verde ▲' : 'Montaña verde (débil)',
@@ -368,7 +420,9 @@ async function analizarMoneda(symbol){
       scoreL, scoreS,
       senalLong, senalShort,
       picoRes, picoSup, nivelSup, nivelRes, atrNow,
-      fuerzaLong, fuerzaShort
+      fuerzaLong, fuerzaShort,
+      volDebil, cvdAbsorcion, divergenciaMomentum, estructuraChoch, chochDown,
+      rotacion
     };
   }catch(e){ return { symbol, error: e.message }; }
 }
@@ -379,12 +433,13 @@ async function analizarMoneda(symbol){
 function fmtP(p){ if(p===null||p===undefined||isNaN(p)) return '—'; if(p>=1) return p.toFixed(4); if(p>=0.01) return p.toFixed(5); return p.toFixed(6); }
 
 function renderRow(d){
-  if(d.error) return `<tr><td class="sym">${d.symbol}</td><td colspan="9" style="color:var(--text3)">${d.error}</td></tr>`;
+  if(d.error) return `<tr><td class="sym">${d.symbol}</td><td colspan="10" style="color:var(--text3)">${d.error}</td></tr>`;
   const trendBadge = d.trendUp ? '<span class="badge b-green">▲ ALCISTA</span>' : '<span class="badge b-red">▼ BAJISTA</span>';
   const stoTxt = d.sobrecompra ? 'SOBRECOMPRA' : d.sobreventa ? 'SOBREVENTA' : 'NEUTRA';
   const stoBadge = `<span class="badge ${d.sobreventa?'b-green':d.sobrecompra?'b-red':'b-gray'}">${Math.round(d.stoK)} · ${stoTxt}</span>`;
   const manipTxt = (d.barridoLong?'✓L ':'') + (d.barridoShort?'✓S':'') || 'esperando';
   const senalBadge = d.senalLong ? '<span class="badge b-green">🎣 LONG</span>' : d.senalShort ? '<span class="badge b-red">🎣 SHORT</span>' : '<span class="badge b-gray">—</span>';
+  const rotacionBadge = `<span class="badge ${d.rotacion.cls}">${d.rotacion.txt}</span>`;
   const rowClass = d.senalLong ? 'signal-long' : d.senalShort ? 'signal-short' : '';
   return `<tr class="${rowClass}" data-sym="${d.symbol}">
     <td class="sym">${d.symbol}</td>
@@ -397,8 +452,9 @@ function renderRow(d){
     <td class="r ${d.scoreL>=3?'score-hi':'score-lo'}">${d.scoreL}/5</td>
     <td class="r ${d.scoreS>=3?'score-hi':'score-lo'}">${d.scoreS}/5</td>
     <td>${senalBadge}</td>
+    <td>${rotacionBadge}</td>
   </tr>
-  <tr class="detail" id="detail-${d.symbol}"><td colspan="10"><div class="detail-inner">
+  <tr class="detail" id="detail-${d.symbol}"><td colspan="11"><div class="detail-inner">
     <div class="dcard"><div class="dcard-label">Pico resistencia (Diario)</div><div class="dcard-val">${d.picoRes?fmtP(d.picoRes):'—'}</div></div>
     <div class="dcard"><div class="dcard-label">Pico soporte (Diario)</div><div class="dcard-val">${d.picoSup?fmtP(d.picoSup):'—'}</div></div>
     <div class="dcard"><div class="dcard-label">Nivel objetivo LONG (soporte)</div><div class="dcard-val">${fmtP(d.nivelSup)}</div></div>
@@ -407,6 +463,12 @@ function renderRow(d){
     <div class="dcard"><div class="dcard-label">Cambio 4H</div><div class="dcard-val" style="color:${d.change>=0?'var(--green)':'var(--red)'}">${d.change>=0?'+':''}${d.change.toFixed(2)}%</div></div>
     <div class="dcard"><div class="dcard-label">Fuerza disponible (LONG → pico arriba)</div><div class="dcard-val" style="font-size:12px;color:${d.fuerzaLong.alcanza?'var(--green)':'var(--text2)'}">${d.fuerzaLong.texto}</div></div>
     <div class="dcard"><div class="dcard-label">Fuerza disponible (SHORT → pico abajo)</div><div class="dcard-val" style="font-size:12px;color:${d.fuerzaShort.alcanza?'var(--red)':'var(--text2)'}">${d.fuerzaShort.texto}</div></div>
+
+    <div class="detail-sep">Módulo de rotación (salida de long / posible short)</div>
+    <div class="dcard"><div class="dcard-label">1. Volumen comprador</div><div class="dcard-val" style="font-size:13px;color:${d.volDebil?'var(--red)':'var(--text2)'}">${d.volDebil?'✗ Agotado':'✓ Sostenido'}</div></div>
+    <div class="dcard"><div class="dcard-label">2. Absorción CVD (proxy)</div><div class="dcard-val" style="font-size:13px;color:${d.cvdAbsorcion?'var(--red)':'var(--text2)'}">${d.cvdAbsorcion?'✗ Confirmada':'✓ Sin absorción'}</div></div>
+    <div class="dcard"><div class="dcard-label">3. Divergencia momentum</div><div class="dcard-val" style="font-size:13px;color:${d.divergenciaMomentum?'var(--red)':'var(--text2)'}">${d.divergenciaMomentum?'✗ Detectada':'✓ Sin divergencia'}</div></div>
+    <div class="dcard"><div class="dcard-label">4. Barrido + CHoCH (gate)</div><div class="dcard-val" style="font-size:13px;color:${d.estructuraChoch?'var(--red)':'var(--text2)'}">${d.estructuraChoch?'✗ Confirmado':'✓ Estructura intacta'}</div></div>
   </div></td></tr>`;
 }
 
@@ -417,7 +479,7 @@ async function runScan(){
   const btn = document.getElementById('scan-btn');
   btn.disabled = true; btn.textContent = '⟳ ESCANEANDO...';
   const tbody = document.getElementById('tbody');
-  tbody.innerHTML = `<tr><td colspan="10" style="padding:40px;text-align:center;color:var(--text2)"><span class="spinner"></span>Analizando ${coins.length} moneda(s)...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="11" style="padding:40px;text-align:center;color:var(--text2)"><span class="spinner"></span>Analizando ${coins.length} moneda(s)...</td></tr>`;
   const results = await Promise.all(coins.map(analizarMoneda));
   tbody.innerHTML = results.map(renderRow).join('');
   tbody.querySelectorAll('tr[data-sym]').forEach(row => {
